@@ -7,7 +7,6 @@ import { StatsCard } from "@/components/StatsCard";
 import { StreakActions } from "@/components/StreakActions";
 import { CommunityButton } from "@/components/CommunityButton";
 import { NotificationToggle } from "@/components/NotificationToggle";
-import { InstallPrompt } from "@/components/InstallPrompt";
 import { BottomNav } from "@/components/BottomNav";
 import { getStreakData, saveStreakData, calculateStreak, StreakData } from "@/lib/streakUtils";
 import { ShareProgressCard } from "@/components/ShareProgressCard";
@@ -148,8 +147,6 @@ const Index = () => {
             pendingCount={pendingCount}
           />
         </div>
-
-        <InstallPrompt />
 
         <div className="grid gap-6 md:grid-cols-2">
           <div className="space-y-6">

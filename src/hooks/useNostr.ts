@@ -36,11 +36,18 @@ export const useNostr = () => {
 
   const subscribe = (filter: Filter) => {
     if (!relayRef.current) return;
-    const sub = relayRef.current.subscribe([filter], {
-      eoseTimeout: 3000, // 3 seconds
-    });
-    sub.on('event', (event: Event) => {
-      setEvents(prev => [...prev, event]);
+
+    relayRef.current.subscribe([filter], {
+      onevent: (event: Event) => {
+        setEvents(prev => {
+          // Prevent duplicates
+          if (prev.some(e => e.id === event.id)) return prev;
+          return [...prev, event];
+        });
+      },
+      oneose: () => {
+        console.log('End of stored events reached');
+      }
     });
   };
 

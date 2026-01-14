@@ -8,7 +8,6 @@ import Auth from "./pages/Auth";
 import Community from "./pages/Community";
 import Profile from "./pages/Profile";
 import Journal from "./pages/Journal";
-import Install from "./pages/Install";
 import Join from "./pages/Join";
 import NotFound from "./pages/NotFound";
 
@@ -27,7 +26,6 @@ const App = () => {
             <Route path='/journal' element={<Journal />} />
             <Route path='/community' element={<Community />} />
             <Route path='/profile' element={<Profile />} />
-            <Route path='/install' element={<Install />} />
             <Route path='/join' element={<Join />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path='*' element={<NotFound />} />
