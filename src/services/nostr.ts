@@ -815,3 +815,75 @@ export async function fetchJournalEntries(): Promise<JournalEntry[]> {
         return [];
     }
 }
+// ============================================================================
+// CLOUD SYNC (KIND 30078)
+// ============================================================================
+
+const CLOUD_SYNC_D_TAG = "nofaphydra-streak";
+const CLOUD_SYNC_KIND = 30078;
+
+/**
+ * Save streak data to cloud (Kind 30078)
+ */
+export async function saveStreakToCloud(streakData: StreakPayload): Promise<boolean> {
+    try {
+        const keys = await generateOrLoadKeys();
+
+        // Encrypt the streak data
+        const encryptedContent = encryptStreakData(
+            streakData,
+            keys.privateKey,
+            keys.publicKey
+        );
+
+        const eventTemplate = {
+            kind: CLOUD_SYNC_KIND,
+            created_at: Math.floor(Date.now() / 1000),
+            tags: [
+                ["d", CLOUD_SYNC_D_TAG],
+                ["t", "nofaphydra"],
+                ["encrypted", "nip44"],
+            ],
+            content: encryptedContent,
+        };
+
+        const signedEvent = finalizeEvent(eventTemplate, keys.privateKey);
+
+        // We always try to publish directly to relays for cloud sync
+        const success = await resilientPublish(signedEvent);
+        return success;
+    } catch (error) {
+        console.error("[Nostr] Error saving streak to cloud:", error);
+        return false;
+    }
+}
+
+/**
+ * Fetch streak data from cloud (Kind 30078)
+ */
+export async function fetchStreakFromCloud(): Promise<StreakPayload | null> {
+    try {
+        const keys = await generateOrLoadKeys();
+        const currentRelays = await getRelays();
+
+        const filter = {
+            kinds: [CLOUD_SYNC_KIND],
+            authors: [keys.publicKey],
+            "#d": [CLOUD_SYNC_D_TAG],
+            limit: 1,
+        };
+
+        const events = await pool.querySync(currentRelays, filter);
+        if (events.length === 0) return null;
+
+        const latestEvent = events[0];
+        return decryptStreakData(
+            latestEvent.content,
+            keys.privateKey,
+            keys.publicKey
+        );
+    } catch (error) {
+        console.error("[Nostr] Error fetching streak from cloud:", error);
+        return null;
+    }
+}

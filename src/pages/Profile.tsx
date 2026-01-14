@@ -11,8 +11,9 @@ import { generateOrLoadKeys, NostrKeys } from "@/services/nostr";
 import { SecuritySettings } from "@/components/SecuritySettings";
 import { AvatarUpload } from "@/components/AvatarUpload";
 import { RelaySettings } from "@/components/RelaySettings";
-import { useNostr } from "@/hooks/useNostr";
 import { finalizeEvent } from "nostr-tools";
+import { saveStreakToCloud, fetchStreakFromCloud, StreakPayload } from "@/services/nostr";
+import { Cloud, Download } from "lucide-react";
 
 const profileSchema = z.object({
   username: z.string().trim().min(2, "Username must be at least 2 characters").max(30, "Username must be less than 30 characters"),
@@ -46,6 +47,81 @@ const Profile = () => {
 
     checkAuth();
   }, [navigate]);
+
+  const handleCloudSync = async () => {
+    if (!identity) return;
+
+    setSaving(true);
+    try {
+      // Get current local streak
+      const storedDays = localStorage.getItem("streak_days") || "0";
+      const storedStartDate = localStorage.getItem("streak_start_date");
+      const storedLongest = localStorage.getItem("longest_streak") || "0";
+      const storedRelapses = localStorage.getItem("total_relapses") || "0";
+
+      const streakData: StreakPayload = {
+        days: parseInt(storedDays),
+        startDate: storedStartDate,
+        longestStreak: parseInt(storedLongest),
+        totalRelapses: parseInt(storedRelapses),
+        timestamp: Math.floor(Date.now() / 1000),
+      };
+
+      const success = await saveStreakToCloud(streakData);
+      if (success) {
+        toast({
+          title: "Cloud Backup Successful",
+          description: "Your progress is now secured on the Nostr network.",
+        });
+      } else {
+        throw new Error("Relay confirmation failed");
+      }
+    } catch (err) {
+      console.error("Cloud sync failed", err);
+      toast({
+        title: "Backup Failed",
+        description: "Could not reach relays. Try again later.",
+        variant: "destructive",
+      });
+    }
+    setSaving(false);
+  };
+
+  const handleCloudRestore = async () => {
+    if (!identity) return;
+
+    setSaving(true);
+    try {
+      const remoteStreak = await fetchStreakFromCloud();
+      if (remoteStreak) {
+        localStorage.setItem("streak_days", remoteStreak.days.toString());
+        localStorage.setItem("streak_start_date", remoteStreak.startDate || "");
+        localStorage.setItem("longest_streak", remoteStreak.longestStreak.toString());
+        localStorage.setItem("total_relapses", remoteStreak.totalRelapses.toString());
+
+        toast({
+          title: "Progress Restored",
+          description: `Successfully restored ${remoteStreak.days} day streak from cloud.`,
+        });
+        // We might need to trigger a global state update or refresh if needed, 
+        // but for now local storage is updated.
+      } else {
+        toast({
+          title: "No Backup Found",
+          description: "No cloud progress was found for this identity.",
+          variant: "destructive",
+        });
+      }
+    } catch (err) {
+      console.error("Cloud restore failed", err);
+      toast({
+        title: "Restore Failed",
+        description: "Failed to fetch backup from network.",
+        variant: "destructive",
+      });
+    }
+    setSaving(false);
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -159,12 +235,35 @@ const Profile = () => {
                 type="submit"
                 variant="default"
                 size="lg"
-                className="w-full bg-black text-white hover:bg-black/90 transition-transform active:scale-95"
+                className="w-full bg-black text-white hover:bg-black/90 transition-transform active:scale-95 rounded-none border border-black"
                 disabled={saving}
               >
                 <Save className="w-4 h-4 mr-2" />
                 {saving ? "Synchronizing..." : "Update Metadata"}
               </Button>
+
+              <div className="grid grid-cols-2 gap-4 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleCloudSync}
+                  className="rounded-none border-black hover:bg-black hover:text-white uppercase text-[10px] font-bold tracking-widest h-12"
+                  disabled={saving}
+                >
+                  <Cloud className="w-4 h-4 mr-2" />
+                  Cloud Backup
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleCloudRestore}
+                  className="rounded-none border-black hover:bg-black hover:text-white uppercase text-[10px] font-bold tracking-widest h-12"
+                  disabled={saving}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Restore
+                </Button>
+              </div>
             </form>
           </div>
 
