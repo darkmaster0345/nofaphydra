@@ -31,7 +31,6 @@ export function ChatRules() {
               <li>• No hate speech, slurs, or harassment</li>
               <li>• No explicit or sexual content</li>
               <li>• Casual language is fine, but excessive profanity gets filtered</li>
-              <li>• Messages are AI-moderated; violations result in a brief timeout</li>
             </ul>
           </div>
         </div>

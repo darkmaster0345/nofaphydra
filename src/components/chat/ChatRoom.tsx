@@ -3,11 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Send } from "lucide-react";
 import { useNostr } from "@/hooks/useNostr";
-import { generateOrLoadKeys } from "@/services/nostr";
+import { generateOrLoadKeys, NostrKeys } from "@/services/nostr";
 import { finalizeEvent } from "nostr-tools";
 import type { Event } from "nostr-tools";
 import { formatDistanceToNow } from "date-fns";
-import { hexToBytes } from "@noble/hashes/utils";
 import { toast } from "@/hooks/use-toast";
 
 interface Message {
@@ -25,7 +24,7 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const { events, subscribe, publish } = useNostr();
-  const [identity, setIdentity] = useState<{ publicKey: string, privateKey: string } | null>(null);
+  const [identity, setIdentity] = useState<NostrKeys | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -57,7 +56,7 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
     }
 
     try {
-      const secretKey = hexToBytes(identity.privateKey);
+      const secretKey = identity.privateKey;
 
       const eventTemplate = {
         kind: 1,
@@ -72,7 +71,7 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
       setNewMessage("");
     } catch (error) {
       console.error("Failed to send message:", error);
-      toast({ title: "Error", description: "Failed to sign message. Check your key.", variant: "destructive" });
+      toast({ title: "Error", description: "Failed to sign message.", variant: "destructive" });
     }
   };
 
@@ -80,7 +79,7 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
     <div className="android-card flex flex-col h-[500px]">
       <div className="flex-1 overflow-y-auto space-y-4 p-4">
         {messages.map((message) => {
-          const isOwn = message.pubkey === identity?.publicKey;
+          const isOwn = identity && message.pubkey === identity.publicKey;
           return (
             <div key={message.id} className={`flex gap-2 ${isOwn ? "flex-row-reverse" : ""}`}>
               <div className={`flex-1 max-w-[75%] ${isOwn ? "text-right" : ""}`}>
