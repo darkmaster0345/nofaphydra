@@ -9,14 +9,26 @@ const DEFAULT_RELAYS = [
     'wss://relay.eden.earth',
 ];
 
+interface RelayMetadata {
+    name?: string;
+    description?: string;
+    pubkey?: string;
+    contact?: string;
+    supported_nips?: number[];
+    software?: string;
+    version?: string;
+}
+
 interface NostrContextType {
     pool: SimplePool;
     relays: string[];
     connectedRelays: string[];
+    relayMetadata: Record<string, RelayMetadata>;
     addRelay: (url: string) => Promise<void>;
     removeRelay: (url: string) => Promise<void>;
     publish: (event: any) => Promise<boolean>;
     subscribe: (filter: Filter, onEvent: (event: Event) => void) => () => void;
+    checkRelayStatus: (url: string) => Promise<{ success: boolean; metadata?: RelayMetadata }>;
 }
 
 const NostrContext = createContext<NostrContextType | null>(null);
@@ -24,6 +36,7 @@ const NostrContext = createContext<NostrContextType | null>(null);
 export const NostrProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [relays, setRelays] = useState<string[]>(DEFAULT_RELAYS);
     const [connectedRelays, setConnectedRelays] = useState<string[]>([]);
+    const [relayMetadata, setRelayMetadata] = useState<Record<string, RelayMetadata>>({});
     const poolRef = useRef<SimplePool>(new SimplePool());
 
     useEffect(() => {
@@ -36,21 +49,74 @@ export const NostrProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         loadRelays();
     }, []);
 
-    // Monitor relay connections
+    // Monitor relay connections and fetch metadata
     useEffect(() => {
         const checkConnections = async () => {
-            const connected = [];
+            const connected: string[] = [];
+
             for (const url of relays) {
                 try {
-                    // SimplePool handles connection, but we can check status if needed
-                    // For now we just assume pool manages them
+                    // In nostr-tools v2, we check the pool's internal relay status if possible
+                    // However, querySync or query will establish connections.
+                    // A better way for Hydra: use the fetchRelay Information (NIP-11) as a proxy for life
+                    const relay = await poolRef.current.ensureRelay(url);
+                    // Check if it's connected (this might vary by nostr-tools version)
+                    // For Hydra, we'll use a simpler 'active' check
                     connected.push(url);
-                } catch (e) { }
+
+                    // Fetch metadata if not already present
+                    if (!relayMetadata[url]) {
+                        fetchMetadata(url);
+                    }
+                } catch (e) {
+                    console.warn(`[Nostr] Relay ${url} unreachable`);
+                }
             }
             setConnectedRelays(connected);
         };
+
+        const fetchMetadata = async (url: string) => {
+            try {
+                const httpUrl = url.replace('wss://', 'https://').replace('ws://', 'http://');
+                const response = await fetch(httpUrl, {
+                    headers: { 'Accept': 'application/nostr+json' }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    setRelayMetadata(prev => ({ ...prev, [url]: data }));
+                }
+            } catch (e) {
+                // Silently fail metadata fetch
+            }
+        };
+
         checkConnections();
-    }, [relays]);
+        const interval = setInterval(checkConnections, 30000); // Check every 30s
+        return () => clearInterval(interval);
+    }, [relays, relayMetadata]);
+
+    const checkRelayStatus = useCallback(async (url: string) => {
+        try {
+            const relay = await poolRef.current.ensureRelay(url);
+
+            // Fetch NIP-11 metadata
+            let metadata: RelayMetadata | undefined;
+            try {
+                const httpUrl = url.replace('wss://', 'https://').replace('ws://', 'http://');
+                const response = await fetch(httpUrl, {
+                    headers: { 'Accept': 'application/nostr+json' },
+                    signal: AbortSignal.timeout(5000)
+                });
+                if (response.ok) {
+                    metadata = await response.json();
+                }
+            } catch (e) { }
+
+            return { success: true, metadata };
+        } catch (e) {
+            return { success: false };
+        }
+    }, []);
 
     const addRelay = useCallback(async (url: string) => {
         if (!url.startsWith('wss://') && !url.startsWith('ws://')) return;
@@ -89,10 +155,12 @@ export const NostrProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             pool: poolRef.current,
             relays,
             connectedRelays,
+            relayMetadata,
             addRelay,
             removeRelay,
             publish,
-            subscribe
+            subscribe,
+            checkRelayStatus
         }}>
             {children}
         </NostrContext.Provider>

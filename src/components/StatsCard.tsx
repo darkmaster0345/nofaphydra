@@ -8,53 +8,57 @@ interface StatsCardProps {
 export function StatsCard({ data }: StatsCardProps) {
   const currentStreak = calculateStreak(data.startDate);
 
+  // The effective longest streak is the max of the historic record and current progress
+  const effectiveLongest = Math.max(data.longestStreak, currentStreak.days);
+
+  // Goals logic
+  const goals = [7, 14, 30, 60, 90, 180, 365];
+  const nextGoal = goals.find(g => g > currentStreak.days) || 365;
+  const daysRemaining = nextGoal - currentStreak.days;
+
+  // New record logic: current streak has purely surpassed the historic longest streak
+  const isNewRecord = currentStreak.days > 0 && currentStreak.days >= data.longestStreak;
+
   return (
-    <div className="streak-card animate-fade-in" style={{ animationDelay: "0.4s" }}>
-      <h3 className="text-lg font-display text-muted-foreground mb-4">Your Stats</h3>
-      
-      <div className="space-y-4">
-        <div className="flex items-center justify-between p-4 rounded-xl bg-secondary/50">
+    <div className="streak-card animate-fade-in border border-black p-6 bg-white" style={{ animationDelay: "0.4s" }}>
+      <h3 className="text-xs font-bold uppercase tracking-[0.3em] text-black/40 mb-6">Battle Statistics</h3>
+
+      <div className="space-y-3">
+        {/* Longest Streak */}
+        <div className="flex items-center justify-between p-4 border border-black bg-white">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-              <Trophy className="w-5 h-5 text-primary" />
-            </div>
+            <Trophy className="w-4 h-4 text-black" />
             <div>
-              <p className="text-sm text-muted-foreground">Longest Streak</p>
-              <p className="text-xl font-display text-foreground">{data.longestStreak} days</p>
+              <p className="text-[10px] uppercase font-bold text-black/40 tracking-tight">Personal Best</p>
+              <p className="text-xl font-black uppercase tracking-tighter">{effectiveLongest} Days</p>
             </div>
           </div>
-          {currentStreak.days > data.longestStreak && (
-            <span className="px-2 py-1 text-xs font-semibold rounded-full bg-success/20 text-success">
-              NEW!
+          {isNewRecord && (
+            <span className="px-2 py-1 text-[9px] font-black uppercase tracking-widest bg-black text-white animate-pulse">
+              NEW RECORD
             </span>
           )}
         </div>
 
-        <div className="flex items-center justify-between p-4 rounded-xl bg-secondary/50">
+        {/* Total Resets */}
+        <div className="flex items-center justify-between p-4 border border-black bg-white">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-destructive/20 flex items-center justify-center">
-              <RotateCcw className="w-5 h-5 text-destructive" />
-            </div>
+            <RotateCcw className="w-4 h-4 text-black" />
             <div>
-              <p className="text-sm text-muted-foreground">Total Resets</p>
-              <p className="text-xl font-display text-foreground">{data.totalRelapses}</p>
+              <p className="text-[10px] uppercase font-bold text-black/40 tracking-tight">Total Resets</p>
+              <p className="text-xl font-black uppercase tracking-tighter">{data.totalRelapses}</p>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center justify-between p-4 rounded-xl bg-secondary/50">
+        {/* Next Goal */}
+        <div className="flex items-center justify-between p-4 border border-black bg-white">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
-              <Target className="w-5 h-5 text-accent" />
-            </div>
+            <Target className="w-4 h-4 text-black" />
             <div>
-              <p className="text-sm text-muted-foreground">Next Goal</p>
-              <p className="text-xl font-display text-foreground">
-                {currentStreak.days < 7 ? "7" : 
-                 currentStreak.days < 14 ? "14" :
-                 currentStreak.days < 30 ? "30" :
-                 currentStreak.days < 60 ? "60" :
-                 currentStreak.days < 90 ? "90" : "180"} days
+              <p className="text-[10px] uppercase font-bold text-black/40 tracking-tight">Objective: {nextGoal} Days</p>
+              <p className="text-xl font-black uppercase tracking-tighter">
+                {daysRemaining} {daysRemaining === 1 ? 'Day' : 'Days'} To Go
               </p>
             </div>
           </div>

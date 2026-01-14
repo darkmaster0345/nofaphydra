@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Key, User, ArrowLeft } from "lucide-react";
+import { Key, User, ArrowLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { importKey, generateOrLoadKeys } from "@/services/nostr";
 
 const Auth = () => {
@@ -16,10 +16,12 @@ const Auth = () => {
     setLoading(true);
     try {
       await generateOrLoadKeys();
-      toast({ title: "New identity created!", description: "Your new Nostr key is securely stored." });
+      toast.success("Identity Created", {
+        description: "New keys generated and stored in local vault."
+      });
       navigate("/");
     } catch (error) {
-      toast({ title: "Error", description: "Could not create a new identity.", variant: "destructive" });
+      toast.error("Initialization Failed");
     }
     setLoading(false);
   };
@@ -28,53 +30,91 @@ const Auth = () => {
     setLoading(true);
     try {
       if (!privateKey.startsWith("nsec")) {
-        toast({ title: "Error", description: "Key must start with 'nsec'", variant: "destructive" });
+        toast.error("Invalid Format", {
+          description: "Keys must begin with 'nsec' prefix."
+        });
         setLoading(false);
         return;
       }
 
       const success = await importKey(privateKey);
       if (success) {
-        toast({ title: "Logged in!", description: "Your identity has been imported." });
+        toast.success("Identity Merged", {
+          description: "Secure protocol established."
+        });
         navigate("/");
       }
     } catch (error) {
-      toast({ title: "Error", description: "Invalid private key.", variant: "destructive" });
+      console.error(error);
+      toast.error("Authentication Error", {
+        description: "Verify private key integrity."
+      });
     }
     setLoading(false);
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <Button variant="ghost" className="mb-6" onClick={() => navigate("/")}>
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
+      <div className="w-full max-w-md animate-in fade-in zoom-in duration-500">
+        <Button
+          variant="ghost"
+          className="mb-8 rounded-none border-black hover:bg-black hover:text-white uppercase text-[10px] font-black tracking-widest"
+          onClick={() => navigate("/")}
+        >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Home
+          Abort Protocol
         </Button>
-        <div className="streak-card">
-          <div className="flex justify-center mb-6">
-            <img src="/logo.png" alt="Hydra Logo" className="w-20 h-20 rounded-full border border-black/5" />
+
+        <div className="border-[3px] border-black p-8 md:p-12 space-y-8 bg-white">
+          <div className="flex flex-col items-center gap-4">
+            <h1 className="text-4xl font-black italic tracking-tighter uppercase leading-none">Hydra Sync</h1>
+            <p className="text-[10px] font-mono font-black uppercase tracking-[0.3em] text-black/40 text-center">Identity Encryption Protocol</p>
           </div>
-          <h1 className="text-3xl font-display text-center mb-6 uppercase tracking-widest">Hydra Sync</h1>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="privateKey">Private Key (nsec)</Label>
+
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="privateKey" className="text-[10px] font-black uppercase tracking-widest text-black/40">Credential Input (nsec)</Label>
               <div className="relative">
-                <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input id="privateKey" type="password" placeholder="Enter your nsec..." value={privateKey} onChange={(e) => setPrivateKey(e.target.value)} className="pl-10" />
+                <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-black" />
+                <Input
+                  id="privateKey"
+                  type="password"
+                  placeholder="NSEC_PROTOCOL_KEY..."
+                  value={privateKey}
+                  onChange={(e) => setPrivateKey(e.target.value)}
+                  className="pl-10 h-14 rounded-none border-black border-2 focus-visible:ring-0 focus-visible:ring-offset-0 font-mono text-xs uppercase"
+                />
               </div>
             </div>
-            <Button onClick={handleLogin} disabled={loading || !privateKey} className="w-full">Login with private key</Button>
+
+            <Button
+              onClick={handleLogin}
+              disabled={loading || !privateKey}
+              className="w-full h-14 bg-black text-white hover:bg-black/90 rounded-none border border-black uppercase text-xs font-black tracking-widest transition-all active:scale-95"
+            >
+              {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+              Initialize Link
+            </Button>
           </div>
-          <div className="my-4 flex items-center">
-            <div className="flex-grow border-t border-muted" />
-            <span className="mx-4 text-muted-foreground">OR</span>
-            <div className="flex-grow border-t border-muted" />
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-black/10"></span></div>
+            <div className="relative flex justify-center text-[10px] uppercase font-black tracking-widest"><span className="bg-white px-4 text-black/40">Alternative Initialization</span></div>
           </div>
-          <Button onClick={handleGenerate} disabled={loading} variant="outline" className="w-full">
+
+          <Button
+            onClick={handleGenerate}
+            disabled={loading}
+            variant="outline"
+            className="w-full h-14 rounded-none border-black border-2 hover:bg-black hover:text-white uppercase text-xs font-black tracking-widest transition-all active:scale-95"
+          >
             <User className="w-4 h-4 mr-2" />
-            Generate a new identity
+            Generate Random ID
           </Button>
+        </div>
+
+        <div className="mt-8 text-center">
+          <p className="text-[9px] font-mono text-black/20 uppercase tracking-widest">Hydra Persistence Engine v2.4.0 // Unauthorized access is strictly prohibited</p>
         </div>
       </div>
     </div>

@@ -48,11 +48,9 @@ async function getRelays(): Promise<string[]> {
     return RELAYS;
 }
 
-// Private kind for encrypted streak data
-const STREAK_NOTE_KIND = 1;
-
-// Tag to identify our streak notes
-const STREAK_TAG = "nofaphydra-streak";
+// Private kind for encrypted streak data (NIP-78)
+const STREAK_CLOUD_KIND = 30078;
+const STREAK_CLOUD_D_TAG = "nofaphydra-streak";
 
 // Storage key for pending offline events
 const PENDING_SYNC_KEY = "pending_sync";
@@ -546,7 +544,7 @@ function decryptStreakData(
 // ============================================================================
 
 /**
- * Save streak data to Nostr relays (with offline queue support)
+ * Save streak data to Nostr relays using Kind 30078 (NIP-78)
  */
 export async function saveStreak(streakData: StreakPayload): Promise<boolean> {
     try {
@@ -559,12 +557,13 @@ export async function saveStreak(streakData: StreakPayload): Promise<boolean> {
             keys.publicKey
         );
 
-        // Create the event
+        // Create the event (Kind 30078)
         const eventTemplate = {
-            kind: STREAK_NOTE_KIND,
+            kind: STREAK_CLOUD_KIND,
             created_at: Math.floor(Date.now() / 1000),
             tags: [
-                ["t", STREAK_TAG],
+                ["d", STREAK_CLOUD_D_TAG],
+                ["t", "nofaphydra"],
                 ["encrypted", "nip44"],
             ],
             content: encryptedContent,
@@ -575,23 +574,20 @@ export async function saveStreak(streakData: StreakPayload): Promise<boolean> {
 
         // Check network status
         if (!networkState.isOnline) {
-            console.log("[Nostr] Offline - queueing event for later sync");
+            console.log("[Nostr] Offline - queueing cloud sync for later");
             await queueEvent(signedEvent);
-            return true; // Return true because it's queued successfully
+            return true;
         }
 
-        // We're online - try resilient publish to multiple relays
         const success = await resilientPublish(signedEvent);
 
         if (success) {
-            console.log("[HYDRA-DEBUG]: Nostr Event Published", signedEvent.id);
-            console.log("[Nostr] Streak saved to relays:", signedEvent.id);
+            console.log("[Nostr] Streak synced to cloud (Kind 30078):", signedEvent.id);
             return true;
         } else {
-            // All relays failed - queue for later
-            console.warn("[Nostr] All relays failed, queueing for later");
+            console.warn("[Nostr] Relay publish failed, queueing for later");
             await queueEvent(signedEvent);
-            return true; // Queued successfully
+            return true;
         }
     } catch (error) {
         console.error("[Nostr] Error saving streak:", error);
@@ -600,53 +596,39 @@ export async function saveStreak(streakData: StreakPayload): Promise<boolean> {
 }
 
 /**
- * Fetch the latest streak data from Nostr relays
+ * Fetch the latest streak data from Nostr relays (Kind 30078)
  */
 export async function fetchStreak(): Promise<StreakPayload | null> {
-    // Can't fetch if offline
-    if (!networkState.isOnline) {
-        console.log("[Nostr] Offline - cannot fetch streak");
-        return null;
-    }
+    if (!networkState.isOnline) return null;
 
     try {
         const keys = await generateOrLoadKeys();
         const currentRelays = await getRelays();
 
-        try {
-            const filter = {
-                kinds: [STREAK_NOTE_KIND],
-                authors: [keys.publicKey],
-                "#t": [STREAK_TAG],
-                limit: 10,
-            };
+        const filter = {
+            kinds: [STREAK_CLOUD_KIND],
+            authors: [keys.publicKey],
+            "#d": [STREAK_CLOUD_D_TAG],
+            limit: 1,
+        };
 
-            const events = await pool.querySync(currentRelays, filter);
+        const events = await pool.querySync(currentRelays, filter);
 
-            if (events.length === 0) {
-                console.log("[Nostr] No streak data found on relays");
-                return null;
-            }
-
-            events.sort((a, b) => b.created_at - a.created_at);
-            const latestEvent = events[0];
-
-            const streakData = decryptStreakData(
-                latestEvent.content,
-                keys.privateKey,
-                keys.publicKey
-            );
-
-            if (streakData) {
-                console.log("[Nostr] Fetched streak from relays:", streakData);
-            }
-
-            return streakData;
-        } finally {
-            // pool.close(currentRelays);
+        if (events.length === 0) {
+            console.log("[Nostr] No cloud streak data found (Kind 30078)");
+            return null;
         }
+
+        const latestEvent = events[0];
+        const streakData = decryptStreakData(
+            latestEvent.content,
+            keys.privateKey,
+            keys.publicKey
+        );
+
+        return streakData;
     } catch (error) {
-        console.error("[Nostr] Error fetching streak:", error);
+        console.error("[Nostr] Error fetching streak from cloud:", error);
         return null;
     }
 }
@@ -815,75 +797,4 @@ export async function fetchJournalEntries(): Promise<JournalEntry[]> {
         return [];
     }
 }
-// ============================================================================
-// CLOUD SYNC (KIND 30078)
-// ============================================================================
-
-const CLOUD_SYNC_D_TAG = "nofaphydra-streak";
-const CLOUD_SYNC_KIND = 30078;
-
-/**
- * Save streak data to cloud (Kind 30078)
- */
-export async function saveStreakToCloud(streakData: StreakPayload): Promise<boolean> {
-    try {
-        const keys = await generateOrLoadKeys();
-
-        // Encrypt the streak data
-        const encryptedContent = encryptStreakData(
-            streakData,
-            keys.privateKey,
-            keys.publicKey
-        );
-
-        const eventTemplate = {
-            kind: CLOUD_SYNC_KIND,
-            created_at: Math.floor(Date.now() / 1000),
-            tags: [
-                ["d", CLOUD_SYNC_D_TAG],
-                ["t", "nofaphydra"],
-                ["encrypted", "nip44"],
-            ],
-            content: encryptedContent,
-        };
-
-        const signedEvent = finalizeEvent(eventTemplate, keys.privateKey);
-
-        // We always try to publish directly to relays for cloud sync
-        const success = await resilientPublish(signedEvent);
-        return success;
-    } catch (error) {
-        console.error("[Nostr] Error saving streak to cloud:", error);
-        return false;
-    }
-}
-
-/**
- * Fetch streak data from cloud (Kind 30078)
- */
-export async function fetchStreakFromCloud(): Promise<StreakPayload | null> {
-    try {
-        const keys = await generateOrLoadKeys();
-        const currentRelays = await getRelays();
-
-        const filter = {
-            kinds: [CLOUD_SYNC_KIND],
-            authors: [keys.publicKey],
-            "#d": [CLOUD_SYNC_D_TAG],
-            limit: 1,
-        };
-
-        const events = await pool.querySync(currentRelays, filter);
-        if (events.length === 0) return null;
-
-        const latestEvent = events[0];
-        return decryptStreakData(
-            latestEvent.content,
-            keys.privateKey,
-            keys.publicKey
-        );
-    } catch (error) {
-        console.error("[Nostr] Error fetching streak from cloud:", error);
-        return null;
-    }
-}
+// End of Nostr Service

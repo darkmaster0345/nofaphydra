@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { StreakCounter } from "@/components/StreakCounter";
 import { AvatarDisplay } from "@/components/AvatarDisplay";
@@ -8,131 +8,52 @@ import { StreakActions } from "@/components/StreakActions";
 import { CommunityButton } from "@/components/CommunityButton";
 import { NotificationToggle } from "@/components/NotificationToggle";
 import { BottomNav } from "@/components/BottomNav";
-import { getStreakData, saveStreakData, calculateStreak, StreakData } from "@/lib/streakUtils";
 import { ShareProgressCard } from "@/components/ShareProgressCard";
-import { useNostrStreak } from "@/hooks/useNostrStreak";
-import { StreakPayload } from "@/services/nostr";
 import { SyncIndicator } from "@/components/SyncIndicator";
 import { ActivityHeatmap } from "@/components/DynamicComponents";
+import { useStreak } from "@/hooks/useStreak";
+import { Loader2 } from "lucide-react";
+import { generateOrLoadKeys } from "@/services/nostr";
 
 const Index = () => {
-  const [streakData, setStreakData] = useState<StreakData>({
-    startDate: null,
-    longestStreak: 0,
-    totalRelapses: 0,
-  });
+  const {
+    streakData,
+    liveStreak,
+    isSyncing,
+    isOnline,
+    pendingCount,
+    handleStart,
+    handleReset
+  } = useStreak();
 
-  // Track previous streak days to detect increases
-  const previousStreakDaysRef = useRef<number>(-1);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
-  // Nostr sync hook with offline support
-  const { saveStreak, fetchStreak, isSyncing, isOnline, pendingCount } = useNostrStreak();
-
-  // Load local streak data on mount
   useEffect(() => {
-    setStreakData(getStreakData());
-  }, []);
-
-  // Fetch and sync streak from Nostr on app load
-  useEffect(() => {
-    const syncFromNostr = async () => {
+    const loadProfile = async () => {
       try {
-        const remoteStreak = await fetchStreak();
-        if (remoteStreak && remoteStreak.startDate) {
-          const localData = getStreakData();
-
-          // Merge: prefer remote if it has a more recent timestamp or higher stats
-          const shouldUpdateLocal =
-            remoteStreak.timestamp > (localData.startDate ? new Date(localData.startDate).getTime() : 0) ||
-            remoteStreak.longestStreak > localData.longestStreak;
-
-          if (shouldUpdateLocal) {
-            const mergedData: StreakData = {
-              startDate: remoteStreak.startDate,
-              longestStreak: Math.max(localData.longestStreak, remoteStreak.longestStreak),
-              totalRelapses: Math.max(localData.totalRelapses, remoteStreak.totalRelapses),
-            };
-            setStreakData(mergedData);
-            saveStreakData(mergedData);
-            console.log("[Nostr] Restored streak from relay:", mergedData);
-          }
+        const id = await generateOrLoadKeys();
+        if (id?.publicKey) {
+          const storedAvatar = localStorage.getItem(`nostr_avatar_${id.publicKey}`);
+          setAvatarUrl(storedAvatar);
         }
-      } catch (error) {
-        console.error("[Nostr] Failed to sync on load:", error);
+      } catch (e) {
+        console.error("Failed to load profile for sharing", e);
       }
     };
+    loadProfile();
+  }, []);
 
-    // Small delay to ensure keys are initialized first
-    const timer = setTimeout(syncFromNostr, 1000);
-    return () => clearTimeout(timer);
-  }, [fetchStreak]);
+  // Stability Check: Prevent white screen while streak logic initializes
+  if (!streakData || !liveStreak) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
+        <Loader2 className="w-12 h-12 text-black animate-spin" strokeWidth={3} />
+        <p className="mt-4 text-[10px] font-black uppercase tracking-widest text-black/40">Loading NoFap Hydra...</p>
+      </div>
+    );
+  }
 
-  // Calculate current streak (moved up so it can be used in effects)
-  const currentStreak = calculateStreak(streakData.startDate);
-  const isActive = streakData.startDate !== null;
-
-  // Prepare streak data for Nostr sync
-  const prepareStreakPayload = (data: StreakData, days: number): StreakPayload => ({
-    days,
-    startDate: data.startDate,
-    longestStreak: data.longestStreak,
-    totalRelapses: data.totalRelapses,
-    timestamp: Date.now(),
-  });
-
-  // Sync to Nostr when streak increases
-  useEffect(() => {
-    const currentDays = currentStreak.days;
-
-    // Only sync if:
-    // 1. We have initialized (not first render)
-    // 2. The streak has increased
-    // 3. We have an active streak
-    if (
-      previousStreakDaysRef.current >= 0 &&
-      currentDays > previousStreakDaysRef.current &&
-      streakData.startDate
-    ) {
-      console.log(`[Nostr] Streak increased from ${previousStreakDaysRef.current} to ${currentDays}, syncing...`);
-      const payload = prepareStreakPayload(streakData, currentDays);
-      saveStreak(payload).then((success) => {
-        if (success) {
-          console.log("[Nostr] Streak synced successfully!");
-        }
-      });
-    }
-
-    // Update the ref for next comparison
-    previousStreakDaysRef.current = currentDays;
-  }, [currentStreak.days, streakData, saveStreak]);
-
-  const handleStart = () => {
-    const newData: StreakData = {
-      ...streakData,
-      startDate: new Date().toISOString(),
-    };
-    setStreakData(newData);
-    saveStreakData(newData);
-
-    // Immediately sync new streak to Nostr
-    const payload = prepareStreakPayload(newData, 0);
-    saveStreak(payload);
-  };
-
-  const handleReset = () => {
-    const currentStreakCalc = calculateStreak(streakData.startDate);
-    const newData: StreakData = {
-      startDate: null,
-      longestStreak: Math.max(streakData.longestStreak, currentStreakCalc.days),
-      totalRelapses: streakData.totalRelapses + 1,
-    };
-    setStreakData(newData);
-    saveStreakData(newData);
-
-    // Sync reset to Nostr (preserves stats)
-    const payload = prepareStreakPayload(newData, 0);
-    saveStreak(payload);
-  };
+  const isActive = streakData?.startDate !== null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -150,17 +71,22 @@ const Index = () => {
 
         <div className="grid gap-6 md:grid-cols-2">
           <div className="space-y-6">
-            <StreakCounter startDate={streakData.startDate} />
+            <StreakCounter
+              startDate={streakData?.startDate}
+              isSyncing={isSyncing}
+              isOnline={isOnline}
+              pendingCount={pendingCount}
+            />
             <MotivationCard />
-            <ShareProgressCard streak={currentStreak} avatarDays={currentStreak.days} />
+            <ShareProgressCard streak={liveStreak} avatarUrl={avatarUrl} />
             <NotificationToggle />
             <CommunityButton />
           </div>
 
           <div className="space-y-6">
-            <AvatarDisplay days={currentStreak.days} />
+            <AvatarDisplay days={liveStreak?.days || 0} />
             <StatsCard data={streakData} />
-            <ActivityHeatmap startDate={streakData.startDate} />
+            <ActivityHeatmap startDate={streakData?.startDate} />
           </div>
         </div>
 
@@ -173,7 +99,7 @@ const Index = () => {
         </div>
 
         <footer className="mt-12 pb-20 text-center text-muted-foreground text-sm">
-          <p>Stay strong. Stay disciplined. Become legendary. 🐉</p>
+          <p className="font-bold uppercase tracking-widest text-[10px]">NoFap Hydra Protocol // Stay disciplined. Become legendary. 🐉</p>
         </footer>
       </div>
 

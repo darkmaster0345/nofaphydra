@@ -1,19 +1,19 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send } from "lucide-react";
+import { Send, Loader2 } from "lucide-react";
 import { useNostr } from "@/hooks/useNostr";
 import { generateOrLoadKeys, NostrKeys } from "@/services/nostr";
 import { finalizeEvent } from "nostr-tools";
-import type { Event } from "nostr-tools";
 import { formatDistanceToNow } from "date-fns";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 interface Message {
   id: string;
   content: string;
   pubkey: string;
   created_at: number;
+  status?: 'sending' | 'sent' | 'received';
 }
 
 interface ChatRoomProps {
@@ -35,18 +35,19 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
     if (!identity) return;
     const unsub = subscribe({
       kinds: [1],
-      '#t': ['nofaphydra'],
-      limit: 50
+      '#t': ['nofaphydra', roomId],
+      limit: 100
     });
     return () => unsub && unsub();
-  }, [identity, subscribe]);
-
-  const [optimisticMessages, setOptimisticMessages] = useState<Message[]>([]);
+  }, [identity, subscribe, roomId]);
 
   useEffect(() => {
-    // Filter events locally to ensure they have the room tag as well
-    const roomMessages = events
-      .filter(event => event.tags.some(t => t[0] === 't' && t[1] === roomId))
+    // Process incoming events
+    const incomingMessages = events
+      .filter(event =>
+        event.tags.some(t => t[0] === 't' && t[1] === roomId) &&
+        event.tags.some(t => t[0] === 't' && t[1] === 'nofaphydra')
+      )
       .map(event => ({
         id: event.id!,
         content: event.content,
@@ -55,28 +56,33 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
         status: 'received' as const
       }));
 
-    // Filter out optimistic messages that have been received
-    setOptimisticMessages(prev => prev.filter(opt =>
-      !roomMessages.some(msg => msg.content === opt.content && msg.pubkey === opt.pubkey)
-    ));
+    setMessages(prev => {
+      // Merge incoming with existing, avoiding duplicates based on content/pubkey/time for optimistic matching
+      // or ID for relay events
+      const existingIds = new Set(prev.map(m => m.id));
+      const newFromRelay = incomingMessages.filter(m => !existingIds.has(m.id));
 
-    setMessages(roomMessages);
+      // Filter out optimistic messages that now have a relay counterpart
+      const filteredPrev = prev.filter(p =>
+        p.status !== 'sending' ||
+        !incomingMessages.some(m => m.content === p.content && m.pubkey === p.pubkey)
+      );
+
+      return [...filteredPrev, ...newFromRelay].sort((a, b) => a.created_at - b.created_at);
+    });
   }, [events, roomId]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim()) return;
-
-    if (!identity || !identity.privateKey) {
-      toast({ title: "Error", description: "You must be logged in to chat.", variant: "destructive" });
-      return;
-    }
-
     const content = newMessage.trim();
-    const tempId = Math.random().toString(36).substring(7);
+    if (!content || !identity || !identity.privateKey) return;
 
-    // Add optimistic message
-    const optimisticMsg: Message & { status: 'sending' } = {
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const optimisticMsg: Message = {
       id: tempId,
       content,
       pubkey: identity.publicKey,
@@ -84,12 +90,11 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
       status: 'sending'
     };
 
-    setOptimisticMessages(prev => [...prev, optimisticMsg]);
+    // 1. Add locally immediately
+    setMessages(prev => [...prev, optimisticMsg]);
     setNewMessage("");
 
     try {
-      const secretKey = identity.privateKey;
-
       const eventTemplate = {
         kind: 1,
         created_at: Math.floor(Date.now() / 1000),
@@ -100,33 +105,58 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
         content,
       };
 
-      const signedEvent = finalizeEvent(eventTemplate, secretKey);
-      publish(signedEvent);
+      const signedEvent = finalizeEvent(eventTemplate, identity.privateKey);
+      const success = await publish(signedEvent);
+
+      if (!success) {
+        throw new Error("Failed to publish to any relay");
+      }
     } catch (error) {
       console.error("Failed to send message:", error);
-      setOptimisticMessages(prev => prev.filter(msg => msg.id !== tempId));
-      toast({ title: "Error", description: "Failed to sign message.", variant: "destructive" });
+      toast.error("Message delivery failed. Check relay connection.");
+      // Mark as failed or remove
+      setMessages(prev => prev.filter(m => m.id !== tempId));
     }
   };
 
-  const allMessages = [...messages, ...optimisticMessages].sort((a, b) => a.created_at - b.created_at);
-
   return (
-    <div className="border border-black flex flex-col h-[600px] bg-white">
+    <div className="border border-black flex flex-col h-[600px] bg-white animate-in fade-in duration-500">
+      <div className="bg-black text-white px-4 py-2 flex items-center justify-between">
+        <h2 className="text-[10px] font-bold uppercase tracking-[0.3em] flex items-center gap-2">
+          <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+          {roomId} Channel
+        </h2>
+        <span className="text-[9px] font-mono opacity-50 uppercase">Hydra v1.0</span>
+      </div>
+
       <div className="flex-1 overflow-y-auto space-y-4 p-4 scrollbar-thin scrollbar-thumb-black">
-        {allMessages.map((message) => {
+        {messages.length === 0 && (
+          <div className="h-full flex flex-col items-center justify-center opacity-20 space-y-2">
+            <Send className="w-8 h-8" />
+            <p className="text-[10px] uppercase font-bold tracking-widest">No signals detected</p>
+          </div>
+        )}
+        {messages.map((message) => {
           const isOwn = identity && message.pubkey === identity.publicKey;
-          const isSending = (message as any).status === 'sending';
+          const isSending = message.status === 'sending';
+
           return (
-            <div key={message.id} className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
+            <div key={message.id} className={`flex ${isOwn ? "justify-end" : "justify-start"} animate-in slide-in-from-bottom-1 duration-300`}>
               <div className={`max-w-[85%] space-y-1 ${isOwn ? "text-right" : "text-left"}`}>
-                <div className={`px-4 py-2 border border-black ${isOwn ? "bg-black text-white" : "bg-white text-black"} ${isSending ? "opacity-50" : ""}`}>
-                  <p className="text-sm font-medium leading-relaxed">{message.content}</p>
+                <div className={`px-4 py-2 border border-black ${isOwn ? "bg-black text-white" : "bg-white text-black"} ${isSending ? "opacity-40 grayscale" : ""}`}>
+                  <p className="text-sm font-medium leading-relaxed break-words">{message.content}</p>
                 </div>
-                <div className="flex items-center gap-2 justify-end px-1">
-                  <p className="text-[9px] uppercase font-bold tracking-tighter opacity-50">
-                    {isSending ? "SENDING..." : formatDistanceToNow(new Date(message.created_at * 1000), { addSuffix: true })}
-                  </p>
+                <div className={`flex items-center gap-2 ${isOwn ? "justify-end" : "justify-start"} px-1`}>
+                  {isSending ? (
+                    <div className="flex items-center gap-1">
+                      <Loader2 className="w-2 h-2 animate-spin" />
+                      <span className="text-[8px] uppercase font-black tracking-tighter">Broadcasting...</span>
+                    </div>
+                  ) : (
+                    <p className="text-[8px] uppercase font-bold tracking-tighter opacity-30">
+                      {formatDistanceToNow(new Date(message.created_at * 1000), { addSuffix: true })}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -135,18 +165,18 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="p-4 border-t border-black bg-gray-50">
+      <div className="p-4 border-t border-black bg-secondary/30">
         <form onSubmit={handleSend} className="flex gap-2">
           <Input
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="TYPE YOUR MESSAGE..."
-            className="flex-1 border-black rounded-none h-12 bg-white text-xs font-bold uppercase tracking-widest px-4 focus-visible:ring-0 focus-visible:ring-offset-0"
+            placeholder="ENCRYPT SIGNAL..."
+            className="flex-1 border-black rounded-none h-12 bg-white text-xs font-bold uppercase tracking-widest px-4 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:opacity-30"
           />
           <Button
             type="submit"
-            disabled={!newMessage.trim()}
-            className="border border-black rounded-none h-12 w-12 bg-black text-white hover:bg-black/90 flex items-center justify-center p-0"
+            disabled={!newMessage.trim() || !identity}
+            className="border border-black rounded-none h-12 w-12 bg-black text-white hover:bg-black/90 flex items-center justify-center p-0 transition-all active:scale-90"
           >
             <Send className="w-5 h-5" />
           </Button>
