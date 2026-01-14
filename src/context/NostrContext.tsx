@@ -6,6 +6,7 @@ const DEFAULT_RELAYS = [
     'wss://nos.lol',
     'wss://relay.damus.io',
     'wss://relay.snort.social',
+    'wss://relay.eden.earth',
 ];
 
 interface NostrContextType {

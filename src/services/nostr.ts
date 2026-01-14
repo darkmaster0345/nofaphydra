@@ -27,6 +27,7 @@ const RELAYS = [
     "wss://nos.lol",
     "wss://relay.damus.io",
     "wss://relay.snort.social",
+    "wss://relay.eden.earth",
 ];
 
 // Minimum number of relay acknowledgments needed for success

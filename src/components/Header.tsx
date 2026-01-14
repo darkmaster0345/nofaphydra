@@ -11,7 +11,8 @@ export function Header() {
       </div>
       <div className="text-center">
         <h1 className="text-4xl md:text-5xl font-display tracking-[0.2em] font-bold">
-          <span className="text-foreground">HYDRA</span>
+          <span className="text-foreground">NOFAP</span>
+          <span className="text-black ml-2">HYDRA</span>
         </h1>
         <p className="text-[10px] tracking-[0.5em] text-muted-foreground uppercase mt-1 font-medium">
           FOSS Community

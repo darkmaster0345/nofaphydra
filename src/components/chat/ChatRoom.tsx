@@ -41,6 +41,8 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
     return () => unsub && unsub();
   }, [identity, subscribe]);
 
+  const [optimisticMessages, setOptimisticMessages] = useState<Message[]>([]);
+
   useEffect(() => {
     // Filter events locally to ensure they have the room tag as well
     const roomMessages = events
@@ -50,7 +52,14 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
         content: event.content,
         pubkey: event.pubkey,
         created_at: event.created_at,
+        status: 'received' as const
       }));
+
+    // Filter out optimistic messages that have been received
+    setOptimisticMessages(prev => prev.filter(opt =>
+      !roomMessages.some(msg => msg.content === opt.content && msg.pubkey === opt.pubkey)
+    ));
+
     setMessages(roomMessages);
   }, [events, roomId]);
 
@@ -63,6 +72,21 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
       return;
     }
 
+    const content = newMessage.trim();
+    const tempId = Math.random().toString(36).substring(7);
+
+    // Add optimistic message
+    const optimisticMsg: Message & { status: 'sending' } = {
+      id: tempId,
+      content,
+      pubkey: identity.publicKey,
+      created_at: Math.floor(Date.now() / 1000),
+      status: 'sending'
+    };
+
+    setOptimisticMessages(prev => [...prev, optimisticMsg]);
+    setNewMessage("");
+
     try {
       const secretKey = identity.privateKey;
 
@@ -73,33 +97,35 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
           ['t', 'nofaphydra'],
           ['t', roomId]
         ],
-        content: newMessage.trim(),
+        content,
       };
 
       const signedEvent = finalizeEvent(eventTemplate, secretKey);
-
       publish(signedEvent);
-      setNewMessage("");
     } catch (error) {
       console.error("Failed to send message:", error);
+      setOptimisticMessages(prev => prev.filter(msg => msg.id !== tempId));
       toast({ title: "Error", description: "Failed to sign message.", variant: "destructive" });
     }
   };
 
+  const allMessages = [...messages, ...optimisticMessages].sort((a, b) => a.created_at - b.created_at);
+
   return (
     <div className="border border-black flex flex-col h-[600px] bg-white">
       <div className="flex-1 overflow-y-auto space-y-4 p-4 scrollbar-thin scrollbar-thumb-black">
-        {messages.map((message) => {
+        {allMessages.map((message) => {
           const isOwn = identity && message.pubkey === identity.publicKey;
+          const isSending = (message as any).status === 'sending';
           return (
             <div key={message.id} className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
               <div className={`max-w-[85%] space-y-1 ${isOwn ? "text-right" : "text-left"}`}>
-                <div className={`px-4 py-2 border border-black ${isOwn ? "bg-black text-white" : "bg-white text-black"}`}>
+                <div className={`px-4 py-2 border border-black ${isOwn ? "bg-black text-white" : "bg-white text-black"} ${isSending ? "opacity-50" : ""}`}>
                   <p className="text-sm font-medium leading-relaxed">{message.content}</p>
                 </div>
                 <div className="flex items-center gap-2 justify-end px-1">
                   <p className="text-[9px] uppercase font-bold tracking-tighter opacity-50">
-                    {formatDistanceToNow(new Date(message.created_at * 1000), { addSuffix: true })}
+                    {isSending ? "SENDING..." : formatDistanceToNow(new Date(message.created_at * 1000), { addSuffix: true })}
                   </p>
                 </div>
               </div>
