@@ -1,24 +1,17 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { BottomNav } from "@/components/BottomNav";
-import { toast } from "sonner";
-import { ArrowLeft, Save, User as UserIcon, Settings, Loader2, LogOut } from "lucide-react";
-import { z } from "zod";
-import { generateOrLoadKeys, NostrKeys, clearKeys } from "@/services/nostr";
-import { SecuritySettings } from "@/components/SecuritySettings";
-import { AvatarUpload } from "@/components/AvatarUpload";
-import { RelaySettings } from "@/components/RelaySettings";
-import { finalizeEvent } from "nostr-tools";
 import { saveStreak, fetchStreak, StreakPayload } from "@/services/nostr";
-import { Cloud, Download } from "lucide-react";
+import { Download } from "lucide-react";
 import { useNostr } from "@/hooks/useNostr";
-
-const profileSchema = z.object({
-  username: z.string().trim().min(2, "Username must be at least 2 characters").max(30, "Username must be less than 30 characters"),
-});
+import { IdentityManagement } from "@/components/IdentityManagement";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { ArrowLeft, Loader2, LogOut, Settings } from "lucide-react";
+import { generateOrLoadKeys, clearKeys, NostrKeys } from "@/services/nostr";
+import { AvatarUpload } from "@/components/AvatarUpload";
+import { BottomNav } from "@/components/BottomNav";
+import { RelaySettings } from "@/components/RelaySettings";
+import { SecuritySettings } from "@/components/SecuritySettings";
 
 const Profile = () => {
   const [username, setUsername] = useState("");
@@ -27,7 +20,7 @@ const Profile = () => {
   const [saving, setSaving] = useState(false);
   const [identity, setIdentity] = useState<NostrKeys | null>(null);
   const navigate = useNavigate();
-  const { publish, updateProfileName } = useNostr();
+  const { publish, updateProfileName, pool } = useNostr();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -121,54 +114,6 @@ const Profile = () => {
     setSaving(false);
   };
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!identity?.privateKey) {
-      toast.error("Cannot sign event: Private key missing.");
-      return;
-    }
-
-    const validation = profileSchema.safeParse({ username });
-    if (!validation.success) {
-      toast.error("Validation Error", {
-        description: validation.error.errors[0].message
-      });
-      return;
-    }
-
-    setSaving(true);
-
-    try {
-      const profileEvent = {
-        kind: 0,
-        content: JSON.stringify({
-          name: username.trim(),
-          picture: avatarUrl
-        }),
-        created_at: Math.floor(Date.now() / 1000),
-        tags: [],
-      };
-
-      const signedEvent = finalizeEvent(profileEvent, identity.privateKey);
-      await publish(signedEvent);
-
-      localStorage.setItem(`nostr_username_${identity.publicKey}`, username.trim());
-      localStorage.setItem(`nostr_avatar_${identity.publicKey}`, avatarUrl);
-
-      toast.success("Profile synchronized! ✨", {
-        description: "Your identity has been updated on the Nostr network."
-      });
-    } catch (err) {
-      console.error("Failed to sync profile", err);
-      toast.success("Partial Success", {
-        description: "Profile saved locally, but failed to sync to some relays."
-      });
-    }
-
-    setSaving(false);
-  };
-
   const handleLogout = async () => {
     try {
       // Clear Nostr keys
@@ -241,75 +186,20 @@ const Profile = () => {
               />
             </div>
 
-            <form onSubmit={handleSave} className="flex-1 w-full space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="username" className="text-[10px] uppercase font-black tracking-widest text-black/40">Broadcasting Alias</Label>
-                <Input
-                  id="username"
-                  type="text"
-                  placeholder="HYDRO_OPERATIVE"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="bg-white border-black rounded-none h-12 focus-visible:ring-0 focus-visible:ring-offset-0 font-bold uppercase tracking-widest text-xs"
-                  maxLength={30}
-                />
-                <p className="text-[9px] text-black/40 font-mono leading-tight uppercase">
-                  Nostr NIP-01 identification name.
-                </p>
-              </div>
-
-              <Button
-                type="button"
-                variant="default"
-                size="lg"
-                onClick={async () => {
-                  if (identity?.privateKeyHex) {
-                    setSaving(true);
-                    await updateProfileName(username, identity.privateKeyHex);
-                    localStorage.setItem(`nostr_username_${identity.publicKey}`, username.trim());
-                    localStorage.setItem(`nostr_avatar_${identity.publicKey}`, avatarUrl);
-                    setSaving(false);
-                  }
+            <div className="flex-1 w-full">
+              <IdentityManagement
+                userPrivateKey={identity.privateKeyHex}
+                pool={pool}
+                initialAlias={username}
+                onUpdateSuccess={(newName) => {
+                  setUsername(newName);
+                  localStorage.setItem(`nostr_username_${identity.publicKey}`, newName);
+                  localStorage.setItem(`nostr_avatar_${identity.publicKey}`, avatarUrl);
                 }}
-                className="w-full bg-black text-white hover:bg-black/90 transition-all active:scale-95 rounded-none border border-black uppercase text-xs font-black tracking-widest h-14"
-                disabled={saving}
-              >
-                {saving ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    BROADCASTING...
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4 mr-2" />
-                    UPDATE METADATA
-                  </>
-                )}
-              </Button>
-
-              <div className="grid grid-cols-2 gap-4 pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleCloudSync}
-                  className="rounded-none border-black hover:bg-black hover:text-white uppercase text-[10px] font-black tracking-widest h-12 transition-all active:scale-95"
-                  disabled={saving}
-                >
-                  <Cloud className="w-4 h-4 mr-2" />
-                  Sync
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleCloudRestore}
-                  className="rounded-none border-black hover:bg-black hover:text-white uppercase text-[10px] font-black tracking-widest h-12 transition-all active:scale-95"
-                  disabled={saving}
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Fetch
-                </Button>
-              </div>
-            </form>
+                onSync={handleCloudSync}
+                onFetch={handleCloudRestore}
+              />
+            </div>
           </div>
 
           <div className="pt-8 space-y-8 border-t border-black">
