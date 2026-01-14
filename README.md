@@ -1,99 +1,81 @@
 # NoFap Hydra 🐉
 
-**NoFap Hydra** is a privacy-first, decentralized streak tracker designed to help you build discipline and self-mastery. Unlike other apps that sell your data or require accounts, Hydra is built on the **Nostr** protocol, ensuring your data remains yours—encrypted, decentralized, and censorship-resistant.
+**NoFap Hydra** is a privacy-first, decentralized streak tracker and community designed to help you build discipline and self-mastery. Built on the **Nostr** protocol, Hydra ensures your data remains yours—encrypted, decentralized, and censorship-resistant.
+
+![License: MIT](https://img.shields.io/badge/License-MIT-black.svg)
+![Protocol: Nostr](https://img.shields.io/badge/Protocol-Nostr-purple.svg)
+![Platform: Android](https://img.shields.io/badge/Platform-Android-green.svg)
 
 ---
 
-## 🛡️ Privacy & Security (Nostr Integration)
+## 🚀 Key Features
 
-We believe your journey is personal. Hydra is engineered for maximum privacy using open standards:
+### 🛡️ Decentralized Privacy
+*   **NIP-44 (v2) Encryption**: Your streak and journal data are encrypted end-to-end. Only your private key can decrypt your progress.
+*   **No Central Servers**: No accounts, no email, no central database. Your data lives on a global network of independent relays.
+*   **Identity Sovereignty**: Manage your identity using standard Nostr keys (nsec/npub).
 
-*   **NIP-44 (v2) Encryption**: All streak data is encrypted end-to-end. Only your private key can decrypt the `content` of the notes.
-*   **NIP-19 (nsec/npub)**: Standardized key encoding for secure export and sharing.
-*   **NIP-01**: Basic event protocol for publishing and querying relays.
-*   **No Central Servers**: There is no "Hydra Cloud." Your encrypted data is stored on decentralized Nostr relays (`wss://nos.lol`, `wss://relay.damus.io`, `wss://relay.snort.social`).
-*   **Offline-First**: Built with a robust offline queue. Track your progress anywhere; Hydra syncs securely when you reconnect.
+### 💬 Community & Chat
+*   **Global Chat Room**: Connect with other warriors using a high-performance, real-time chat interface.
+*   **Automatic Identity Discovery**: Hydra automatically fetches usernames and profiles (Kind 0) from the network, so you see people, not hex codes.
+*   **Brutalist Aesthetic**: A high-contrast, minimalist UI designed for focus and impact.
 
-> **Pro-Tip: Verification (NIP-05)** 
-> To get a verification checkmark in Hydra, host a `nostr.json` file on your domain at `/.well-known/nostr.json` with your pubkey. Then, simply enter your `name@domain.com` in the Hydra profile settings.
-
-## 🦅 Freedom & Open Source
-
-NoFap Hydra is Free and Open Source Software (FOSS).
-
-*   **License**: MIT License. You are free to audit, fork, and modify the code.
-*   **Zero Trackers**: We include zero analytics, trackers, or advertising SDKs.
-*   **Decentralized**: Built on [Nostr](https://nostr.com/), an open protocol for censorship-resistant global networks.
+### 📱 Premium Mobile Experience
+*   **Neo-Brutalist Design**: A unique "Hydra" visual style that stands out from generic trackers.
+*   **Offline-First**: Built with an intelligent offline queue. Your events are stored locally and sync automatically when you're back online.
+*   **Automatic APK Builds**: Every update is automatically compiled into a fresh Android APK via GitHub Actions.
 
 ---
 
-## 📥 How to Install
+## 📥 Getting the App
 
-### Option A: F-Droid (Recommended for Privacy)
-*Coming soon to the F-Droid repository.*
+### 🛠️ GitHub Actions (Latest Build)
+The most up-to-date version of the app is always available as a downloadable artifact:
+1.  Navigate to the **[Actions](https://github.com/darkmaster0345/nofaphydra/actions)** tab in this repository.
+2.  Click on the most recent successful "Build Hydra APK" workflow run.
+3.  Scroll down to **Artifacts** and download `Hydra-Chat-Debug-APK`.
 
-1.  Download the F-Droid client.
-2.  Search for "NoFap Hydra".
-3.  Install and enjoy automatic updates.
-
-### Option B: GitHub Releases (Direct Download)
-1.  Go to the [Releases](https://github.com/darkmaster0345/nofaphydra/releases) page.
-2.  Download the latest `NoFapHydra-vX.X.X.apk`.
-3.  Open the file on your Android device and confirm installation.
+### 📦 Releases
+For stable versions, visit the **[Releases](https://github.com/darkmaster0345/nofaphydra/releases)** page and download the latest `.apk`.
 
 ---
 
-## 🔧 For Developers & F-Droid Maintainers
+## �️ For Developers
 
 Hydra is built with **React**, **TypeScript**, **Vite**, and **Capacitor**.
 
 ### Prerequisites
 *   Node.js 20+
-*   Android Studio (for building APKs)
+*   Android Studio (for local native builds)
 
-### Reproducible Build Instructions
-
+### Local Setup
 1.  **Clone the repository**:
     ```bash
     git clone https://github.com/darkmaster0345/nofaphydra.git
     cd nofaphydra
     ```
-
 2.  **Install Dependencies**:
     ```bash
     npm install
     ```
-
-3.  **Build Web Assets**:
+3.  **Run Development Server**:
+    ```bash
+    npm run dev
+    ```
+4.  **Sync Android Project**:
     ```bash
     npm run build
-    ```
-
-4.  **Sync Native Project**:
-    ```bash
     npx cap sync android
     ```
 
-5.  **Build Signed APK**:
-    ```bash
-    cd android
-    ./gradlew assembleRelease
-    ```
+---
 
-    *Note: The `dependenciesInfo` block is configured to exclude dependency metadata for reproducible builds.*
+## 🤝 Contributing & FOSS
+NoFap Hydra is **Free and Open Source Software (FOSS)** under the MIT License. We welcome contributions to the code, design, and relay list.
+
+*   **Zero Trackers**: No analytics, no ad-SDKs, no telemetry.
+*   **Censorship Resistant**: Built on [Nostr](https://nostr.com/), an open protocol for global censorship-resistant networks.
 
 ---
 
-## 🤝 Contributing
-
-We welcome contributions! Whether it's fixing bugs, improving the UI, or adding new relays.
-
-1.  Fork the project.
-2.  Create a feature branch (`git checkout -b feature/amazing-feature`).
-3.  Commit your changes (`git commit -m 'Add amazing feature'`).
-4.  Push to the branch (`git push origin feature/amazing-feature`).
-5.  Open a Pull Request.
-
----
-
-*"Stay strong. Stay disciplined. Become legendary."*
+*"Stay strong. Stay disciplined. Become legendary."* 🐉
