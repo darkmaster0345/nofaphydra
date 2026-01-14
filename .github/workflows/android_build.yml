@@ -14,11 +14,14 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: '22'
           cache: 'npm'
 
+      - name: Verify Node Version
+        run: node -v
+
       - name: Install Dependencies
-        run: npm install
+        run: npm ci --force
 
       - name: Build Web Project
         run: npm run build
