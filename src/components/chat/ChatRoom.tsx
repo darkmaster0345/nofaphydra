@@ -33,18 +33,26 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
 
   useEffect(() => {
     if (!identity) return;
-    const unsub = subscribe({ kinds: [1], '#t': [roomId] });
+    const unsub = subscribe({
+      kinds: [1],
+      '#t': ['nofaphydra'],
+      limit: 50
+    });
     return () => unsub && unsub();
-  }, [identity, subscribe, roomId]);
+  }, [identity, subscribe]);
 
   useEffect(() => {
-    setMessages(events.map(event => ({
-      id: event.id!,
-      content: event.content,
-      pubkey: event.pubkey,
-      created_at: event.created_at,
-    })));
-  }, [events]);
+    // Filter events locally to ensure they have the room tag as well
+    const roomMessages = events
+      .filter(event => event.tags.some(t => t[0] === 't' && t[1] === roomId))
+      .map(event => ({
+        id: event.id!,
+        content: event.content,
+        pubkey: event.pubkey,
+        created_at: event.created_at,
+      }));
+    setMessages(roomMessages);
+  }, [events, roomId]);
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,7 +69,10 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
       const eventTemplate = {
         kind: 1,
         created_at: Math.floor(Date.now() / 1000),
-        tags: [['t', roomId]],
+        tags: [
+          ['t', 'nofaphydra'],
+          ['t', roomId]
+        ],
         content: newMessage.trim(),
       };
 
