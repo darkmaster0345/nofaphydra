@@ -1,8 +1,9 @@
-import { Home, Users, User } from "lucide-react";
+import { Home, Users, User, Book } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 
 const navItems = [
   { to: "/", icon: Home, label: "Home" },
+  { to: "/journal", icon: Book, label: "Journal" },
   { to: "/community", icon: Users, label: "Community" },
   { to: "/profile", icon: User, label: "Profile" },
 ];

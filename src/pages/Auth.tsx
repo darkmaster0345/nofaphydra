@@ -5,17 +5,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
-import { createNostrIdentity, loginWithPrivateKey } from "@/lib/nostr";
+import { importKey, generateOrLoadKeys } from "@/services/nostr";
 
 const Auth = () => {
   const [privateKey, setPrivateKey] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     setLoading(true);
     try {
-      createNostrIdentity();
+      await generateOrLoadKeys();
       toast({ title: "New identity created!", description: "Your new Nostr key is securely stored." });
       navigate("/");
     } catch (error) {
@@ -24,13 +24,21 @@ const Auth = () => {
     setLoading(false);
   };
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     setLoading(true);
-    const identity = loginWithPrivateKey(privateKey);
-    if (identity) {
-      toast({ title: "Logged in!", description: "Your identity has been imported." });
-      navigate("/");
-    } else {
+    try {
+      if (!privateKey.startsWith("nsec")) {
+        toast({ title: "Error", description: "Key must start with 'nsec'", variant: "destructive" });
+        setLoading(false);
+        return;
+      }
+
+      const success = await importKey(privateKey);
+      if (success) {
+        toast({ title: "Logged in!", description: "Your identity has been imported." });
+        navigate("/");
+      }
+    } catch (error) {
       toast({ title: "Error", description: "Invalid private key.", variant: "destructive" });
     }
     setLoading(false);
@@ -49,8 +57,8 @@ const Auth = () => {
             <div>
               <Label htmlFor="privateKey">Private Key (nsec)</Label>
               <div className="relative">
-                 <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                 <Input id="privateKey" type="password" placeholder="Enter your nsec..." value={privateKey} onChange={(e) => setPrivateKey(e.target.value)} className="pl-10" />
+                <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input id="privateKey" type="password" placeholder="Enter your nsec..." value={privateKey} onChange={(e) => setPrivateKey(e.target.value)} className="pl-10" />
               </div>
             </div>
             <Button onClick={handleLogin} disabled={loading || !privateKey} className="w-full">Login with private key</Button>

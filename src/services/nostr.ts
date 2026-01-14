@@ -689,3 +689,100 @@ export async function getPendingCount(): Promise<number> {
     const pending = await getPendingEvents();
     return pending.length;
 }
+
+// ============================================================================
+// JOURNAL FEATURE
+// ============================================================================
+
+export interface JournalEntry {
+    id?: string;
+    content: string; // "Learnings"
+    mood: number; // 1-10
+    energy: number; // 1-10
+    timestamp: number;
+}
+
+const JOURNAL_TAG = "nofaphydra-journal";
+
+/**
+ * Save an encrypted journal entry
+ */
+export async function saveJournalEntry(entry: JournalEntry): Promise<boolean> {
+    try {
+        const keys = await generateOrLoadKeys();
+
+        // Encrypt the JSON entry
+        const plaintext = JSON.stringify(entry);
+        const conversationKey = nip44.v2.utils.getConversationKey(keys.privateKey, keys.publicKey);
+        const ciphertext = nip44.v2.encrypt(plaintext, conversationKey);
+
+        const eventTemplate = {
+            kind: 1, // Standard note, but encrypted content
+            created_at: Math.floor(Date.now() / 1000),
+            tags: [
+                ["t", JOURNAL_TAG],
+                ["encrypted", "nip44"],
+            ],
+            content: ciphertext,
+        };
+
+        const signedEvent = finalizeEvent(eventTemplate, keys.privateKey);
+
+        if (!networkState.isOnline) {
+            await queueEvent(signedEvent);
+            return true;
+        }
+
+        const success = await resilientPublish(signedEvent);
+        if (!success) {
+            await queueEvent(signedEvent);
+        }
+
+        return true;
+    } catch (error) {
+        console.error("Failed to save journal entry:", error);
+        return false;
+    }
+}
+
+/**
+ * Fetch journal entries
+ */
+export async function fetchJournalEntries(): Promise<JournalEntry[]> {
+    if (!networkState.isOnline) return [];
+
+    try {
+        const keys = await generateOrLoadKeys();
+        const pool = new SimplePool();
+
+        try {
+            const filter = {
+                kinds: [1],
+                authors: [keys.publicKey],
+                "#t": [JOURNAL_TAG],
+                limit: 50,
+            };
+
+            const events = await pool.querySync(RELAYS, filter);
+            const entries: JournalEntry[] = [];
+            const conversationKey = nip44.v2.utils.getConversationKey(keys.privateKey, keys.publicKey);
+
+            for (const event of events) {
+                try {
+                    const plaintext = nip44.v2.decrypt(event.content, conversationKey);
+                    const data = JSON.parse(plaintext);
+                    entries.push({ ...data, id: event.id });
+                } catch (e) {
+                    console.warn("Failed to decrypt journal entry", event.id);
+                }
+            }
+
+            return entries.sort((a, b) => b.timestamp - a.timestamp);
+        } finally {
+            pool.close(RELAYS);
+        }
+    } catch (error) {
+        console.error("Failed to fetch journal entries:", error);
+        return [];
+    }
+}

@@ -8,7 +8,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { toast } from "@/hooks/use-toast";
 import { ArrowLeft, Save, User } from "lucide-react";
 import { z } from "zod";
-import { getNostrIdentity } from "@/lib/nostr";
+import { generateOrLoadKeys } from "@/services/nostr";
 import { SecuritySettings } from "@/components/SecuritySettings";
 
 const AVATAR_EMOJIS = [
@@ -40,26 +40,23 @@ const Profile = () => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const id = await getNostrIdentity();
-      if (!id || !id.privateKey) {
+      try {
+        const id = await generateOrLoadKeys();
+        if (!id || !id.privateKey) {
+          // Technically generateOrLoadKeys always returns keys, but safe check
+          navigate("/auth");
+          return;
+        }
+        setIdentity(id);
+
+        const storedUsername = localStorage.getItem(`nostr_username_${id.publicKey}`);
+        const storedEmoji = localStorage.getItem(`nostr_avatar_${id.publicKey}`);
+        setUsername(storedUsername || "");
+        setAvatarEmoji(storedEmoji || "🌱");
+      } catch (e) {
+        console.error("Failed to load identity", e);
         navigate("/auth");
-        return;
       }
-      setIdentity(id);
-
-      // TODO: Fetch Nostr profile (NIP-05) from relays
-      // const profile = await fetchNostrProfile(id.publicKey);
-      // if (profile) {
-      //   setUsername(profile.name || "");
-      //   // A bit tricky to map emoji from picture url, so we'll use localStorage for now
-      //   const storedEmoji = localStorage.getItem(`nostr_avatar_${id.publicKey}`);
-      //   setAvatarEmoji(storedEmoji || "🌱");
-      // }
-      const storedUsername = localStorage.getItem(`nostr_username_${id.publicKey}`);
-      const storedEmoji = localStorage.getItem(`nostr_avatar_${id.publicKey}`);
-      setUsername(storedUsername || "");
-      setAvatarEmoji(storedEmoji || "🌱");
-
       setLoading(false);
     };
 
