@@ -24,6 +24,7 @@ export function SecuritySettings() {
     const [importNsec, setImportNsec] = useState("");
     const [importDialogOpen, setImportDialogOpen] = useState(false);
     const [holdProgress, setHoldProgress] = useState(0);
+    const [loading, setLoading] = useState(false);
 
     const holdTimerRef = useRef<NodeJS.Timeout | null>(null);
     const { fetchStreak, initializeKeys } = useNostrStreak();
@@ -82,6 +83,7 @@ export function SecuritySettings() {
             return;
         }
 
+        setLoading(true);
         try {
             await importKey(importNsec);
             await initializeKeys(); // Reload hook state
@@ -111,6 +113,8 @@ export function SecuritySettings() {
             loadKeys(); // Refresh displayed keys
         } catch (error) {
             toast.error("Failed to import key. Please check it and try again.");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -238,7 +242,7 @@ export function SecuritySettings() {
                                     Cancel
                                 </Button>
                                 <Button
-                                    onClick={handleLogin}
+                                    onClick={handleImport}
                                     disabled={!importNsec || loading}
                                     className="bg-black text-white hover:bg-black/90 border-none rounded-none h-12 uppercase text-xs font-bold sm:flex-1"
                                 >

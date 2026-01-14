@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { StreakData, getStreakData, saveStreakData, calculateStreak } from "@/lib/streakUtils";
 import { useNostrStreak } from "./useNostrStreak";
+import { logActivity } from "@/lib/activityLog";
 
 export function useStreak() {
     const [streakData, setStreakData] = useState<StreakData>({
@@ -72,6 +73,7 @@ export function useStreak() {
         };
         setStreakData(newData);
         saveStreakData(newData);
+        logActivity('streak_start', 'New streak started - Day 0 begins!');
         saveStreak({
             days: 0,
             startDate: newData.startDate,
@@ -90,6 +92,7 @@ export function useStreak() {
         };
         setStreakData(newData);
         saveStreakData(newData);
+        logActivity('streak_reset', `Streak reset after ${current.days} days`);
         saveStreak({
             days: 0,
             startDate: null,

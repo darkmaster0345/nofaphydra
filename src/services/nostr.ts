@@ -28,6 +28,8 @@ const RELAYS = [
     "wss://relay.damus.io",
     "wss://relay.snort.social",
     "wss://relay.eden.earth",
+    "wss://relay.primal.net",
+    "wss://relay.nostr.band",
 ];
 
 // Minimum number of relay acknowledgments needed for success
@@ -437,7 +439,6 @@ export async function hasKeys(): Promise<boolean> {
  */
 export async function clearKeys(): Promise<void> {
     await Preferences.remove({ key: "nostr_private_key" });
-    keysPromise = null;
 }
 
 /**

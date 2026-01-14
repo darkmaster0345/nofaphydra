@@ -1,4 +1,4 @@
-const CACHE_NAME = 'hydra-cache-v1';
+const CACHE_NAME = 'hydra-cache-v2'; // Bumped version to force update
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -32,14 +32,24 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch event - network first, fallback to cache
+// Fetch event - network first with cache fallback
 self.addEventListener('fetch', (event) => {
+  // Only handle GET requests
   if (event.request.method !== 'GET') return;
-  
+
+  const url = new URL(event.request.url);
+
+  // ONLY cache http or https. 
+  // This ignores chrome-extension:// and capacitor:// schemes which cause errors
+  if (!(url.protocol === 'http:' || url.protocol === 'https:')) {
+    return;
+  }
+
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        if (response.status === 200) {
+        // Only cache successful responses
+        if (response && response.status === 200) {
           const responseClone = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, responseClone);
@@ -48,11 +58,12 @@ self.addEventListener('fetch', (event) => {
         return response;
       })
       .catch(() => {
+        // Fallback to cache when offline
         return caches.match(event.request).then((cachedResponse) => {
           if (cachedResponse) {
             return cachedResponse;
           }
-          // Return offline page for navigation requests
+          // Return offline root for navigation
           if (event.request.mode === 'navigate') {
             return caches.match('/');
           }
@@ -88,7 +99,7 @@ async function checkMotivation() {
 // Push Notifications
 self.addEventListener('push', (event) => {
   let data = { title: 'NoFap Hydra 🐉', body: 'Stay strong on your journey!' };
-  
+
   if (event.data) {
     try {
       data = event.data.json();
@@ -117,9 +128,9 @@ self.addEventListener('push', (event) => {
 // Notification click handler
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  
+
   if (event.action === 'close') return;
-  
+
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       for (const client of clientList) {

@@ -5,9 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BottomNav } from "@/components/BottomNav";
 import { toast } from "sonner";
-import { ArrowLeft, Save, User as UserIcon, Settings, Loader2 } from "lucide-react";
+import { ArrowLeft, Save, User as UserIcon, Settings, Loader2, LogOut } from "lucide-react";
 import { z } from "zod";
-import { generateOrLoadKeys, NostrKeys } from "@/services/nostr";
+import { generateOrLoadKeys, NostrKeys, clearKeys } from "@/services/nostr";
 import { SecuritySettings } from "@/components/SecuritySettings";
 import { AvatarUpload } from "@/components/AvatarUpload";
 import { RelaySettings } from "@/components/RelaySettings";
@@ -169,6 +169,30 @@ const Profile = () => {
     setSaving(false);
   };
 
+  const handleLogout = async () => {
+    try {
+      // Clear Nostr keys
+      await clearKeys();
+
+      // Clear all app-specific localStorage
+      localStorage.removeItem('hydra_streak_data');
+      localStorage.removeItem('hydra_activity_log');
+      if (identity?.publicKey) {
+        localStorage.removeItem(`nostr_username_${identity.publicKey}`);
+        localStorage.removeItem(`nostr_avatar_${identity.publicKey}`);
+      }
+
+      toast.success("Session Terminated", {
+        description: "All local data has been purged."
+      });
+
+      navigate("/");
+    } catch (err) {
+      console.error("Logout failed", err);
+      toast.error("Logout failed. Please try again.");
+    }
+  };
+
   if (loading || !identity) {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
@@ -282,6 +306,21 @@ const Profile = () => {
           <div className="pt-8 space-y-8 border-t border-black">
             <RelaySettings />
             <SecuritySettings />
+          </div>
+
+          {/* Logout Section */}
+          <div className="pt-8 border-t border-black/20">
+            <Button
+              onClick={handleLogout}
+              variant="outline"
+              className="w-full h-14 rounded-none border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white uppercase text-xs font-black tracking-widest transition-all active:scale-95"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Terminate Session
+            </Button>
+            <p className="text-[9px] text-black/40 font-mono text-center mt-3 uppercase">
+              This will clear all local data and keys
+            </p>
           </div>
         </div>
       </div>

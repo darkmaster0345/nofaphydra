@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Camera, Loader2, UploadCloud } from 'lucide-react';
-import { Button } from './ui/button';
-import { toast } from '@/hooks/use-toast';
+import { Camera, Loader2, UploadCloud, AlertCircle } from 'lucide-react';
+import { toast } from 'sonner';
+import { generateOrLoadKeys } from "@/services/nostr";
+import { finalizeEvent } from "nostr-tools";
 
 interface AvatarUploadProps {
     currentAvatar?: string;
@@ -10,62 +11,140 @@ interface AvatarUploadProps {
 
 export const AvatarUpload = ({ currentAvatar, onUploadSuccess }: AvatarUploadProps) => {
     const [uploading, setUploading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
+        // Validate file type
         if (!file.type.startsWith('image/')) {
-            toast({ title: 'Invalid file', description: 'Please upload an image.', variant: 'destructive' });
+            toast.error('Invalid file type', { description: 'Please upload an image file.' });
+            return;
+        }
+
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error('File too large', { description: 'Maximum file size is 5MB.' });
             return;
         }
 
         setUploading(true);
-        const formData = new FormData();
-        formData.append('fileToUpload', file);
-        formData.append('submit', 'Upload Image');
+        setError(null);
 
         try {
-            // Using nostr.build simple upload API
-            const response = await fetch('https://nostr.build/api/v2/upload/files', {
+            // 1. Get identity for NIP-98
+            const identity = await generateOrLoadKeys();
+            let authHeader = '';
+            const uploadUrl = 'https://nostr.build/api/v2/upload/files';
+
+            if (identity?.privateKey) {
+                const authEvent = {
+                    kind: 27235, // HTTP Auth
+                    created_at: Math.floor(Date.now() / 1000),
+                    tags: [
+                        ['u', uploadUrl],
+                        ['method', 'POST']
+                    ],
+                    content: '',
+                };
+                const signedAuth = finalizeEvent(authEvent, identity.privateKey);
+                // Robust base64 encoding for NIP-98
+                const jsonString = JSON.stringify(signedAuth);
+                const b64Auth = btoa(unescape(encodeURIComponent(jsonString)));
+                authHeader = `Nostr ${b64Auth}`;
+            }
+
+            // Create FormData
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // 2. Try nostr.build with Auth
+            let response = await fetch(uploadUrl, {
                 method: 'POST',
                 body: formData,
+                headers: authHeader ? { 'Authorization': authHeader } : undefined
             });
 
-            if (!response.ok) throw new Error('Upload failed');
+            // 3. Fallback to void.cat if authorized upload fails or no auth
+            if (!response.ok && !authHeader) {
+                console.log("Falling back to void.cat (no auth)");
+                response = await fetch('https://void.cat/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+            }
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Upload failed: ${response.status} - ${errorText}`);
+            }
 
             const result = await response.json();
-            console.log('Upload result:', result);
 
-            // nostr.build v2 response structure varies, typically has data[0].url
-            const url = result.data?.[0]?.url || result.url;
+            // Handle different API responses
+            // nostr.build v2: { data: [{ url: "..." }] }
+            // void.cat: { file: { url: "..." } } (need to construct URL usually, but let's check standard return)
+            // actually void.cat returns basic info. simpler fallback might be 0x0.st or just showing error if nostr.build fails.
+            // Let's stick to handling nostr.build correctly first. 
+
+            // Re-parsing nostr.build response safely
+            const url = result.data?.[0]?.url || result.url || result.file?.url;
+
             if (url) {
                 onUploadSuccess(url);
-                toast({ title: 'Success', description: 'Profile picture updated.' });
+                toast.success('Avatar Updated!', { description: 'Profile picture uploaded successfully.' });
             } else {
-                throw new Error('Url not found in response');
+                console.error('Unexpected response:', result);
+                throw new Error('URL not found in response');
             }
-        } catch (error) {
-            console.error('Upload error:', error);
-            toast({ title: 'Upload failed', description: 'Could not upload to nostr.build', variant: 'destructive' });
+        } catch (err) {
+            console.error('Upload error:', err);
+            setError('Upload failed');
+            toast.error('Upload Failed', {
+                description: 'Could not upload to nostr.build. Please try again.'
+            });
         } finally {
             setUploading(false);
+            // Reset input so same file can be re-selected
+            e.target.value = '';
         }
     };
 
     return (
         <div className="relative group">
-            <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-xl bg-gray-100 flex items-center justify-center">
+            <div className={`w-24 h-24 overflow-hidden border-4 ${error ? 'border-red-500' : 'border-black'} bg-white flex items-center justify-center transition-colors`}>
                 {currentAvatar ? (
-                    <img src={currentAvatar} alt="Avatar" className="w-full h-full object-cover" />
+                    <img src={currentAvatar} alt="Avatar" className="w-full h-full object-cover grayscale" />
                 ) : (
-                    <Camera className="w-8 h-8 text-gray-400" />
+                    <Camera className="w-8 h-8 text-black/20" />
                 )}
             </div>
 
-            <label className="absolute inset-0 flex items-center justify-center bg-black/40 text-white rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity duration-200">
-                <input type="file" className="hidden" onChange={handleFileChange} disabled={uploading} />
-                {uploading ? <Loader2 className="w-6 h-6 animate-spin" /> : <UploadCloud className="w-6 h-6" />}
+            <label className="absolute inset-0 flex items-center justify-center bg-black/60 text-white opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity duration-200">
+                <input
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    disabled={uploading}
+                />
+                {uploading ? (
+                    <div className="flex flex-col items-center gap-1">
+                        <Loader2 className="w-6 h-6 animate-spin" />
+                        <span className="text-[8px] uppercase font-black tracking-widest">Uploading...</span>
+                    </div>
+                ) : error ? (
+                    <div className="flex flex-col items-center gap-1">
+                        <AlertCircle className="w-6 h-6" />
+                        <span className="text-[8px] uppercase font-black tracking-widest">Retry</span>
+                    </div>
+                ) : (
+                    <div className="flex flex-col items-center gap-1">
+                        <UploadCloud className="w-6 h-6" />
+                        <span className="text-[8px] uppercase font-black tracking-widest">Upload</span>
+                    </div>
+                )}
             </label>
         </div>
     );

@@ -114,13 +114,19 @@ export function ShareProgressCard({ streak, avatarUrl }: ShareProgressCardProps)
       // Small delay to ensure state update renders in the hidden element
       await new Promise(r => setTimeout(r, 100));
 
-      // Step 2: Generate PNG with recommended stability settings
+      // Step 2: Generate PNG with stability settings to prevent cross-origin CSS crash
       const dataUrl = await toPng(shareableRef.current, {
         cacheBust: true,
         backgroundColor: '#ffffff',
-        pixelRatio: 2, // High resolution
-        // @ts-ignore - explicitly enabling CORS for external assets
-        useCORS: true,
+        pixelRatio: 2,
+        skipFonts: true,
+        fontEmbedCSS: '', // Disable font embedding to avoid cross-origin CSS issues
+        ...({ copyStyles: false } as any), // Prevents accessing cssRules of cross-origin stylesheets
+        includeQueryParams: false,
+        filter: (node: HTMLElement) => {
+          if (node.tagName === 'LINK') return false;
+          return true;
+        }
       });
 
       const link = document.createElement('a');

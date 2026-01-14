@@ -7,6 +7,8 @@ const DEFAULT_RELAYS = [
     'wss://relay.damus.io',
     'wss://relay.snort.social',
     'wss://relay.eden.earth',
+    'wss://relay.primal.net',
+    'wss://relay.nostr.band',
 ];
 
 interface RelayMetadata {
@@ -54,14 +56,17 @@ export const NostrProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const checkConnections = async () => {
             const connected: string[] = [];
 
-            for (const url of relays) {
+            const ensureConnection = async (url: string) => {
                 try {
-                    // In nostr-tools v2, we check the pool's internal relay status if possible
-                    // However, querySync or query will establish connections.
-                    // A better way for Hydra: use the fetchRelay Information (NIP-11) as a proxy for life
-                    const relay = await poolRef.current.ensureRelay(url);
-                    // Check if it's connected (this might vary by nostr-tools version)
-                    // For Hydra, we'll use a simpler 'active' check
+                    // Timeout promise
+                    const timeout = new Promise((_, reject) => {
+                        setTimeout(() => reject(new Error('Connection timeout')), 5000);
+                    });
+
+                    // connection promise
+                    const connection = poolRef.current.ensureRelay(url);
+
+                    await Promise.race([connection, timeout]);
                     connected.push(url);
 
                     // Fetch metadata if not already present
@@ -69,18 +74,29 @@ export const NostrProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                         fetchMetadata(url);
                     }
                 } catch (e) {
-                    console.warn(`[Nostr] Relay ${url} unreachable`);
+                    // Silent fail, just don't add to connected list
                 }
-            }
+            };
+
+            await Promise.allSettled(relays.map(url => ensureConnection(url)));
             setConnectedRelays(connected);
         };
 
         const fetchMetadata = async (url: string) => {
             try {
                 const httpUrl = url.replace('wss://', 'https://').replace('ws://', 'http://');
+
+                // Polyfill-like timeout for broader browser compatibility
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 3000);
+
                 const response = await fetch(httpUrl, {
-                    headers: { 'Accept': 'application/nostr+json' }
+                    headers: { 'Accept': 'application/nostr+json' },
+                    signal: controller.signal
                 });
+
+                clearTimeout(timeoutId);
+
                 if (response.ok) {
                     const data = await response.json();
                     setRelayMetadata(prev => ({ ...prev, [url]: data }));
@@ -103,14 +119,22 @@ export const NostrProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             let metadata: RelayMetadata | undefined;
             try {
                 const httpUrl = url.replace('wss://', 'https://').replace('ws://', 'http://');
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000);
+
                 const response = await fetch(httpUrl, {
                     headers: { 'Accept': 'application/nostr+json' },
-                    signal: AbortSignal.timeout(5000)
+                    signal: controller.signal
                 });
+
+                clearTimeout(timeoutId);
+
                 if (response.ok) {
                     metadata = await response.json();
                 }
-            } catch (e) { }
+            } catch (e) {
+                console.warn("Relay metadata fetch failed or timed out", url);
+            }
 
             return { success: true, metadata };
         } catch (e) {
@@ -134,8 +158,31 @@ export const NostrProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const publish = useCallback(async (event: any) => {
         try {
             const pubs = poolRef.current.publish(relays, event);
-            await Promise.any(pubs);
-            return true;
+            // Polyfill-like behavior for Promise.any (wait for first success)
+            return new Promise<boolean>((resolve) => {
+                let failureCount = 0;
+                let successCount = 0;
+                const total = pubs.length;
+
+                if (total === 0) {
+                    resolve(false);
+                    return;
+                }
+
+                pubs.forEach(p => {
+                    p.then(() => {
+                        successCount++;
+                        // Resolve immediately on first success
+                        resolve(true);
+                    }).catch(() => {
+                        failureCount++;
+                        // If all failed, we're done
+                        if (failureCount === total && successCount === 0) {
+                            resolve(false);
+                        }
+                    });
+                });
+            });
         } catch (e) {
             console.error('Publish failed', e);
             return false;
@@ -143,7 +190,7 @@ export const NostrProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }, [relays]);
 
     const subscribe = useCallback((filter: Filter, onEvent: (event: Event) => void) => {
-        const sub = poolRef.current.subscribeMany(relays, [filter], {
+        const sub = poolRef.current.subscribeMany(relays, [filter] as any, {
             onevent: onEvent,
             oneose: () => console.log('EOSE'),
         });

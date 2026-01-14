@@ -18,6 +18,7 @@ const queryClient = new QueryClient();
 
 const App = () => {
   useEffect(() => {
+    console.log("[HYDRA] App component mounted");
     document.title = "NoFap Hydra";
   }, []);
 

@@ -11,6 +11,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { ShareProgressCard } from "@/components/ShareProgressCard";
 import { SyncIndicator } from "@/components/SyncIndicator";
 import { ActivityHeatmap } from "@/components/DynamicComponents";
+import { ActivityHistory } from "@/components/ActivityHistory";
 import { useStreak } from "@/hooks/useStreak";
 import { Loader2 } from "lucide-react";
 import { generateOrLoadKeys } from "@/services/nostr";
@@ -29,6 +30,7 @@ const Index = () => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log("[HYDRA] Index page mounted");
     const loadProfile = async () => {
       try {
         const id = await generateOrLoadKeys();
@@ -87,6 +89,7 @@ const Index = () => {
             <AvatarDisplay days={liveStreak?.days || 0} />
             <StatsCard data={streakData} />
             <ActivityHeatmap startDate={streakData?.startDate} />
+            <ActivityHistory />
           </div>
         </div>
 

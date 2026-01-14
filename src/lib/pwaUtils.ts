@@ -1,60 +1,60 @@
 // Service Worker Registration
 export async function registerServiceWorker() {
-  if ('serviceWorker' in navigator) {
-    try {
-      const registration = await navigator.serviceWorker.register('/sw.js', {
-        scope: '/',
-      });
-      
-      console.log('SW registered:', registration.scope);
-      
-      // Check for updates
-      registration.addEventListener('updatefound', () => {
-        const newWorker = registration.installing;
-        if (newWorker) {
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              // New content available
-              console.log('New content available, refresh to update');
-            }
-          });
-        }
-      });
-      
-      return registration;
-    } catch (error) {
-      console.error('SW registration failed:', error);
-      return null;
-    }
+  try {
+    if (!('serviceWorker' in navigator)) return null;
+
+    const registration = await navigator.serviceWorker.register('/sw.js', {
+      scope: '/',
+    });
+
+    console.log('[HYDRA] SW registered:', registration.scope);
+
+    // Check for updates
+    registration.addEventListener('updatefound', () => {
+      const newWorker = registration.installing;
+      if (newWorker) {
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            console.log('[HYDRA] New content available, refresh to update');
+          }
+        });
+      }
+    });
+
+    return registration;
+  } catch (error) {
+    console.warn('[HYDRA] SW registration failed (non-blocking):', error);
+    return null;
   }
   return null;
 }
 
 // Background Sync Registration
 export async function registerBackgroundSync() {
-  if ('serviceWorker' in navigator && 'SyncManager' in window) {
-    try {
+  try {
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator && (navigator as any).serviceWorker.ready) {
       const registration = await navigator.serviceWorker.ready;
-      await (registration as any).sync.register('sync-streak-data');
-      console.log('Background sync registered');
-      return true;
-    } catch (error) {
-      console.error('Background sync registration failed:', error);
-      return false;
+      if (registration && 'sync' in registration) {
+        await (registration as any).sync.register('sync-streak-data');
+        console.log('[HYDRA-PWA] Background sync registered');
+        return true;
+      }
     }
+  } catch (error) {
+    console.warn('[HYDRA-PWA] Background sync not supported or denied (non-blocking).');
   }
   return false;
 }
 
 // Periodic Background Sync Registration
 export async function registerPeriodicSync() {
-  if ('serviceWorker' in navigator && 'periodicSync' in (ServiceWorkerRegistration.prototype as any)) {
+  if ('serviceWorker' in navigator && 'ServiceWorkerRegistration' in window && 'periodicSync' in (window.ServiceWorkerRegistration.prototype as any)) {
     try {
       const registration = await navigator.serviceWorker.ready;
       const status = await navigator.permissions.query({
         name: 'periodic-background-sync' as PermissionName,
       });
-      
+
       if (status.state === 'granted') {
         await (registration as any).periodicSync.register('check-motivation', {
           minInterval: 3 * 60 * 60 * 1000, // 3 hours
@@ -74,10 +74,10 @@ export async function subscribeToPush(): Promise<PushSubscription | null> {
   if ('serviceWorker' in navigator && 'PushManager' in window) {
     try {
       const registration = await navigator.serviceWorker.ready;
-      
+
       // Check existing subscription
       let subscription = await registration.pushManager.getSubscription();
-      
+
       if (!subscription) {
         // Create new subscription (using a placeholder VAPID key - replace with real one for production)
         subscription = await registration.pushManager.subscribe({
@@ -88,7 +88,7 @@ export async function subscribeToPush(): Promise<PushSubscription | null> {
         });
         console.log('Push subscription created');
       }
-      
+
       return subscription;
     } catch (error) {
       console.error('Push subscription failed:', error);
@@ -117,6 +117,6 @@ export function checkPWASupport() {
     push: 'PushManager' in window,
     notifications: 'Notification' in window,
     backgroundSync: 'SyncManager' in window,
-    periodicSync: 'periodicSync' in (ServiceWorkerRegistration.prototype as any),
+    periodicSync: (typeof window !== 'undefined' && 'ServiceWorkerRegistration' in window) && 'periodicSync' in (window.ServiceWorkerRegistration.prototype as any),
   };
 }

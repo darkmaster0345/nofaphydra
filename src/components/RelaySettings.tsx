@@ -98,7 +98,7 @@ export const RelaySettings = () => {
                     return (
                         <div key={url} className="flex items-center justify-between p-4 border border-black bg-white group hover:bg-secondary/5 transition-colors">
                             <div className="flex items-center gap-4 flex-1 min-w-0">
-                                <div className={`w-3 h-3 border ${isConnected ? 'bg-black border-black shadow-[0_0_5px_rgba(0,0,0,0.2)]' : 'bg-transparent border-black/20'}`} />
+                                <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.5)]' : 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.3)]'}`} />
                                 <div className="flex flex-col min-w-0">
                                     <span className="text-xs font-bold uppercase truncate tracking-tighter">
                                         {displayName}

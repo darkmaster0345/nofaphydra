@@ -10,6 +10,7 @@ import { saveJournalEntry, fetchJournalEntries, JournalEntry } from "@/services/
 import { Loader2, Plus, PenLine, Battery, Smile } from "lucide-react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
+import { logActivity } from "@/lib/activityLog";
 
 export default function Journal() {
     const [entries, setEntries] = useState<JournalEntry[]>([]);
@@ -54,6 +55,7 @@ export default function Journal() {
         const success = await saveJournalEntry(entry);
         if (success) {
             toast.success("Signal Encrypted & Broadcasted! 🐉");
+            logActivity('journal_save', `Journal entry saved (Mood: ${mood[0]}/10, Energy: ${energy[0]}/10)`);
             setContent("");
             setMood([5]);
             setEnergy([5]);

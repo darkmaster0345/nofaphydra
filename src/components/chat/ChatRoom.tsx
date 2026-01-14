@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Loader2 } from "lucide-react";
+import { Send, Loader2, RefreshCw, AlertCircle } from "lucide-react";
 import { useNostr } from "@/hooks/useNostr";
 import { generateOrLoadKeys, NostrKeys } from "@/services/nostr";
 import { finalizeEvent } from "nostr-tools";
@@ -13,12 +13,14 @@ interface Message {
   content: string;
   pubkey: string;
   created_at: number;
-  status?: 'sending' | 'sent' | 'received';
+  status?: 'sending' | 'sent' | 'received' | 'failed';
 }
 
 interface ChatRoomProps {
   roomId: string;
 }
+
+const BROADCAST_TIMEOUT = 5000; // 5 seconds
 
 export function ChatRoom({ roomId }: ChatRoomProps) {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -26,6 +28,7 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
   const { events, subscribe, publish } = useNostr();
   const [identity, setIdentity] = useState<NostrKeys | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const timeoutRefs = useRef<Map<string, NodeJS.Timeout>>(new Map());
 
   useEffect(() => {
     generateOrLoadKeys().then(setIdentity);
@@ -57,16 +60,26 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
       }));
 
     setMessages(prev => {
-      // Merge incoming with existing, avoiding duplicates based on content/pubkey/time for optimistic matching
-      // or ID for relay events
+      // Merge incoming with existing, avoiding duplicates
       const existingIds = new Set(prev.map(m => m.id));
       const newFromRelay = incomingMessages.filter(m => !existingIds.has(m.id));
 
-      // Filter out optimistic messages that now have a relay counterpart
-      const filteredPrev = prev.filter(p =>
-        p.status !== 'sending' ||
-        !incomingMessages.some(m => m.content === p.content && m.pubkey === p.pubkey)
-      );
+      // Filter out optimistic/failed messages that now have a relay counterpart
+      const filteredPrev = prev.filter(p => {
+        if (p.status === 'sending' || p.status === 'failed') {
+          const hasConfirmation = incomingMessages.some(m => m.content === p.content && m.pubkey === p.pubkey);
+          if (hasConfirmation) {
+            // Clear timeout if message was confirmed
+            const timeout = timeoutRefs.current.get(p.id);
+            if (timeout) {
+              clearTimeout(timeout);
+              timeoutRefs.current.delete(p.id);
+            }
+            return false;
+          }
+        }
+        return true;
+      });
 
       return [...filteredPrev, ...newFromRelay].sort((a, b) => a.created_at - b.created_at);
     });
@@ -75,6 +88,58 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      timeoutRefs.current.forEach(timeout => clearTimeout(timeout));
+    };
+  }, []);
+
+  const sendMessage = useCallback(async (content: string, tempId: string) => {
+    if (!identity?.privateKey) return;
+
+    try {
+      const eventTemplate = {
+        kind: 1,
+        created_at: Math.floor(Date.now() / 1000),
+        tags: [
+          ['t', 'nofaphydra'],
+          ['t', roomId]
+        ],
+        content,
+      };
+
+      const signedEvent = finalizeEvent(eventTemplate, identity.privateKey);
+
+      // Set timeout to mark as failed after 5s
+      const timeout = setTimeout(() => {
+        setMessages(prev => prev.map(m =>
+          m.id === tempId && m.status === 'sending'
+            ? { ...m, status: 'failed' as const }
+            : m
+        ));
+        timeoutRefs.current.delete(tempId);
+      }, BROADCAST_TIMEOUT);
+
+      timeoutRefs.current.set(tempId, timeout);
+
+      const success = await publish(signedEvent);
+
+      if (!success) {
+        clearTimeout(timeout);
+        timeoutRefs.current.delete(tempId);
+        setMessages(prev => prev.map(m =>
+          m.id === tempId ? { ...m, status: 'failed' as const } : m
+        ));
+      }
+    } catch (error) {
+      console.error("Failed to send message:", error);
+      setMessages(prev => prev.map(m =>
+        m.id === tempId ? { ...m, status: 'failed' as const } : m
+      ));
+    }
+  }, [identity, publish, roomId]);
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,33 +155,18 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
       status: 'sending'
     };
 
-    // 1. Add locally immediately
     setMessages(prev => [...prev, optimisticMsg]);
     setNewMessage("");
 
-    try {
-      const eventTemplate = {
-        kind: 1,
-        created_at: Math.floor(Date.now() / 1000),
-        tags: [
-          ['t', 'nofaphydra'],
-          ['t', roomId]
-        ],
-        content,
-      };
+    await sendMessage(content, tempId);
+  };
 
-      const signedEvent = finalizeEvent(eventTemplate, identity.privateKey);
-      const success = await publish(signedEvent);
-
-      if (!success) {
-        throw new Error("Failed to publish to any relay");
-      }
-    } catch (error) {
-      console.error("Failed to send message:", error);
-      toast.error("Message delivery failed. Check relay connection.");
-      // Mark as failed or remove
-      setMessages(prev => prev.filter(m => m.id !== tempId));
-    }
+  const handleRetry = async (message: Message) => {
+    // Update status back to sending
+    setMessages(prev => prev.map(m =>
+      m.id === message.id ? { ...m, status: 'sending' as const } : m
+    ));
+    await sendMessage(message.content, message.id);
   };
 
   return (
@@ -139,11 +189,12 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
         {messages.map((message) => {
           const isOwn = identity && message.pubkey === identity.publicKey;
           const isSending = message.status === 'sending';
+          const isFailed = message.status === 'failed';
 
           return (
             <div key={message.id} className={`flex ${isOwn ? "justify-end" : "justify-start"} animate-in slide-in-from-bottom-1 duration-300`}>
               <div className={`max-w-[85%] space-y-1 ${isOwn ? "text-right" : "text-left"}`}>
-                <div className={`px-4 py-2 border border-black ${isOwn ? "bg-black text-white" : "bg-white text-black"} ${isSending ? "opacity-40 grayscale" : ""}`}>
+                <div className={`px-4 py-2 border border-black ${isOwn ? "bg-black text-white" : "bg-white text-black"} ${isSending ? "opacity-40 grayscale" : ""} ${isFailed ? "border-red-500 opacity-60" : ""}`}>
                   <p className="text-sm font-medium leading-relaxed break-words">{message.content}</p>
                 </div>
                 <div className={`flex items-center gap-2 ${isOwn ? "justify-end" : "justify-start"} px-1`}>
@@ -152,6 +203,16 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
                       <Loader2 className="w-2 h-2 animate-spin" />
                       <span className="text-[8px] uppercase font-black tracking-tighter">Broadcasting...</span>
                     </div>
+                  ) : isFailed ? (
+                    <button
+                      onClick={() => handleRetry(message)}
+                      className="flex items-center gap-1 text-red-600 hover:text-red-800 transition-colors cursor-pointer"
+                    >
+                      <AlertCircle className="w-2 h-2" />
+                      <span className="text-[8px] uppercase font-black tracking-tighter">Failed</span>
+                      <RefreshCw className="w-2 h-2 ml-1" />
+                      <span className="text-[8px] uppercase font-black tracking-tighter">Retry</span>
+                    </button>
                   ) : (
                     <p className="text-[8px] uppercase font-bold tracking-tighter opacity-30">
                       {formatDistanceToNow(new Date(message.created_at * 1000), { addSuffix: true })}
