@@ -32,13 +32,11 @@ export async function registerServiceWorker() {
 // Background Sync Registration
 export async function registerBackgroundSync() {
   try {
-    if (typeof window !== 'undefined' && 'serviceWorker' in navigator && (navigator as any).serviceWorker.ready) {
-      const registration = await navigator.serviceWorker.ready;
-      if (registration && 'sync' in registration) {
-        await (registration as any).sync.register('sync-streak-data');
-        console.log('[HYDRA-PWA] Background sync registered');
-        return true;
-      }
+    const registration = await navigator.serviceWorker.ready;
+    if ('sync' in registration) {
+      await (registration as any).sync.register('sync-streak-data');
+      console.log('[HYDRA-PWA] Background sync registered');
+      return true;
     }
   } catch (error) {
     console.warn('[HYDRA-PWA] Background sync not supported or denied (non-blocking).');

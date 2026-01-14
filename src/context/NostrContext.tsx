@@ -5,10 +5,7 @@ import { Preferences } from '@capacitor/preferences';
 const DEFAULT_RELAYS = [
     'wss://nos.lol',
     'wss://relay.damus.io',
-    'wss://relay.snort.social',
-    'wss://relay.eden.earth',
-    'wss://relay.primal.net',
-    'wss://relay.nostr.band',
+    'wss://purplerelay.com',
 ];
 
 interface RelayMetadata {
@@ -51,47 +48,71 @@ export const NostrProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         loadRelays();
     }, []);
 
-    // Monitor relay connections and fetch metadata
+    // Monitor relay connections
+    const connectionInProgress = useRef(false);
+
     useEffect(() => {
         const checkConnections = async () => {
-            const connected: string[] = [];
+            if (connectionInProgress.current) return;
+            connectionInProgress.current = true;
 
-            const ensureConnection = async (url: string) => {
-                try {
-                    // Timeout promise
-                    const timeout = new Promise((_, reject) => {
-                        setTimeout(() => reject(new Error('Connection timeout')), 5000);
-                    });
+            try {
+                const connected: string[] = [];
 
-                    // connection promise
-                    const connection = poolRef.current.ensureRelay(url);
+                const ensureConnection = async (url: string) => {
+                    try {
+                        const timeoutPromise = new Promise((_, reject) => {
+                            setTimeout(() => reject(new Error(`Relay ${url} connection timeout`)), 5000);
+                        });
 
-                    await Promise.race([connection, timeout]);
-                    connected.push(url);
+                        const connectionPromise = poolRef.current.ensureRelay(url);
+                        await Promise.race([connectionPromise, timeoutPromise]);
 
-                    // Fetch metadata if not already present
-                    if (!relayMetadata[url]) {
-                        fetchMetadata(url);
+                        console.log(`✅ Connected to ${url}`);
+                        return url;
+                    } catch (e) {
+                        console.warn(`❌ Failed to connect to ${url}`, e);
+                        return null;
                     }
-                } catch (e) {
-                    // Silent fail, just don't add to connected list
-                }
-            };
+                };
 
-            await Promise.allSettled(relays.map(url => ensureConnection(url)));
-            setConnectedRelays(connected);
+                const results = await Promise.allSettled(relays.map(url => ensureConnection(url)));
+
+                const successfulRelays = results
+                    .filter(r => r.status === 'fulfilled' && r.value !== null)
+                    .map(r => (r as PromiseFulfilledResult<string>).value);
+
+                console.log(`Connected to ${successfulRelays.length}/${relays.length} relays`);
+                setConnectedRelays(successfulRelays);
+            } finally {
+                connectionInProgress.current = false;
+            }
         };
 
+        checkConnections();
+        const interval = setInterval(checkConnections, 60000);
+
+        return () => {
+            clearInterval(interval);
+            // This is the "Kill Switch" that stops the logs from piling up
+            relays.forEach(url => poolRef.current.close([url]));
+        };
+    }, [relays]);
+
+    // Separate effect for metadata fetching
+    useEffect(() => {
         const fetchMetadata = async (url: string) => {
+            // Avoid refetching if we already have it
+            if (relayMetadata[url]) return;
+
             try {
                 const httpUrl = url.replace('wss://', 'https://').replace('ws://', 'http://');
-
-                // Polyfill-like timeout for broader browser compatibility
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 3000);
 
                 const response = await fetch(httpUrl, {
                     headers: { 'Accept': 'application/nostr+json' },
+                    mode: 'cors',
                     signal: controller.signal
                 });
 
@@ -102,14 +123,13 @@ export const NostrProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                     setRelayMetadata(prev => ({ ...prev, [url]: data }));
                 }
             } catch (e) {
-                // Silently fail metadata fetch
+                // Silently fail
             }
         };
 
-        checkConnections();
-        const interval = setInterval(checkConnections, 30000); // Check every 30s
-        return () => clearInterval(interval);
-    }, [relays, relayMetadata]);
+        // Attempt to fetch metadata for all known relays on mount or change
+        relays.forEach(url => fetchMetadata(url));
+    }, [relays]);
 
     const checkRelayStatus = useCallback(async (url: string) => {
         try {
@@ -124,6 +144,7 @@ export const NostrProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
                 const response = await fetch(httpUrl, {
                     headers: { 'Accept': 'application/nostr+json' },
+                    mode: 'cors',
                     signal: controller.signal
                 });
 
@@ -157,43 +178,96 @@ export const NostrProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     const publish = useCallback(async (event: any) => {
         try {
-            const pubs = poolRef.current.publish(relays, event);
-            // Polyfill-like behavior for Promise.any (wait for first success)
-            return new Promise<boolean>((resolve) => {
-                let failureCount = 0;
-                let successCount = 0;
-                const total = pubs.length;
+            const targetRelays = connectedRelays.length > 0 ? connectedRelays : relays;
 
-                if (total === 0) {
-                    resolve(false);
-                    return;
-                }
+            if (targetRelays.length === 0) {
+                console.warn("No connected relays to publish to");
+                // Attempt to publish to all known relays as fallback
+            }
 
-                pubs.forEach(p => {
-                    p.then(() => {
-                        successCount++;
-                        // Resolve immediately on first success
-                        resolve(true);
-                    }).catch(() => {
-                        failureCount++;
-                        // If all failed, we're done
-                        if (failureCount === total && successCount === 0) {
-                            resolve(false);
-                        }
+            // Fallback to all relays if no connected ones are maintained in state properly
+            const activeRelays = targetRelays.length > 0 ? targetRelays : relays;
+
+            if (activeRelays.length === 0) {
+                return false;
+            }
+
+            // 1. Force a "re-wake" of the pool before sending to ensure socket is alive
+            // This helps with browser background tab suspension issues
+            try {
+                await poolRef.current.ensureRelay(activeRelays[0]);
+            } catch (e) {
+                // Ignore wake-up failure, the race loop will handle individual connection attempts if needed
+                console.warn("Wake-up ping failed, proceeding to race", e);
+            }
+
+            return await Promise.race([
+                new Promise<boolean>((resolve) => {
+                    let acknowledged = false;
+                    let failureCount = 0;
+                    const total = activeRelays.length;
+
+                    activeRelays.forEach((url) => {
+                        const pub = poolRef.current.publish([url], event);
+
+                        // Handle both single Promise and array of Promises return types from publish
+                        const promise = Array.isArray(pub) ? pub[0] : pub;
+
+                        promise.then(() => {
+                            if (!acknowledged) {
+                                acknowledged = true;
+                                console.log(`✅ Message accepted by ${url}`);
+                                resolve(true);
+                            }
+                        }).catch((err) => {
+                            console.warn(`Relay ${url} rejected:`, err);
+                            failureCount++;
+                            if (failureCount === total && !acknowledged) {
+                                resolve(false);
+                            }
+                        });
                     });
-                });
-            });
+                }),
+                new Promise<boolean>((resolve) =>
+                    setTimeout(() => {
+                        console.warn("Publish timed out, but might have sent.");
+                        // If we timed out, return false so the UI shows 'failed' status if strict, 
+                        // or true if we want to be optimistic. 
+                        // Returning false is safer so user can retry.
+                        resolve(false);
+                    }, 5000)
+                )
+            ]);
+
         } catch (e) {
-            console.error('Publish failed', e);
+            console.error('Publish fatal error', e);
             return false;
         }
-    }, [relays]);
+    }, [relays, connectedRelays]);
 
     const subscribe = useCallback((filter: Filter, onEvent: (event: Event) => void) => {
-        const sub = poolRef.current.subscribeMany(relays, [filter] as any, {
-            onevent: onEvent,
-            oneose: () => console.log('EOSE'),
-        });
+        if (!filter) return () => { };
+
+        // Safe Wrapper: Transform filter to ensure Relay acceptance
+        const cleanFilter = Array.isArray(filter) ? filter[0] : filter;
+
+        // 2. Remove null/undefined values and empty arrays (relays hate authors: [])
+        const finalFilter = Object.fromEntries(
+            Object.entries(cleanFilter).filter(([_, v]) =>
+                v != null && (!Array.isArray(v) || v.length > 0)
+            )
+        );
+
+        console.log("[HYDRA-DEBUG] Sending CLEAN filter (sub):", JSON.stringify(finalFilter));
+
+        // Use the simplest 'sub' method for maximum compatibility
+        const sub = (poolRef.current as any).sub(relays, finalFilter);
+
+        // Handle both event emitter style and callback style if necessary
+        if (sub.on) {
+            sub.on('event', onEvent);
+        }
+
         return () => sub.close();
     }, [relays]);
 

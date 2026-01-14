@@ -26,10 +26,9 @@ import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
 const RELAYS = [
     "wss://nos.lol",
     "wss://relay.damus.io",
-    "wss://relay.snort.social",
-    "wss://relay.eden.earth",
-    "wss://relay.primal.net",
-    "wss://relay.nostr.band",
+    "wss://purplerelay.com",
+    // "wss://relay.primal.net", // Commented out due to strict rate limits
+    // "wss://relay.nostr.band", // Commented out due to rate limits
 ];
 
 // Minimum number of relay acknowledgments needed for success
@@ -379,46 +378,46 @@ export async function initNetworkListener(): Promise<void> {
  */
 export async function generateOrLoadKeys(): Promise<NostrKeys> {
     try {
-        // Try Capacitor Preferences first
-        let { value } = await Preferences.get({ key: "nostr_private_key" });
+        // 1. Try to find an existing key (Standardizing on 'user_nsec' per instruction)
+        let { value } = await Preferences.get({ key: 'user_nsec' });
 
-        // Fallback to direct localStorage for web persistence resilience
+        // Migration path: Check previous keys if strict user_nsec not found
         if (!value) {
-            value = localStorage.getItem("nostr_private_key");
+            const { value: prev } = await Preferences.get({ key: 'user_private_key' });
+            if (prev) value = prev;
+        }
+        // Fallback checks
+        if (!value) {
+            const { value: oldKey } = await Preferences.get({ key: "nostr_private_key" });
+            if (oldKey) value = oldKey;
+        }
+        if (!value) {
+            value = localStorage.getItem('user_private_key') || localStorage.getItem('nostr_private_key');
         }
 
         if (value) {
-            const privateKey = hexToBytes(value);
-            const publicKey = getPublicKey(privateKey);
-
-            // Sync back to both just in case
-            await Preferences.set({ key: "nostr_private_key", value });
-            localStorage.setItem("nostr_private_key", value);
+            console.log("[HYDRA] Welcome back! Identity loaded.");
+            const privKey = hexToBytes(value);
+            // Ensure we migrate/save to the new standard key
+            await Preferences.set({ key: 'user_nsec', value: value });
 
             return {
-                privateKey,
-                publicKey,
-                privateKeyHex: value,
+                privateKey: privKey,
+                publicKey: getPublicKey(privKey),
+                privateKeyHex: value
             };
         }
 
-        // Generate new keys if none exist
-        const privateKey = generateSecretKey();
-        const privateKeyHex = bytesToHex(privateKey);
-        const publicKey = getPublicKey(privateKey);
+        // 2. Create and save if it doesn't exist
+        const newKey = generateSecretKey();
+        const hex = bytesToHex(newKey);
+        await Preferences.set({ key: 'user_nsec', value: hex });
 
-        await Preferences.set({
-            key: "nostr_private_key",
-            value: privateKeyHex,
-        });
-        localStorage.setItem("nostr_private_key", privateKeyHex);
-
-        console.log("[Nostr] Generated new identity:", publicKey);
-
+        console.log("[HYDRA] New identity created and saved to device.");
         return {
-            privateKey,
-            publicKey,
-            privateKeyHex,
+            privateKey: newKey,
+            publicKey: getPublicKey(newKey),
+            privateKeyHex: hex
         };
     } catch (error) {
         console.error("[Nostr] Error generating/loading keys:", error);

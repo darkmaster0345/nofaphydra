@@ -38,7 +38,7 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
     if (!identity) return;
     const unsub = subscribe({
       kinds: [1],
-      '#t': ['nofaphydra', roomId],
+      '#t': ['nofaphydra', roomId], // Array for multiple tag values is correct in filter object
       limit: 100
     });
     return () => unsub && unsub();
@@ -100,6 +100,7 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
     if (!identity?.privateKey) return;
 
     try {
+      // Step 1: Fix the Clock - Ensure event's created_at is strictly in seconds
       const eventTemplate = {
         kind: 1,
         created_at: Math.floor(Date.now() / 1000),
@@ -124,6 +125,7 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
 
       timeoutRefs.current.set(tempId, timeout);
 
+      // Step 2 & 3: The publish function in NostrContext now handles the "OK" check and race-to-success logic
       const success = await publish(signedEvent);
 
       if (!success) {
@@ -132,6 +134,10 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
         setMessages(prev => prev.map(m =>
           m.id === tempId ? { ...m, status: 'failed' as const } : m
         ));
+      } else {
+        // If success (at least one relay accepted), we assume it's sent.
+        // We do NOT clear the message here because the optimisitc UI already added it.
+        // The real confirmation from the subscription loop will eventually deduplicate/confirm it.
       }
     } catch (error) {
       console.error("Failed to send message:", error);

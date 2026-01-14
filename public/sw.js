@@ -40,8 +40,14 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
   // ONLY cache http or https. 
-  // This ignores chrome-extension:// and capacitor:// schemes which cause errors
+  // This ignores chrome-extension://, capacitor://, and ws:// schemes
   if (!(url.protocol === 'http:' || url.protocol === 'https:')) {
+    return;
+  }
+
+  // EXCLUDE NOSTR RELAYS (WebSockets)
+  // This prevents the Service Worker from interfering with relay connections
+  if (url.protocol === 'ws:' || url.protocol === 'wss:' || url.hostname.includes('nos.lol') || url.hostname.includes('damus.io') || url.hostname.includes('relay')) {
     return;
   }
 

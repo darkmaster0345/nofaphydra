@@ -121,14 +121,17 @@ export const AvatarUpload = ({ currentAvatar, onUploadSuccess }: AvatarUploadPro
                 )}
             </div>
 
-            <label className="absolute inset-0 flex items-center justify-center bg-black/60 text-white opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity duration-200">
-                <input
-                    type="file"
-                    className="hidden"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    disabled={uploading}
-                />
+            <div
+                className="absolute inset-0 flex items-center justify-center bg-black/60 text-white opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity duration-200"
+                onClick={() => {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = 'image/*';
+                    input.onchange = (e) => handleFileChange(e as any);
+                    input.click();
+                }}
+            >
+                {/* File input removed to prevent BFS Cache freeze */}
                 {uploading ? (
                     <div className="flex flex-col items-center gap-1">
                         <Loader2 className="w-6 h-6 animate-spin" />
@@ -145,7 +148,7 @@ export const AvatarUpload = ({ currentAvatar, onUploadSuccess }: AvatarUploadPro
                         <span className="text-[8px] uppercase font-black tracking-widest">Upload</span>
                     </div>
                 )}
-            </label>
+            </div>
         </div>
     );
 };
