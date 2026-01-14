@@ -52,7 +52,10 @@ const Auth = () => {
           Back to Home
         </Button>
         <div className="streak-card">
-          <h1 className="text-3xl font-display text-center mb-6">Welcome</h1>
+          <div className="flex justify-center mb-6">
+            <img src="/logo.png" alt="Hydra Logo" className="w-20 h-20 rounded-full border border-black/5" />
+          </div>
+          <h1 className="text-3xl font-display text-center mb-6 uppercase tracking-widest">Hydra Sync</h1>
           <div className="space-y-4">
             <div>
               <Label htmlFor="privateKey">Private Key (nsec)</Label>
