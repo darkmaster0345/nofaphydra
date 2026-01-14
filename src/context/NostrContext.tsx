@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
-import { SimplePool, Relay, Filter, Event } from 'nostr-tools';
+import { SimplePool, Relay, Filter, Event, finalizeEvent } from 'nostr-tools';
 import { Preferences } from '@capacitor/preferences';
+import { hexToBytes } from '@noble/hashes/utils';
 
 const RELAYS = ["wss://nos.lol", "wss://relay.damus.io", "wss://relay.snort.social"];
 const DEFAULT_RELAYS = RELAYS;
@@ -31,6 +32,7 @@ interface NostrContextType {
     publish: (event: any) => Promise<boolean>;
     subscribe: (filter: Filter, onEvent: (event: Event) => void) => () => void;
     checkRelayStatus: (url: string) => Promise<{ success: boolean; metadata?: RelayMetadata }>;
+    updateProfileName: (newName: string, privateKey: string) => Promise<boolean>;
 }
 
 const NostrContext = createContext<NostrContextType | null>(null);
@@ -303,9 +305,42 @@ export const NostrProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 }
             }
         );
-
         return () => sub.close();
     }, [relays, profiles]);
+
+    const updateProfileName = useCallback(async (newName: string, privateKey: string) => {
+        try {
+            // 1. Create the Profile Template (Kind 0)
+            const eventTemplate = {
+                kind: 0,
+                created_at: Math.floor(Date.now() / 1000),
+                tags: [],
+                content: JSON.stringify({
+                    name: newName,
+                    display_name: newName,
+                    about: "NoFap Hydra Warrior 🐉"
+                }),
+            };
+
+            // 2. Sign the event using your nsec (converted to bytes)
+            const sk = hexToBytes(privateKey);
+            const signedEvent = finalizeEvent(eventTemplate, sk);
+
+            // 3. Publish to your active relays
+            await Promise.all(
+                relays.map(url => poolRef.current.publish([url], signedEvent))
+            );
+
+            console.log("[HYDRA] Profile updated to:", newName);
+            // Update local profiles state
+            setProfiles(prev => ({ ...prev, [signedEvent.pubkey]: newName }));
+            alert("Success! Your name is now " + newName);
+            return true;
+        } catch (error) {
+            console.error("[HYDRA] Update failed:", error);
+            return false;
+        }
+    }, [relays]);
 
     return (
         <NostrContext.Provider value={{
@@ -318,7 +353,8 @@ export const NostrProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             removeRelay,
             publish,
             subscribe,
-            checkRelayStatus
+            checkRelayStatus,
+            updateProfileName
         }}>
             {children}
         </NostrContext.Provider>

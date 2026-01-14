@@ -27,7 +27,7 @@ const Profile = () => {
   const [saving, setSaving] = useState(false);
   const [identity, setIdentity] = useState<NostrKeys | null>(null);
   const navigate = useNavigate();
-  const { publish } = useNostr();
+  const { publish, updateProfileName } = useNostr();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -259,9 +259,18 @@ const Profile = () => {
               </div>
 
               <Button
-                type="submit"
+                type="button"
                 variant="default"
                 size="lg"
+                onClick={async () => {
+                  if (identity?.privateKeyHex) {
+                    setSaving(true);
+                    await updateProfileName(username, identity.privateKeyHex);
+                    localStorage.setItem(`nostr_username_${identity.publicKey}`, username.trim());
+                    localStorage.setItem(`nostr_avatar_${identity.publicKey}`, avatarUrl);
+                    setSaving(false);
+                  }
+                }}
                 className="w-full bg-black text-white hover:bg-black/90 transition-all active:scale-95 rounded-none border border-black uppercase text-xs font-black tracking-widest h-14"
                 disabled={saving}
               >
