@@ -411,6 +411,7 @@ export async function hasKeys(): Promise<boolean> {
  */
 export async function clearKeys(): Promise<void> {
     await Preferences.remove({ key: "nostr_private_key" });
+    keysPromise = null;
 }
 
 /**

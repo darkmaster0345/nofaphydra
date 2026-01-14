@@ -3,10 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Send } from "lucide-react";
 import { useNostr } from "@/hooks/useNostr";
-import { getNostrIdentity } from "@/lib/nostr";
+import { generateOrLoadKeys } from "@/services/nostr";
 import { finalizeEvent } from "nostr-tools";
 import type { Event } from "nostr-tools";
 import { formatDistanceToNow } from "date-fns";
+import { hexToBytes } from "@noble/hashes/utils";
 
 interface Message {
   id: string;
@@ -27,7 +28,7 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    getNostrIdentity().then(setIdentity);
+    generateOrLoadKeys().then(setIdentity);
   }, []);
 
   useEffect(() => {
@@ -49,7 +50,7 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
     e.preventDefault();
     if (!newMessage.trim() || !identity) return;
 
-    const secretKey = Buffer.from(identity.privateKey, 'hex');
+    const secretKey = hexToBytes(identity.privateKey);
 
     const eventTemplate = {
       kind: 1,
@@ -58,7 +59,7 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
       content: newMessage.trim(),
     };
 
-    const signedEvent = finalizeEvent(eventTemplate, secretKey as Uint8Array);
+    const signedEvent = finalizeEvent(eventTemplate, secretKey);
 
     publish(signedEvent);
     setNewMessage("");

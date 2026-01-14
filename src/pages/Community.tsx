@@ -11,7 +11,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, LogOut, User as UserIcon } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import { getNostrIdentity } from "@/lib/nostr";
+import { generateOrLoadKeys, clearKeys } from "@/services/nostr";
 
 const Community = () => {
   // const [user, setUser] = useState<User | null>(null);
@@ -21,32 +21,16 @@ const Community = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // const { data: { subscription } } = supabase.auth.onAuthStateChange(
-    //   (event, session) => {
-    //     setUser(session?.user ?? null);
-    //     setLoading(false);
-    //   }
-    // );
-
-    // supabase.auth.getSession().then(({ data: { session } }) => {
-    //   setUser(session?.user ?? null);
-    //   setLoading(false);
-    // });
-
-    getNostrIdentity().then(id => {
+    generateOrLoadKeys().then(id => {
       if (id && id.privateKey) {
         setIdentity(id);
       }
       setLoading(false);
     });
-
-    // return () => subscription.unsubscribe();
   }, []);
 
   const handleSignOut = async () => {
-    // await supabase.auth.signOut();
-    // For Nostr, signing out means clearing the stored key
-    localStorage.removeItem("nostr_private_key");
+    await clearKeys();
     setIdentity(null);
     toast({
       title: "Signed out",
@@ -68,7 +52,7 @@ const Community = () => {
     <div className="min-h-screen bg-background">
       <div className="container max-w-4xl mx-auto px-4 pb-24">
         <Header />
-        
+
         <div className="flex items-center justify-between mb-6">
           <Button variant="ghost" onClick={() => navigate("/")}>
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -114,7 +98,7 @@ const Community = () => {
           </div>
         </div>
       </div>
-      
+
       <BottomNav />
     </div>
   );
