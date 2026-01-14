@@ -2,10 +2,8 @@ import React, { createContext, useContext, useEffect, useState, useCallback, use
 import { SimplePool, Relay, Filter, Event } from 'nostr-tools';
 import { Preferences } from '@capacitor/preferences';
 
-const DEFAULT_RELAYS = [
-    'wss://nos.lol',
-    'wss://relay.damus.io',
-];
+const RELAYS = ["wss://nos.lol", "wss://relay.damus.io", "wss://relay.snort.social"];
+const DEFAULT_RELAYS = RELAYS;
 
 interface RelayMetadata {
     name?: string;
