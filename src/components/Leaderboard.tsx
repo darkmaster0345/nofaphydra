@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-// import { supabase } from "@/integrations/supabase/client";
 import { Trophy, Flame, Medal } from "lucide-react";
 import { getAvatarLevel } from "@/lib/streakUtils";
 
@@ -19,19 +18,7 @@ export function Leaderboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // const fetchLeaderboard = async () => {
-    //   const { data, error } = await supabase
-    //     .from("profiles")
-    //     .select("id, username, avatar_emoji, current_streak")
-    //     .order("current_streak", { ascending: false, nullsFirst: false })
-    //     .limit(10);
-    //   if (!error && data) {
-    //     setUsers(data);
-    //   }
-    //   setLoading(false);
-    // };
-    // fetchLeaderboard();
-    setLoading(false); // Set loading to false as we are not fetching data
+    setLoading(false);
   }, []);
 
   const getRankIcon = (index: number) => {

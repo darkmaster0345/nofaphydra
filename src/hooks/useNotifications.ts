@@ -18,23 +18,21 @@ export function useNotifications() {
   }, []);
 
   const fetchMotivation = async (): Promise<string> => {
-    // try {
-    //   const { data, error } = await supabase.functions.invoke("generate-motivation");
-    //   if (error || !data?.quote) {
-    //     return "Stay strong. Every moment of resistance builds your strength.";
-    //   }
-    //   return data.quote;
-    // } catch {
-    //   return "Your discipline today shapes your freedom tomorrow.";
-    // }
-    return "Your discipline today shapes your freedom tomorrow.";
+    const quotes = [
+      "Stay strong. Every moment of resistance builds your strength.",
+      "Your discipline today shapes your freedom tomorrow.",
+      "The only easy day was yesterday.",
+      "Conquer yourself, conquer the world.",
+      "Pain is temporary. Glory is forever."
+    ];
+    return quotes[Math.floor(Math.random() * quotes.length)];
   };
 
   const showNotification = useCallback(async () => {
     if (Notification.permission !== "granted") return;
-    
+
     const quote = await fetchMotivation();
-    
+
     const notification = new Notification("NoFap Hydra 🐉", {
       body: quote,
       icon: "/favicon.ico",
@@ -77,7 +75,7 @@ export function useNotifications() {
 
     const result = await Notification.requestPermission();
     setPermission(result);
-    
+
     if (result === "granted") {
       setEnabled(true);
       localStorage.setItem(STORAGE_KEY, "true");
