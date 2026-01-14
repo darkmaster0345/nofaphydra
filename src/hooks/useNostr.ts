@@ -3,7 +3,12 @@ import { Event, Filter } from 'nostr-tools';
 import { useNostrContext } from '../context/NostrContext';
 
 export const useNostr = () => {
-  const { subscribe: contextSubscribe, publish: contextPublish, connectedRelays } = useNostrContext();
+  const {
+    subscribe: contextSubscribe,
+    publish: contextPublish,
+    connectedRelays,
+    userMetadata
+  } = useNostrContext();
   const [events, setEvents] = useState<Event[]>([]);
 
   const subscribe = useCallback((filter: Filter) => {
@@ -21,5 +26,5 @@ export const useNostr = () => {
     return await contextPublish(event);
   }, [contextPublish]);
 
-  return { events, subscribe, publish, connectedRelays };
+  return { events, subscribe, publish, connectedRelays, userMetadata };
 };

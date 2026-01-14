@@ -25,10 +25,12 @@ const BROADCAST_TIMEOUT = 5000; // 5 seconds
 export function ChatRoom({ roomId }: ChatRoomProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
-  const { events, subscribe, publish } = useNostr();
+  const { events, subscribe, publish, userMetadata } = useNostr();
   const [identity, setIdentity] = useState<NostrKeys | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const timeoutRefs = useRef<Map<string, NodeJS.Timeout>>(new Map());
+
+  const getShortId = (pubkey: string) => `${pubkey.slice(0, 4)}...${pubkey.slice(-4)}`;
 
   useEffect(() => {
     generateOrLoadKeys().then(setIdentity);
@@ -201,6 +203,11 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
             <div key={message.id} className={`flex ${isOwn ? "justify-end" : "justify-start"} animate-in slide-in-from-bottom-1 duration-300`}>
               <div className={`max-w-[85%] space-y-1 ${isOwn ? "text-right" : "text-left"}`}>
                 <div className={`px-4 py-2 border border-black ${isOwn ? "bg-black text-white" : "bg-white text-black"} ${isSending ? "opacity-40 grayscale" : ""} ${isFailed ? "border-red-500 opacity-60" : ""}`}>
+                  {!isOwn && (
+                    <p className="text-[8px] font-black uppercase tracking-widest mb-1 opacity-50">
+                      {userMetadata[message.pubkey]?.name || `ID: ${getShortId(message.pubkey)}`}
+                    </p>
+                  )}
                   <p className="text-sm font-medium leading-relaxed break-words">{message.content}</p>
                 </div>
                 <div className={`flex items-center gap-2 ${isOwn ? "justify-end" : "justify-start"} px-1`}>
