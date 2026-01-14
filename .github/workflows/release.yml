@@ -1,0 +1,128 @@
+name: Build and Release APK
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  JAVA_VERSION: '17'
+  NODE_VERSION: '20'
+
+jobs:
+  build-and-release:
+    name: Build Release APK
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+    
+    steps:
+      # Checkout the repository
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Set up Node.js for web build
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      # Install npm dependencies
+      - name: Install Dependencies
+        run: npm ci
+
+      # Build the web app
+      - name: Build Web App
+        run: npm run build
+
+      # Set up Java 17 for Android build
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      # Sync Capacitor to Android
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      # Decode and create keystore file from base64 secret
+      - name: Decode Keystore
+        env:
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+        run: |
+          echo "$SIGNING_KEY" | base64 -d > android/app/release-keystore.jks
+        if: ${{ env.SIGNING_KEY != '' }}
+
+      # Create keystore.properties for Gradle
+      - name: Create Keystore Properties
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          cat > android/keystore.properties << EOF
+          storeFile=release-keystore.jks
+          storePassword=$KEYSTORE_PASSWORD
+          keyAlias=$KEY_ALIAS
+          keyPassword=$KEY_PASSWORD
+          EOF
+        if: ${{ env.KEYSTORE_PASSWORD != '' }}
+
+      # Make gradlew executable
+      - name: Make Gradlew Executable
+        run: chmod +x android/gradlew
+
+      # Build release APK
+      - name: Build Release APK
+        working-directory: android
+        run: ./gradlew assembleRelease --no-daemon
+
+      # Get the version from tag
+      - name: Get Version
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      # Rename APK with version
+      - name: Rename APK
+        run: |
+          mv android/app/build/outputs/apk/release/app-release.apk \
+             android/app/build/outputs/apk/release/NoFapHydra-${{ steps.version.outputs.VERSION }}.apk
+
+      # Generate checksum (before release so it can be included in notes)
+      - name: Generate Checksum
+        id: checksum
+        run: |
+          SHA256=$(sha256sum android/app/build/outputs/apk/release/NoFapHydra-${{ steps.version.outputs.VERSION }}.apk | cut -d ' ' -f 1)
+          echo "SHA256=$SHA256" >> $GITHUB_OUTPUT
+
+      # Create GitHub Release and upload APK
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: NoFap Hydra ${{ steps.version.outputs.VERSION }}
+          body: |
+            ## 🐉 NoFap Hydra ${{ steps.version.outputs.VERSION }}
+            
+            ### What's New
+            - See commit history for changes
+            
+            ### Installation
+            1. Download the APK file below
+            2. Enable "Install from unknown sources" in Android settings
+            3. Open the APK to install
+            
+            ### Checksum
+            ```
+            SHA256: ${{ steps.checksum.outputs.SHA256 }}
+            ```
+          draft: false
+          prerelease: ${{ contains(steps.version.outputs.VERSION, '-beta') || contains(steps.version.outputs.VERSION, '-alpha') }}
+          files: |
+            android/app/build/outputs/apk/release/NoFapHydra-${{ steps.version.outputs.VERSION }}.apk
+          fail_on_unmatched_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

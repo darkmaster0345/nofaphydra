@@ -1,0 +1,130 @@
+/**
+ * Sync Status Indicator Component
+ * 
+ * Shows the current Nostr sync status:
+ * - Syncing animation when actively syncing
+ * - Pending count when offline with queued events
+ * - Offline indicator when disconnected
+ */
+
+import { Cloud, CloudOff, Loader2, CheckCircle2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+interface SyncIndicatorProps {
+    isSyncing: boolean;
+    isOnline: boolean;
+    pendingCount: number;
+    className?: string;
+}
+
+export function SyncIndicator({
+    isSyncing,
+    isOnline,
+    pendingCount,
+    className,
+}: SyncIndicatorProps) {
+    // Determine the current state
+    const getStatusContent = () => {
+        if (isSyncing) {
+            return {
+                icon: <Loader2 className="h-4 w-4 animate-spin" />,
+                text: "Syncing...",
+                color: "text-blue-400",
+                bgColor: "bg-blue-500/10",
+                borderColor: "border-blue-500/30",
+            };
+        }
+
+        if (!isOnline) {
+            return {
+                icon: <CloudOff className="h-4 w-4" />,
+                text: pendingCount > 0 ? `Offline (${pendingCount} pending)` : "Offline",
+                color: "text-amber-400",
+                bgColor: "bg-amber-500/10",
+                borderColor: "border-amber-500/30",
+            };
+        }
+
+        if (pendingCount > 0) {
+            return {
+                icon: <Cloud className="h-4 w-4" />,
+                text: `${pendingCount} pending`,
+                color: "text-amber-400",
+                bgColor: "bg-amber-500/10",
+                borderColor: "border-amber-500/30",
+            };
+        }
+
+        // All synced and online
+        return {
+            icon: <CheckCircle2 className="h-4 w-4" />,
+            text: "Synced",
+            color: "text-emerald-400",
+            bgColor: "bg-emerald-500/10",
+            borderColor: "border-emerald-500/30",
+        };
+    };
+
+    const status = getStatusContent();
+
+    return (
+        <div
+            className={cn(
+                "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium",
+                "border transition-all duration-300",
+                status.color,
+                status.bgColor,
+                status.borderColor,
+                className
+            )}
+        >
+            {status.icon}
+            <span>{status.text}</span>
+        </div>
+    );
+}
+
+/**
+ * Compact sync indicator for header/nav
+ */
+export function SyncIndicatorCompact({
+    isSyncing,
+    isOnline,
+    pendingCount,
+    className,
+}: SyncIndicatorProps) {
+    if (isSyncing) {
+        return (
+            <div className={cn("relative", className)}>
+                <Cloud className="h-5 w-5 text-blue-400" />
+                <Loader2 className="absolute -top-1 -right-1 h-3 w-3 text-blue-400 animate-spin" />
+            </div>
+        );
+    }
+
+    if (!isOnline) {
+        return (
+            <div className={cn("relative", className)}>
+                <CloudOff className="h-5 w-5 text-amber-400" />
+                {pendingCount > 0 && (
+                    <span className="absolute -top-1 -right-2 bg-amber-500 text-black text-[10px] font-bold px-1 rounded-full min-w-[16px] text-center">
+                        {pendingCount}
+                    </span>
+                )}
+            </div>
+        );
+    }
+
+    if (pendingCount > 0) {
+        return (
+            <div className={cn("relative", className)}>
+                <Cloud className="h-5 w-5 text-amber-400" />
+                <span className="absolute -top-1 -right-2 bg-amber-500 text-black text-[10px] font-bold px-1 rounded-full min-w-[16px] text-center">
+                    {pendingCount}
+                </span>
+            </div>
+        );
+    }
+
+    return <Cloud className={cn("h-5 w-5 text-emerald-400", className)} />;
+}

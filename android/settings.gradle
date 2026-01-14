@@ -1,0 +1,5 @@
+include ':app'
+rootProject.name = "android"
+
+// This links your Capacitor plugins automatically
+apply from: 'capacitor.settings.gradle'
