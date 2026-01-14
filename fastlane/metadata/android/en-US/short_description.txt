@@ -1,0 +1,1 @@
+A privacy-first, decentralized NoFap streak tracker and community built on the Nostr protocol.

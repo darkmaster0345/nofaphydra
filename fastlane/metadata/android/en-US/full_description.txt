@@ -1,0 +1,10 @@
+NoFap Hydra is a privacy-first, decentralized streak tracker and community designed to help you build discipline and self-mastery. Built on the Nostr protocol, Hydra ensures your data remains yours—encrypted, decentralized, and censorship-resistant.
+
+Key Features:
+- Decentralized Privacy: All streak and journal data are encrypted end-to-end using NIP-44 (v2) encryption.
+- No Central Servers: No accounts or central databases. Your data lives on a global network of independent relays.
+- Community & Chat: Connect with other warriors using a high-performance, real-time chat interface with automatic identity discovery.
+- Neo-Brutalist Design: A unique visual style designed for focus and impact.
+- Offline-First: Intelligent offline queue ensures your progress is saved and synced automatically when you're back online.
+
+Stay strong. Stay disciplined. Become legendary. 🐉
