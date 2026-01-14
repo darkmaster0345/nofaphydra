@@ -25,7 +25,7 @@ interface NostrContextType {
     relays: string[];
     connectedRelays: string[];
     relayMetadata: Record<string, RelayMetadata>;
-    userMetadata: Record<string, UserMetadata>;
+    profiles: Record<string, string>;
     addRelay: (url: string) => Promise<void>;
     removeRelay: (url: string) => Promise<void>;
     publish: (event: any) => Promise<boolean>;
@@ -39,7 +39,7 @@ export const NostrProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const [relays, setRelays] = useState<string[]>(DEFAULT_RELAYS);
     const [connectedRelays, setConnectedRelays] = useState<string[]>([]);
     const [relayMetadata, setRelayMetadata] = useState<Record<string, RelayMetadata>>({});
-    const [userMetadata, setUserMetadata] = useState<Record<string, UserMetadata>>({});
+    const [profiles, setProfiles] = useState<Record<string, string>>({});
     const poolRef = useRef<SimplePool>(new SimplePool());
 
     useEffect(() => {
@@ -274,7 +274,7 @@ export const NostrProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                     console.log("[HYDRA] EVENT:", event.content);
 
                     // Automatic Profile Discovery
-                    if (event.kind === 1 && !userMetadata[event.pubkey]) {
+                    if (event.kind === 1 && !profiles[event.pubkey]) {
                         // Fetch user profile (Kind 0)
                         (poolRef.current as any).subscribe(RELAYS, {
                             kinds: [0],
@@ -284,12 +284,10 @@ export const NostrProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                             onevent: (metaEvent: Event) => {
                                 try {
                                     const data = JSON.parse(metaEvent.content);
-                                    setUserMetadata(prev => ({
+                                    const name = data.display_name || data.name || "Anon";
+                                    setProfiles(prev => ({
                                         ...prev,
-                                        [event.pubkey]: {
-                                            name: data.name || data.display_name,
-                                            picture: data.picture
-                                        }
+                                        [event.pubkey]: name
                                     }));
                                 } catch (e) {
                                     // Silently fail on bad metadata
@@ -307,7 +305,7 @@ export const NostrProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         );
 
         return () => sub.close();
-    }, [relays, userMetadata]);
+    }, [relays, profiles]);
 
     return (
         <NostrContext.Provider value={{
@@ -315,7 +313,7 @@ export const NostrProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             relays,
             connectedRelays,
             relayMetadata,
-            userMetadata,
+            profiles,
             addRelay,
             removeRelay,
             publish,

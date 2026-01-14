@@ -25,7 +25,7 @@ const BROADCAST_TIMEOUT = 5000; // 5 seconds
 export function ChatRoom({ roomId }: ChatRoomProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
-  const { events, subscribe, publish, userMetadata } = useNostr();
+  const { events, subscribe, publish, profiles } = useNostr();
   const [identity, setIdentity] = useState<NostrKeys | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const timeoutRefs = useRef<Map<string, NodeJS.Timeout>>(new Map());
@@ -205,7 +205,7 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
                 <div className={`px-4 py-2 border border-black ${isOwn ? "bg-black text-white" : "bg-white text-black"} ${isSending ? "opacity-40 grayscale" : ""} ${isFailed ? "border-red-500 opacity-60" : ""}`}>
                   {!isOwn && (
                     <p className="text-[8px] font-black uppercase tracking-widest mb-1 opacity-50">
-                      {userMetadata[message.pubkey]?.name || `ID: ${getShortId(message.pubkey)}`}
+                      {profiles[message.pubkey] || `user:${message.pubkey.slice(0, 5)}`}
                     </p>
                   )}
                   <p className="text-sm font-medium leading-relaxed break-words">{message.content}</p>
