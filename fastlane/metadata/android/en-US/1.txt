@@ -1,0 +1,5 @@
+Initial release of NofapHydra. 
+- Decentralized chat powered by the Nostr protocol.
+- Full NIP-01 metadata support for user identities.
+- Brutalist, privacy-focused interface.
+- Lightweight 6.62MB optimized build.
