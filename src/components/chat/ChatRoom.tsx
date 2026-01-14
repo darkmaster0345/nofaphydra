@@ -33,17 +33,17 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
 
   useEffect(() => {
     if (!identity) return;
-    subscribe({ kinds: [1], '#t': [roomId] });
+    const unsub = subscribe({ kinds: [1], '#t': [roomId] });
+    return () => unsub && unsub();
   }, [identity, subscribe, roomId]);
 
   useEffect(() => {
-    const newMessages = events.map(event => ({
+    setMessages(events.map(event => ({
       id: event.id!,
       content: event.content,
       pubkey: event.pubkey,
       created_at: event.created_at,
-    }));
-    setMessages(prev => [...prev, ...newMessages].sort((a, b) => a.created_at - b.created_at));
+    })));
   }, [events]);
 
   const handleSend = async (e: React.FormEvent) => {

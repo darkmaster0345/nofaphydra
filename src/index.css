@@ -73,31 +73,47 @@
     font-family: var(--font-body);
   }
 
-  h1, h2, h3, .font-display {
+  h1,
+  h2,
+  h3,
+  .font-display {
     font-family: var(--font-display);
     letter-spacing: 0.05em;
   }
 }
 
 @layer components {
-  /* Minimalist Card */
+
+  /* Minimalist Glass Card */
   .streak-card {
-    @apply relative overflow-hidden rounded-xl p-6 border border-border bg-card text-card-foreground;
+    @apply relative overflow-hidden rounded-2xl p-6 border border-black/10 transition-all duration-300;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .glass-card {
+    @apply relative overflow-hidden rounded-2xl border border-black/5 bg-white/40;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
 
   .android-card {
-    @apply relative overflow-hidden rounded-xl p-4 border border-border bg-card text-card-foreground;
+    @apply relative overflow-hidden rounded-2xl p-4 border border-black/10 bg-white/80 transition-shadow duration-300;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
   }
 
   /* Remove flashy effects */
-  .text-gradient-fire, .text-gradient-gold, .text-gradient-legendary {
+  .text-gradient-fire,
+  .text-gradient-gold,
+  .text-gradient-legendary {
     @apply text-foreground;
     background: none;
     -webkit-background-clip: unset;
     -webkit-text-fill-color: initial;
     background-clip: unset;
   }
-  
+
   /* Safe area for iOS notched devices */
   .safe-area-bottom {
     padding-bottom: env(safe-area-inset-bottom, 0);

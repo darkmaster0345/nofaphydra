@@ -13,8 +13,10 @@ import { ArrowLeft, LogOut, User as UserIcon } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { generateOrLoadKeys, clearKeys } from "@/services/nostr";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { useNostr } from "@/hooks/useNostr";
 
 const Community = () => {
+  const { connectedRelays } = useNostr();
   // const [user, setUser] = useState<User | null>(null);
   const [identity, setIdentity] = useState<{ publicKey: string, privateKey: string } | null>(null);
   const [selectedRoom, setSelectedRoom] = useState<string | null>("global"); // Default to global room
@@ -101,6 +103,15 @@ const Community = () => {
           </div>
         </div>
       </ErrorBoundary>
+
+      <div className="fixed bottom-20 left-0 right-0 px-4 pointer-events-none">
+        <div className="max-w-4xl mx-auto flex justify-end">
+          <div className="glass-card px-3 py-1 flex items-center gap-2 text-[10px] text-muted-foreground pointer-events-auto">
+            <div className={`w-1.5 h-1.5 rounded-full ${connectedRelays.length > 0 ? 'bg-green-500' : 'bg-red-500'}`} />
+            <span>Relays: {connectedRelays.length > 0 ? connectedRelays.join(', ') : 'Disconnected'}</span>
+          </div>
+        </div>
+      </div>
 
       <BottomNav />
     </div>

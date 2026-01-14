@@ -32,6 +32,21 @@ const RELAYS = [
 // Minimum number of relay acknowledgments needed for success
 const MIN_RELAY_CONFIRMATIONS = 1;
 
+const pool = new SimplePool();
+
+/**
+ * Get the current relay list, including user-defined ones
+ */
+async function getRelays(): Promise<string[]> {
+    try {
+        const { value } = await Preferences.get({ key: 'user_relays' });
+        if (value) {
+            return JSON.parse(value);
+        }
+    } catch (e) { }
+    return RELAYS;
+}
+
 // Private kind for encrypted streak data
 const STREAK_NOTE_KIND = 1;
 
@@ -236,12 +251,12 @@ interface RelayResult {
  * Success is determined by at least one relay acknowledgment (Promise.any style).
  */
 async function resilientPublish(signedEvent: VerifiedEvent): Promise<boolean> {
-    const pool = new SimplePool();
+    const currentRelays = await getRelays();
     const results: RelayResult[] = [];
 
     try {
         // Create individual promises for each relay
-        const relayPromises = RELAYS.map(async (relay): Promise<RelayResult> => {
+        const relayPromises = currentRelays.map(async (relay): Promise<RelayResult> => {
             try {
                 // SimplePool.publish returns an array of promises for each relay
                 // We need to handle each relay individually for better error handling
@@ -583,7 +598,7 @@ export async function fetchStreak(): Promise<StreakPayload | null> {
 
     try {
         const keys = await generateOrLoadKeys();
-        const pool = new SimplePool();
+        const currentRelays = await getRelays();
 
         try {
             const filter = {
@@ -593,7 +608,7 @@ export async function fetchStreak(): Promise<StreakPayload | null> {
                 limit: 10,
             };
 
-            const events = await pool.querySync(RELAYS, filter);
+            const events = await pool.querySync(currentRelays, filter);
 
             if (events.length === 0) {
                 console.log("[Nostr] No streak data found on relays");
@@ -615,7 +630,7 @@ export async function fetchStreak(): Promise<StreakPayload | null> {
 
             return streakData;
         } finally {
-            pool.close(RELAYS);
+            // pool.close(currentRelays);
         }
     } catch (error) {
         console.error("[Nostr] Error fetching streak:", error);
@@ -754,7 +769,7 @@ export async function fetchJournalEntries(): Promise<JournalEntry[]> {
 
     try {
         const keys = await generateOrLoadKeys();
-        const pool = new SimplePool();
+        const currentRelays = await getRelays();
 
         try {
             const filter = {
@@ -764,7 +779,7 @@ export async function fetchJournalEntries(): Promise<JournalEntry[]> {
                 limit: 50,
             };
 
-            const events = await pool.querySync(RELAYS, filter);
+            const events = await pool.querySync(currentRelays, filter);
             const entries: JournalEntry[] = [];
             const conversationKey = nip44.v2.utils.getConversationKey(keys.privateKey, keys.publicKey);
 
@@ -780,7 +795,7 @@ export async function fetchJournalEntries(): Promise<JournalEntry[]> {
 
             return entries.sort((a, b) => b.timestamp - a.timestamp);
         } finally {
-            pool.close(RELAYS);
+            // pool.close(RELAYS);
         }
     } catch (error) {
         console.error("Failed to fetch journal entries:", error);
