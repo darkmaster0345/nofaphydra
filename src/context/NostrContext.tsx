@@ -33,6 +33,7 @@ interface NostrContextType {
     subscribe: (filter: Filter, onEvent: (event: Event) => void) => () => void;
     checkRelayStatus: (url: string) => Promise<{ success: boolean; metadata?: RelayMetadata }>;
     updateProfileName: (newName: string, privateKey: string) => Promise<boolean>;
+    setProfiles: React.Dispatch<React.SetStateAction<Record<string, string>>>;
 }
 
 const NostrContext = createContext<NostrContextType | null>(null);
@@ -354,7 +355,8 @@ export const NostrProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             publish,
             subscribe,
             checkRelayStatus,
-            updateProfileName
+            updateProfileName,
+            setProfiles
         }}>
             {children}
         </NostrContext.Provider>

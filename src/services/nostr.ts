@@ -23,7 +23,7 @@ import {
 import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
 
 // Relay configuration - multiple relays for redundancy
-const RELAYS = ["wss://nos.lol", "wss://relay.damus.io", "wss://relay.snort.social"];
+export const RELAYS = ["wss://nos.lol", "wss://relay.damus.io", "wss://relay.snort.social"];
 const DEFAULT_RELAYS = RELAYS;
 
 // Minimum number of relay acknowledgments needed for success

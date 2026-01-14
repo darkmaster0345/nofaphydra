@@ -8,7 +8,9 @@ export const useNostr = () => {
     publish: contextPublish,
     connectedRelays,
     profiles,
-    updateProfileName
+    updateProfileName,
+    setProfiles,
+    pool
   } = useNostrContext();
   const [events, setEvents] = useState<Event[]>([]);
 
@@ -27,5 +29,5 @@ export const useNostr = () => {
     return await contextPublish(event);
   }, [contextPublish]);
 
-  return { events, subscribe, publish, connectedRelays, profiles, updateProfileName };
+  return { events, subscribe, publish, connectedRelays, profiles, updateProfileName, setProfiles, pool };
 };

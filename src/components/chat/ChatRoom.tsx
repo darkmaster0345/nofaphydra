@@ -2,7 +2,9 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Send, Loader2, RefreshCw, AlertCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useNostr } from "@/hooks/useNostr";
+import { RELAYS } from "@/services/nostr";
 import { generateOrLoadKeys, NostrKeys } from "@/services/nostr";
 import { finalizeEvent } from "nostr-tools";
 import { formatDistanceToNow } from "date-fns";
@@ -25,7 +27,7 @@ const BROADCAST_TIMEOUT = 5000; // 5 seconds
 export function ChatRoom({ roomId }: ChatRoomProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
-  const { events, subscribe, publish, profiles } = useNostr();
+  const { events, subscribe, publish, profiles, setProfiles, pool } = useNostr();
   const [identity, setIdentity] = useState<NostrKeys | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const timeoutRefs = useRef<Map<string, NodeJS.Timeout>>(new Map());
@@ -86,6 +88,33 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
       return [...filteredPrev, ...newFromRelay].sort((a, b) => a.created_at - b.created_at);
     });
   }, [events, roomId]);
+
+  useEffect(() => {
+    // When messages arrive, find unique pubkeys and ask for their names
+    const unknownPubkeys = messages
+      .filter(m => !profiles[m.pubkey])
+      .map(m => m.pubkey);
+
+    if (unknownPubkeys.length > 0) {
+      const sub = (pool as any).subscribe(RELAYS,
+        { kinds: [0], authors: unknownPubkeys },
+        {
+          onevent: (event: any) => {
+            try {
+              const data = JSON.parse(event.content);
+              setProfiles(prev => ({
+                ...prev,
+                [event.pubkey]: data.display_name || data.name || "Warrior"
+              }));
+            } catch (e) {
+              console.error("Failed to parse profile metadata", e);
+            }
+          }
+        }
+      );
+      return () => sub.close();
+    }
+  }, [messages, profiles, pool, setProfiles]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
