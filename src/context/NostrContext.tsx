@@ -257,20 +257,20 @@ export const NostrProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             )
         );
 
-        console.log("[HYDRA-DEBUG] Sending CLEAN filter (subscribeMany):", JSON.stringify([finalFilter]));
+        console.log("[HYDRA-DEBUG] Forcing NIP-01 Object Filter:", finalFilter);
 
-        // Use subscribeMany (the correct function name for newer nostr-tools)
-        // Wrap finalFilter in an array [] because subscribeMany EXPECTS an array of filters
-        const sub = poolRef.current.subscribeMany(
+        // Use the standard subscribe method with a single object (Silver Bullet Fix)
+        // We cast to any to ensure we can access 'subscribe' if it's considered internal/alias
+        const sub = (poolRef.current as any).subscribe(
             relays,
-            [finalFilter] as any,
+            finalFilter,
             {
-                onevent: (event) => {
-                    console.log("[HYDRA] Received Event:", event);
+                onevent: (event: Event) => {
+                    console.log("[HYDRA] EVENT:", event.content);
                     onEvent(event);
                 },
                 oneose: () => {
-                    console.log("[HYDRA] EOSE: Finished loading history.");
+                    console.log("[HYDRA] EOSE reached");
                 }
             }
         );
