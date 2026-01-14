@@ -248,25 +248,32 @@ export const NostrProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (!filter) return () => { };
 
         // Safe Wrapper: Transform filter to ensure Relay acceptance
-        const cleanFilter = Array.isArray(filter) ? filter[0] : filter;
+        const cleanFilterObj = Array.isArray(filter) ? filter[0] : filter;
 
-        // 2. Remove null/undefined values and empty arrays (relays hate authors: [])
+        // Remove null/undefined values and empty arrays (relays hate authors: [])
         const finalFilter = Object.fromEntries(
-            Object.entries(cleanFilter).filter(([_, v]) =>
+            Object.entries(cleanFilterObj).filter(([_, v]) =>
                 v != null && (!Array.isArray(v) || v.length > 0)
             )
         );
 
-        console.log("[HYDRA-DEBUG] Sending CLEAN filter (sub):", JSON.stringify(finalFilter));
+        console.log("[HYDRA-DEBUG] Sending CLEAN filter (subscribeMany):", JSON.stringify([finalFilter]));
 
-        // Use the simplest 'sub' method for maximum compatibility
-        // Passing finalFilter directly (not in an array) per user request
-        const sub = (poolRef.current as any).sub(relays, finalFilter);
-
-        // Handle both event emitter style and callback style if necessary
-        if (sub.on) {
-            sub.on('event', onEvent);
-        }
+        // Use subscribeMany (the correct function name for newer nostr-tools)
+        // Wrap finalFilter in an array [] because subscribeMany EXPECTS an array of filters
+        const sub = poolRef.current.subscribeMany(
+            relays,
+            [finalFilter] as any,
+            {
+                onevent: (event) => {
+                    console.log("[HYDRA] Received Event:", event);
+                    onEvent(event);
+                },
+                oneose: () => {
+                    console.log("[HYDRA] EOSE: Finished loading history.");
+                }
+            }
+        );
 
         return () => sub.close();
     }, [relays]);
