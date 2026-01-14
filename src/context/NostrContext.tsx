@@ -5,7 +5,6 @@ import { Preferences } from '@capacitor/preferences';
 const DEFAULT_RELAYS = [
     'wss://nos.lol',
     'wss://relay.damus.io',
-    'wss://purplerelay.com',
 ];
 
 interface RelayMetadata {
@@ -261,6 +260,7 @@ export const NostrProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         console.log("[HYDRA-DEBUG] Sending CLEAN filter (sub):", JSON.stringify(finalFilter));
 
         // Use the simplest 'sub' method for maximum compatibility
+        // Passing finalFilter directly (not in an array) per user request
         const sub = (poolRef.current as any).sub(relays, finalFilter);
 
         // Handle both event emitter style and callback style if necessary

@@ -23,12 +23,9 @@ import {
 import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
 
 // Relay configuration - multiple relays for redundancy
-const RELAYS = [
+const DEFAULT_RELAYS = [
     "wss://nos.lol",
     "wss://relay.damus.io",
-    "wss://purplerelay.com",
-    // "wss://relay.primal.net", // Commented out due to strict rate limits
-    // "wss://relay.nostr.band", // Commented out due to rate limits
 ];
 
 // Minimum number of relay acknowledgments needed for success
