@@ -11,7 +11,8 @@ export const useNostr = () => {
     return contextSubscribe(filter, (event: Event) => {
       setEvents(prev => {
         if (prev.some(e => e.id === event.id)) return prev;
-        return [...prev, event].sort((a, b) => a.created_at - b.created_at);
+        // Sort descending: newest messages at the top/first
+        return [...prev, event].sort((a, b) => b.created_at - a.created_at);
       });
     });
   }, [contextSubscribe]);
