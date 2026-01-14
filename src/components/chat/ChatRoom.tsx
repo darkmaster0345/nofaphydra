@@ -87,29 +87,43 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
   };
 
   return (
-    <div className="android-card flex flex-col h-[500px]">
-      <div className="flex-1 overflow-y-auto space-y-4 p-4">
+    <div className="border border-black flex flex-col h-[600px] bg-white">
+      <div className="flex-1 overflow-y-auto space-y-4 p-4 scrollbar-thin scrollbar-thumb-black">
         {messages.map((message) => {
           const isOwn = identity && message.pubkey === identity.publicKey;
           return (
-            <div key={message.id} className={`flex gap-2 ${isOwn ? "flex-row-reverse" : ""}`}>
-              <div className={`flex-1 max-w-[75%] ${isOwn ? "text-right" : ""}`}>
-                <div className={`inline-block px-3 py-2 shadow-sm ${isOwn ? "bg-primary text-primary-foreground rounded-lg" : "bg-secondary rounded-lg"}`}>
-                  <p className="text-sm">{message.content}</p>
+            <div key={message.id} className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
+              <div className={`max-w-[85%] space-y-1 ${isOwn ? "text-right" : "text-left"}`}>
+                <div className={`px-4 py-2 border border-black ${isOwn ? "bg-black text-white" : "bg-white text-black"}`}>
+                  <p className="text-sm font-medium leading-relaxed">{message.content}</p>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {formatDistanceToNow(new Date(message.created_at * 1000), { addSuffix: true })}
-                </p>
+                <div className="flex items-center gap-2 justify-end px-1">
+                  <p className="text-[9px] uppercase font-bold tracking-tighter opacity-50">
+                    {formatDistanceToNow(new Date(message.created_at * 1000), { addSuffix: true })}
+                  </p>
+                </div>
               </div>
             </div>
           );
         })}
         <div ref={messagesEndRef} />
       </div>
-      <div className="p-4">
-        <form onSubmit={handleSend} className="flex gap-2 items-center">
-          <Input value={newMessage} onChange={(e) => setNewMessage(e.target.value)} placeholder="Type a message..." className="flex-1" />
-          <Button type="submit" disabled={!newMessage.trim()}><Send className="w-5 h-5" /></Button>
+
+      <div className="p-4 border-t border-black bg-gray-50">
+        <form onSubmit={handleSend} className="flex gap-2">
+          <Input
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            placeholder="TYPE YOUR MESSAGE..."
+            className="flex-1 border-black rounded-none h-12 bg-white text-xs font-bold uppercase tracking-widest px-4 focus-visible:ring-0 focus-visible:ring-offset-0"
+          />
+          <Button
+            type="submit"
+            disabled={!newMessage.trim()}
+            className="border border-black rounded-none h-12 w-12 bg-black text-white hover:bg-black/90 flex items-center justify-center p-0"
+          >
+            <Send className="w-5 h-5" />
+          </Button>
         </form>
       </div>
     </div>

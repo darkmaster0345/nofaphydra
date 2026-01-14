@@ -378,11 +378,22 @@ export async function initNetworkListener(): Promise<void> {
  */
 export async function generateOrLoadKeys(): Promise<NostrKeys> {
     try {
-        const { value } = await Preferences.get({ key: "nostr_private_key" });
+        // Try Capacitor Preferences first
+        let { value } = await Preferences.get({ key: "nostr_private_key" });
+
+        // Fallback to direct localStorage for web persistence resilience
+        if (!value) {
+            value = localStorage.getItem("nostr_private_key");
+        }
 
         if (value) {
             const privateKey = hexToBytes(value);
             const publicKey = getPublicKey(privateKey);
+
+            // Sync back to both just in case
+            await Preferences.set({ key: "nostr_private_key", value });
+            localStorage.setItem("nostr_private_key", value);
+
             return {
                 privateKey,
                 publicKey,
@@ -399,6 +410,7 @@ export async function generateOrLoadKeys(): Promise<NostrKeys> {
             key: "nostr_private_key",
             value: privateKeyHex,
         });
+        localStorage.setItem("nostr_private_key", privateKeyHex);
 
         console.log("[Nostr] Generated new identity:", publicKey);
 

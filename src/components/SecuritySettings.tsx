@@ -114,40 +114,52 @@ export function SecuritySettings() {
         }
     };
 
+    const handleDownload = () => {
+        if (!keys) return;
+        const element = document.createElement("a");
+        const file = new Blob([`Nostr Private Key (nsec): ${keys.nsec}\nKeep this file secure and offline!`], { type: 'text/plain' });
+        element.href = URL.createObjectURL(file);
+        element.download = "hydra_backup_nsec.txt";
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+        toast.success("Backup file downloaded.");
+    };
+
     return (
-        <div className="space-y-6 p-4 border rounded-xl bg-card">
+        <div className="space-y-6 pt-8 border-t border-black/10">
             <div className="flex items-center gap-2">
-                <h2 className="text-xl font-display font-semibold">Backup & Security</h2>
+                <h2 className="text-sm font-bold uppercase tracking-widest">Backup & Security</h2>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-6">
                 {/* Export Section */}
-                <div className="space-y-3">
-                    <Label>Your Private Key (nsec)</Label>
-                    <div className="relative">
-                        <div className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background flex items-center overflow-hidden">
-                            <span className="truncate font-mono">
-                                {isRevealed && keys ? keys.nsec : "•••••••••••••••••••••••••••••••••••••"}
-                            </span>
-                        </div>
-
-                        {/* Hold Progress Bar */}
-                        {holdProgress > 0 && (
-                            <div
-                                className="absolute bottom-0 left-0 h-1 bg-primary/20 w-full"
-                            >
-                                <div
-                                    className="h-full bg-primary transition-all duration-75 ease-linear"
-                                    style={{ width: `${holdProgress}%` }}
-                                />
+                <div className="space-y-4">
+                    <div className="space-y-1">
+                        <Label className="text-[10px] uppercase text-muted-foreground">Private Access Key (nsec)</Label>
+                        <div className="relative">
+                            <div className="h-12 w-full border border-black bg-white px-3 py-2 flex items-center overflow-hidden">
+                                <span className="truncate font-mono text-xs">
+                                    {isRevealed && keys ? keys.nsec : "•••••••••••••••••••••••••••••••••••••"}
+                                </span>
                             </div>
-                        )}
+
+                            {/* Hold Progress Bar */}
+                            {holdProgress > 0 && (
+                                <div className="absolute inset-0 bg-black/5 pointer-events-none">
+                                    <div
+                                        className="h-full bg-black/10 transition-all duration-75 ease-linear"
+                                        style={{ width: `${holdProgress}%` }}
+                                    />
+                                </div>
+                            )}
+                        </div>
                     </div>
 
-                    <div className="flex gap-2">
+                    <div className="grid grid-cols-3 gap-2">
                         <Button
-                            variant={isRevealed ? "secondary" : "default"}
-                            className="flex-1 select-none touch-none"
+                            variant="outline"
+                            className={`col-span-1 border-black rounded-none h-11 text-xs uppercase font-bold select-none touch-none ${isRevealed ? "bg-black text-white hover:bg-black/90" : "bg-white text-black"}`}
                             onMouseDown={startHold}
                             onMouseUp={cancelHold}
                             onMouseLeave={cancelHold}
@@ -155,62 +167,82 @@ export function SecuritySettings() {
                             onTouchEnd={cancelHold}
                             onContextMenu={(e) => e.preventDefault()}
                         >
-                            {isRevealed ? <EyeOff className="mr-2 h-4 w-4" /> : <Eye className="mr-2 h-4 w-4" />}
-                            {isRevealed ? "Hide Key" : "Hold to Reveal"}
+                            {isRevealed ? "Hide" : "Reveal"}
                         </Button>
 
                         <Button
                             variant="outline"
+                            className="border-black rounded-none h-11 text-xs uppercase font-bold bg-white text-black hover:bg-gray-50"
                             onClick={() => keys && copyToClipboard(keys.nsec, "Private Key")}
                             disabled={!isRevealed}
                         >
-                            <Copy className="h-4 w-4" />
+                            <Copy className="h-4 w-4 mr-2" />
+                            Copy
+                        </Button>
+
+                        <Button
+                            variant="outline"
+                            className="border-black rounded-none h-11 text-xs uppercase font-bold bg-white text-black hover:bg-gray-50"
+                            onClick={handleDownload}
+                            disabled={!isRevealed}
+                        >
+                            <Download className="h-4 w-4 mr-2" />
+                            File
                         </Button>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                        <AlertTriangle className="inline h-3 w-3 mr-1 text-amber-500" />
-                        Never share your nsec! It gives full control over your account.
-                    </p>
+
+                    <div className="p-3 border border-black bg-gray-50 flex items-start gap-2">
+                        <AlertTriangle className="h-4 w-4 text-black shrink-0 mt-0.5" />
+                        <p className="text-[10px] leading-tight font-medium uppercase">
+                            Never share your nsec! Loss of this key means loss of your identity and streak.
+                        </p>
+                    </div>
                 </div>
 
                 {/* Import Section */}
-                <div className="pt-4 border-t">
+                <div className="pt-6">
                     <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
                         <DialogTrigger asChild>
-                            <Button variant="outline" className="w-full">
-                                <Download className="mr-2 h-4 w-4" />
-                                Import Existing Key
+                            <Button variant="outline" className="w-full border-black rounded-none h-12 text-xs uppercase font-bold bg-white text-black hover:bg-gray-50">
+                                <Upload className="mr-2 h-4 w-4" />
+                                Import Existing Identity
                             </Button>
                         </DialogTrigger>
-                        <DialogContent>
+                        <DialogContent className="border-black rounded-none shadow-none max-w-[90vw] md:max-w-md">
                             <DialogHeader>
-                                <DialogTitle>Import Nostr Identity</DialogTitle>
-                                <DialogDescription>
-                                    Paste your private key (nsec) to restore your streak.
-                                    <span className="block mt-2 font-bold text-destructive">
-                                        Warning: This will overwrite your current identity on this device!
-                                    </span>
+                                <DialogTitle className="uppercase tracking-widest text-lg font-bold">Restore Identity</DialogTitle>
+                                <DialogDescription className="text-xs uppercase leading-relaxed text-muted-foreground">
+                                    Paste your nsec key below. This will replace the current identity on this device.
                                 </DialogDescription>
                             </DialogHeader>
 
-                            <div className="space-y-2 py-4">
-                                <Label htmlFor="nsec">Private Key</Label>
-                                <Input
-                                    id="nsec"
-                                    placeholder="nsec1..."
-                                    value={importNsec}
-                                    onChange={(e) => setImportNsec(e.target.value)}
-                                    className="font-mono"
-                                />
+                            <div className="space-y-4 py-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="nsec" className="text-[10px] uppercase">nsec Private Key</Label>
+                                    <Input
+                                        id="nsec"
+                                        placeholder="nsec1..."
+                                        value={importNsec}
+                                        onChange={(e) => setImportNsec(e.target.value)}
+                                        className="font-mono text-xs border-black rounded-none h-12 bg-white"
+                                    />
+                                </div>
                             </div>
 
-                            <DialogFooter>
-                                <DialogClose asChild>
-                                    <Button variant="ghost">Cancel</Button>
-                                </DialogClose>
-                                <Button onClick={handleImport} disabled={!importNsec}>
-                                    <Upload className="mr-2 h-4 w-4" />
-                                    Import & Restore
+                            <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setImportDialogOpen(false)}
+                                    className="border-black rounded-none h-12 uppercase text-xs font-bold sm:flex-1"
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    onClick={handleLogin}
+                                    disabled={!importNsec || loading}
+                                    className="bg-black text-white hover:bg-black/90 border-none rounded-none h-12 uppercase text-xs font-bold sm:flex-1"
+                                >
+                                    {loading ? "Importing..." : "Restore & Sync"}
                                 </Button>
                             </DialogFooter>
                         </DialogContent>

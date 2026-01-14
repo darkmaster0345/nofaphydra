@@ -17,40 +17,54 @@ export const RelaySettings = () => {
     };
 
     return (
-        <div className="space-y-4">
-            <h3 className="text-lg font-bold flex items-center gap-2">
-                <Wifi className="w-5 h-5" /> Relay Management
-            </h3>
+        <div className="space-y-6">
+            <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
+                    <Wifi className="w-4 h-4" /> Relay Network
+                </h3>
+                <span className="text-[10px] font-medium uppercase text-muted-foreground">
+                    {connectedRelays.length} Connected
+                </span>
+            </div>
 
             <form onSubmit={handleAdd} className="flex gap-2">
                 <Input
                     value={newRelay}
                     onChange={(e) => setNewRelay(e.target.value)}
-                    placeholder="wss://relay.example.com"
-                    className="bg-transparent border-black/10"
+                    placeholder="WSS://RELAY.DAMUS.IO"
+                    className="border-black rounded-none h-12 text-xs font-mono bg-white focus-visible:ring-0 focus-visible:ring-offset-0"
                 />
-                <Button type="submit" size="icon" variant="outline">
-                    <Plus className="w-4 h-4" />
+                <Button
+                    type="submit"
+                    variant="outline"
+                    className="border-black rounded-none h-12 w-12 bg-black text-white hover:bg-black/90"
+                >
+                    <Plus className="w-5 h-5" />
                 </Button>
             </form>
 
-            <div className="space-y-2">
-                {relays.map((url) => (
-                    <div key={url} className="flex items-center justify-between p-3 rounded-xl border border-black/5 bg-white/50 backdrop-blur-sm">
-                        <div className="flex items-center gap-3">
-                            <div className={`w-2 h-2 rounded-full ${connectedRelays.includes(url) ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]' : 'bg-red-500'}`} />
-                            <span className="text-xs font-mono truncate max-w-[200px]">{url}</span>
+            <div className="border-t border-black/10 pt-4 space-y-2">
+                {relays.map((url) => {
+                    const isConnected = connectedRelays.includes(url);
+                    return (
+                        <div key={url} className="flex items-center justify-between p-4 border border-black bg-white">
+                            <div className="flex items-center gap-4 flex-1 min-w-0">
+                                <div className={`w-3 h-3 border ${isConnected ? 'bg-black border-black' : 'bg-transparent border-black/20'}`} />
+                                <span className="text-xs font-mono font-bold truncate uppercase tracking-tighter">
+                                    {url.replace('wss://', '').replace(/\/$/, '')}
+                                </span>
+                            </div>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => removeRelay(url)}
+                                className="text-black hover:bg-black hover:text-white rounded-none h-8 w-8"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </Button>
                         </div>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => removeRelay(url)}
-                            className="text-muted-foreground hover:text-destructive"
-                        >
-                            <Trash2 className="w-4 h-4" />
-                        </Button>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
         </div>
     );
