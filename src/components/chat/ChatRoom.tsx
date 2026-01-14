@@ -8,6 +8,7 @@ import { finalizeEvent } from "nostr-tools";
 import type { Event } from "nostr-tools";
 import { formatDistanceToNow } from "date-fns";
 import { hexToBytes } from "@noble/hashes/utils";
+import { toast } from "@/hooks/use-toast";
 
 interface Message {
   id: string;
@@ -48,21 +49,31 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !identity) return;
+    if (!newMessage.trim()) return;
 
-    const secretKey = hexToBytes(identity.privateKey);
+    if (!identity || !identity.privateKey) {
+      toast({ title: "Error", description: "You must be logged in to chat.", variant: "destructive" });
+      return;
+    }
 
-    const eventTemplate = {
-      kind: 1,
-      created_at: Math.floor(Date.now() / 1000),
-      tags: [['t', roomId]],
-      content: newMessage.trim(),
-    };
+    try {
+      const secretKey = hexToBytes(identity.privateKey);
 
-    const signedEvent = finalizeEvent(eventTemplate, secretKey);
+      const eventTemplate = {
+        kind: 1,
+        created_at: Math.floor(Date.now() / 1000),
+        tags: [['t', roomId]],
+        content: newMessage.trim(),
+      };
 
-    publish(signedEvent);
-    setNewMessage("");
+      const signedEvent = finalizeEvent(eventTemplate, secretKey);
+
+      publish(signedEvent);
+      setNewMessage("");
+    } catch (error) {
+      console.error("Failed to send message:", error);
+      toast({ title: "Error", description: "Failed to sign message. Check your key.", variant: "destructive" });
+    }
   };
 
   return (

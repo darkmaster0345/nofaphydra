@@ -18,8 +18,8 @@ import {
     SimplePool,
     VerifiedEvent,
     nip19,
+    nip44,
 } from "nostr-tools";
-import * as nip44 from "nostr-tools/nip44";
 import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
 
 // Relay configuration - multiple relays for redundancy
