@@ -12,7 +12,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { toast } from "@/hooks/use-toast";
+import { Capacitor } from "@capacitor/core";
 
 interface StreakActionsProps {
   isActive: boolean;
@@ -23,9 +25,14 @@ interface StreakActionsProps {
 export function StreakActions({ isActive, onStart, onReset }: StreakActionsProps) {
   const [showConfetti, setShowConfetti] = useState(false);
 
-  const handleStart = () => {
+  const handleStart = async () => {
     onStart();
     setShowConfetti(true);
+
+    if (Capacitor.isNativePlatform()) {
+      await Haptics.impact({ style: ImpactStyle.Medium });
+    }
+
     toast({
       title: "🔥 Streak Started!",
       description: "Your journey to greatness begins now. Stay strong!",
@@ -33,8 +40,13 @@ export function StreakActions({ isActive, onStart, onReset }: StreakActionsProps
     setTimeout(() => setShowConfetti(false), 2000);
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
     onReset();
+
+    if (Capacitor.isNativePlatform()) {
+      await Haptics.impact({ style: ImpactStyle.Heavy });
+    }
+
     toast({
       title: "Streak Reset",
       description: "Don't give up. Every champion has setbacks. Start again!",
@@ -91,7 +103,7 @@ export function StreakActions({ isActive, onStart, onReset }: StreakActionsProps
                   Reset Your Streak?
                 </AlertDialogTitle>
                 <AlertDialogDescription className="text-muted-foreground">
-                  This will reset your current streak to 0. Your longest streak record will be preserved. 
+                  This will reset your current streak to 0. Your longest streak record will be preserved.
                   Remember: setbacks are part of the journey. What matters is getting back up.
                 </AlertDialogDescription>
               </AlertDialogHeader>
