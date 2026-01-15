@@ -106,7 +106,7 @@ const Community = () => {
             <div className="md:col-span-3 space-y-4">
               <ChatRules />
               {selectedRoom ? (
-                <ChatRoom roomId={selectedRoom} />
+                <ChatRoom key={selectedRoom} roomId={selectedRoom} />
               ) : (
                 <div className="border border-black border-dashed h-96 flex items-center justify-center bg-white">
                   <p className="text-[10px] font-black uppercase tracking-widest text-black/20 text-center">
