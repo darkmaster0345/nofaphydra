@@ -15,7 +15,11 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog";
 
-export function DailyHealthCheck() {
+interface DailyHealthCheckProps {
+    onUpdate?: () => void;
+}
+
+export function DailyHealthCheck({ onUpdate }: DailyHealthCheckProps) {
     const [history, setHistory] = useState<HealthCheck[]>([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -65,6 +69,7 @@ export function DailyHealthCheck() {
             logActivity('health_check', `NPT Check: ${npt ? 'YES' : 'NO'}`);
             setHasSubmitedToday(true);
             setHistory([entry, ...history]);
+            if (onUpdate) onUpdate();
 
             // Re-check medical alert after new entry
             const newHistory = [entry, ...history];
