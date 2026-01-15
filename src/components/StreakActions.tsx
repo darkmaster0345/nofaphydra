@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Play, RotateCcw, AlertTriangle, Sparkles, Swords } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,7 +12,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
-import { Capacitor } from "@capacitor/core";
 import { luxuryClickVibrate, warningVibrate } from "@/lib/vibrationUtils";
 
 interface StreakActionsProps {
@@ -23,24 +21,18 @@ interface StreakActionsProps {
 }
 
 export function StreakActions({ isActive, onStart, onReset }: StreakActionsProps) {
-  const [showConfetti, setShowConfetti] = useState(false);
-
   const handleStart = async () => {
     onStart();
-    setShowConfetti(true);
-
     await luxuryClickVibrate();
 
     toast({
-      title: "⚔️ Protocol Initiated!",
+      title: "Protocol Initiated!",
       description: "Your journey to Fursanhood begins now. Stay disciplined!",
     });
-    setTimeout(() => setShowConfetti(false), 3000);
   };
 
   const handleReset = async () => {
     onReset();
-
     await warningVibrate();
 
     toast({
@@ -52,23 +44,6 @@ export function StreakActions({ isActive, onStart, onReset }: StreakActionsProps
 
   return (
     <div className="animate-fade-in" style={{ animationDelay: "0.5s" }}>
-      {showConfetti && (
-        <div className="fixed inset-0 pointer-events-none z-[100] flex items-center justify-center">
-          {[...Array(30)].map((_, i) => (
-            <span
-              key={i}
-              className="absolute text-2xl animate-confetti"
-              style={{
-                left: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 0.8}s`,
-              }}
-            >
-              {["🛡️", "⚔️", "🔥", "✨", "🏹", "⭐"][Math.floor(Math.random() * 6)]}
-            </span>
-          ))}
-        </div>
-      )}
-
       <div className="flex gap-4">
         {!isActive ? (
           <Button
