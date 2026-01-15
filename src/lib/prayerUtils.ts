@@ -1,20 +1,22 @@
-/**
- * Prayer Time Utilities
- * 
- * Fetches prayer times from Aladhan API and provides utilities for
- * tracking daily prayer check-ins.
- */
+import {
+    Coordinates,
+    CalculationMethod,
+    PrayerTimes as AdhanPrayerTimes,
+    SunnahTimes,
+    Prayer as AdhanPrayer,
+    Madhab
+} from 'adhan';
+import { Geolocation } from '@capacitor/geolocation';
 
-const ALADHAN_API_BASE = 'https://api.aladhan.com/v1';
 const STORAGE_KEY = 'fursan_prayer_checkins';
 
 export interface PrayerTimes {
-    Fajr: string;
-    Sunrise: string;
-    Dhuhr: string;
-    Asr: string;
-    Maghrib: string;
-    Isha: string;
+    Fajr: Date;
+    Sunrise: Date;
+    Dhuhr: Date;
+    Asr: Date;
+    Maghrib: Date;
+    Isha: Date;
 }
 
 export interface PrayerCheckin {
@@ -29,84 +31,94 @@ export interface PrayerCheckin {
     timestamp: number;
 }
 
-interface AladhanResponse {
-    data: {
-        timings: PrayerTimes;
-    };
-}
-
-// Cache prayer times for the day
-let cachedPrayerTimes: PrayerTimes | null = null;
-let cacheDate: string | null = null;
-
 /**
- * Get user's current position
+ * Get Network Verified Time (Anti-Cheat)
+ * Falls back to local time if network is unavailable.
  */
-async function getCurrentPosition(): Promise<GeolocationPosition | null> {
-    return new Promise((resolve) => {
-        if (!navigator.geolocation) {
-            resolve(null);
-            return;
-        }
-
-        navigator.geolocation.getCurrentPosition(
-            (position) => resolve(position),
-            () => resolve(null),
-            { timeout: 5000, maximumAge: 3600000 }
-        );
-    });
-}
-
-/**
- * Fetch prayer times from Aladhan API
- */
-export async function fetchPrayerTimes(date: Date = new Date()): Promise<PrayerTimes | null> {
-    const dateKey = date.toISOString().split('T')[0];
-
-    // Return cached if same day
-    if (cachedPrayerTimes && cacheDate === dateKey) {
-        return cachedPrayerTimes;
-    }
-
+export async function getVerifiedTime(): Promise<number> {
     try {
-        const position = await getCurrentPosition();
+        // We fetch from a high-availability server to check the 'Date' header
+        // This is a lightweight way to get a trusted timestamp without a specialized NTP library.
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
 
-        if (!position) {
-            console.warn('[Prayer] No geolocation, using default times');
-            return getDefaultPrayerTimes();
+        const response = await fetch('https://www.google.com', {
+            method: 'HEAD',
+            cache: 'no-cache',
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+        const dateStr = response.headers.get('Date');
+        if (dateStr) {
+            return new Date(dateStr).getTime();
+        }
+    } catch (e) {
+        console.warn('[Anti-Cheat] Network time check failed, using local clock.');
+    }
+    return Date.now();
+}
+
+/**
+ * Get prayer times locally using Adhan.js
+ */
+export async function getLocalPrayerTimes(date: Date = new Date()): Promise<PrayerTimes | null> {
+    try {
+        const platform = (window as any).Capacitor?.getPlatform();
+        let coords: { latitude: number; longitude: number } | null = null;
+
+        // Try to get GPS coordinates
+        try {
+            const position = await Geolocation.getCurrentPosition({
+                enableHighAccuracy: false,
+                timeout: 5000
+            });
+            coords = {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude
+            };
+        } catch (e) {
+            console.warn('[Prayer] GPS access denied or failed, using default (Mecca)');
+            // Default to Mecca coordinates if GPS is unavailable
+            coords = { latitude: 21.4225, longitude: 39.8262 };
         }
 
-        const dateStr = `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`;
-        const response = await fetch(
-            `${ALADHAN_API_BASE}/timings/${dateStr}?latitude=${position.coords.latitude}&longitude=${position.coords.longitude}&method=2`
-        );
+        const adhanCoords = new Coordinates(coords.latitude, coords.longitude);
+        const params = CalculationMethod.MuslimWorldLeague();
+        params.madhab = Madhab.Shafi; // Default, can be customized later
 
-        if (!response.ok) {
-            return getDefaultPrayerTimes();
-        }
+        const prayerTimes = new AdhanPrayerTimes(adhanCoords, date, params);
 
-        const data: AladhanResponse = await response.json();
-        cachedPrayerTimes = data.data.timings;
-        cacheDate = dateKey;
-
-        return cachedPrayerTimes;
+        return {
+            Fajr: prayerTimes.fajr,
+            Sunrise: prayerTimes.sunrise,
+            Dhuhr: prayerTimes.dhuhr,
+            Asr: prayerTimes.asr,
+            Maghrib: prayerTimes.maghrib,
+            Isha: prayerTimes.isha
+        };
     } catch (error) {
-        console.error('[Prayer] API fetch failed:', error);
-        return getDefaultPrayerTimes();
+        console.error('[Prayer] Local calculation failed:', error);
+        return null;
     }
 }
 
 /**
- * Default prayer times (approximate for Islamic regions)
+ * Check if a prayer time has been reached
  */
-function getDefaultPrayerTimes(): PrayerTimes {
+export async function isPrayerActive(prayerId: string): Promise<{ active: boolean; countdown: number }> {
+    const times = await getLocalPrayerTimes();
+    if (!times) return { active: false, countdown: 0 };
+
+    const verifiedNow = await getVerifiedTime();
+    const prayerKey = prayerId.charAt(0).toUpperCase() + prayerId.slice(1) as keyof PrayerTimes;
+    const prayerTime = times[prayerKey].getTime();
+
+    const diff = prayerTime - verifiedNow;
+
     return {
-        Fajr: "05:30",
-        Sunrise: "06:45",
-        Dhuhr: "12:30",
-        Asr: "15:45",
-        Maghrib: "18:00",
-        Isha: "19:30"
+        active: diff <= 0,
+        countdown: diff > 0 ? diff : 0
     };
 }
 
@@ -223,7 +235,7 @@ export function getTodayCompletionPercentage(): number {
  * Get specific dates/times for prayer notifications
  */
 export async function getPrayerNotificationTimes(): Promise<{ name: string; time: Date }[]> {
-    const times = await fetchPrayerTimes();
+    const times = await getLocalPrayerTimes();
     if (!times) return [];
 
     const now = new Date();
@@ -232,11 +244,10 @@ export async function getPrayerNotificationTimes(): Promise<{ name: string; time
     const prayerNames: (keyof PrayerTimes)[] = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
 
     prayerNames.forEach(name => {
-        const [hours, minutes] = times[name].split(':').map(Number);
-        const prayerDate = new Date(now);
-        prayerDate.setHours(hours, minutes, 0, 0);
+        const prayerDate = new Date(times[name]);
 
-        // If the prayer time has already passed today, schedule it for tomorrow
+        // If the prayer time has already passed today, scheduled for next cycle
+        // Not perfectly accurate for midnight cases but works for standard daily reset
         if (prayerDate.getTime() < now.getTime()) {
             prayerDate.setDate(now.getDate() + 1);
         }

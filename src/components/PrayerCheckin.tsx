@@ -8,10 +8,13 @@ import {
     savePrayerCheckin,
     calculatePrayerStreak,
     getTodayCompletionPercentage,
-    PrayerCheckin as PrayerCheckinType
+    PrayerCheckin as PrayerCheckinType,
+    isPrayerActive,
+    getVerifiedTime
 } from "@/lib/prayerUtils";
-import { tapVibrate, heartbeatVibrate, luxuryClickVibrate } from "@/lib/vibrationUtils";
+import { tapVibrate, heartbeatVibrate, luxuryClickVibrate, warningVibrate } from "@/lib/vibrationUtils";
 import { cn } from "@/lib/utils";
+import { Lock } from "lucide-react";
 
 interface Prayer {
     id: keyof PrayerCheckinType['prayers'];
@@ -33,10 +36,32 @@ export function PrayerCheckin() {
     const [checkin, setCheckin] = useState<PrayerCheckinType['prayers'] | null>(null);
     const [streak, setStreak] = useState(0);
     const [percentage, setPercentage] = useState(0);
+    const [prayerStatus, setPrayerStatus] = useState<Record<string, { active: boolean; countdown: string }>>({});
 
     useEffect(() => {
         loadData();
+        const interval = setInterval(updateAllStatuses, 1000);
+        return () => clearInterval(interval);
     }, []);
+
+    const formatCountdown = (ms: number) => {
+        const totalSeconds = Math.floor(ms / 1000);
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    };
+
+    const updateAllStatuses = async () => {
+        const statuses: Record<string, { active: boolean; countdown: string }> = {};
+        for (const prayer of PRAYERS) {
+            const { active, countdown } = await isPrayerActive(prayer.id);
+            statuses[prayer.id] = {
+                active,
+                countdown: formatCountdown(countdown)
+            };
+        }
+        setPrayerStatus(statuses);
+    };
 
     const loadData = () => {
         const today = getTodayCheckin();
@@ -54,7 +79,19 @@ export function PrayerCheckin() {
     const handlePrayerToggle = async (prayerId: keyof PrayerCheckinType['prayers']) => {
         if (!checkin) return;
 
-        const newValue = !checkin[prayerId];
+        const status = prayerStatus[prayerId];
+        const isCompleted = checkin[prayerId];
+
+        // Anti-Cheat: If they try to check in a locked prayer
+        if (!isCompleted && status && !status.active) {
+            await warningVibrate();
+            toast.error(`Patience. ${PRAYERS.find(p => p.id === prayerId)?.name} begins in ${status.countdown}.`, {
+                description: "The protocol requires real-time discipline."
+            });
+            return;
+        }
+
+        const newValue = !isCompleted;
         savePrayerCheckin(prayerId, newValue);
 
         // Update local state
@@ -108,6 +145,8 @@ export function PrayerCheckin() {
                 <div className="grid grid-cols-5 gap-1 sm:gap-2">
                     {PRAYERS.map((prayer) => {
                         const isCompleted = checkin[prayer.id];
+                        const status = prayerStatus[prayer.id];
+                        const isActive = status?.active || isCompleted;
                         const Icon = prayer.icon;
 
                         return (
@@ -115,14 +154,18 @@ export function PrayerCheckin() {
                                 key={prayer.id}
                                 onClick={() => handlePrayerToggle(prayer.id)}
                                 className={cn(
-                                    "flex flex-col items-center gap-1 py-2 sm:py-3 px-0.5 sm:px-1 rounded-lg transition-all duration-300 min-w-0",
+                                    "relative flex flex-col items-center gap-1 py-2 sm:py-3 px-0.5 sm:px-1 rounded-lg transition-all duration-300 min-w-0 overflow-hidden",
                                     isCompleted
                                         ? `bg-gradient-to-br ${prayer.gradient} text-white shadow-lg`
-                                        : "bg-amber-50/50 text-amber-700/60 hover:bg-amber-100/70 border border-amber-200/30"
+                                        : !isActive
+                                            ? "bg-amber-100/20 text-amber-900/10 cursor-not-allowed grayscale"
+                                            : "bg-amber-50/50 text-amber-700/60 hover:bg-amber-100/70 border border-amber-200/30"
                                 )}
                             >
                                 {isCompleted ? (
                                     <Check className="w-4 h-4 sm:w-5 sm:h-5" />
+                                ) : !isActive ? (
+                                    <Lock className="w-4 h-4 sm:w-5 sm:h-5 opacity-20" />
                                 ) : (
                                     <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
                                 )}
@@ -132,6 +175,12 @@ export function PrayerCheckin() {
                                 <span className="text-[7px] sm:text-[8px] opacity-80 truncate w-full">
                                     {prayer.arabicName}
                                 </span>
+
+                                {!isActive && !isCompleted && status?.countdown && (
+                                    <div className="absolute inset-x-0 bottom-0 py-0.5 bg-black/5 text-[6px] font-bold tabular-nums">
+                                        {status.countdown}
+                                    </div>
+                                )}
                             </button>
                         );
                     })}
