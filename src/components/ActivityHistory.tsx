@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getActivityLog, ActivityEntry, getActivityIcon } from '@/lib/activityLog';
 import { formatDistanceToNow } from 'date-fns';
-import { History, RefreshCw } from 'lucide-react';
+import { History, RefreshCw, ScrollText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export function ActivityHistory() {
@@ -20,7 +20,7 @@ export function ActivityHistory() {
 
         // Listen for storage changes (cross-tab sync)
         const handleStorage = (e: StorageEvent) => {
-            if (e.key === 'hydra_activity_log') {
+            if (e.key === 'fursan_activity_log') {
                 loadActivities();
             }
         };
@@ -29,49 +29,59 @@ export function ActivityHistory() {
     }, []);
 
     return (
-        <div className="border border-black bg-white animate-in fade-in duration-500">
-            <div className="bg-black text-white px-4 py-3 flex items-center justify-between">
-                <h3 className="text-[10px] font-black uppercase tracking-[0.3em] flex items-center gap-2">
-                    <History className="w-4 h-4" />
-                    Activity Log
-                </h3>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={loadActivities}
-                    className="h-6 w-6 text-white hover:bg-white/20 rounded-none"
-                >
-                    <RefreshCw className="w-3 h-3" />
-                </Button>
+        <div className="royal-card overflow-hidden page-transition" style={{ animationDelay: "0.4s" }}>
+            <div className="p-5 border-b border-amber-200/50 bg-gradient-to-r from-amber-50 to-transparent">
+                <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-black uppercase tracking-tight text-amber-800 flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center shadow-lg shadow-amber-500/20">
+                            <History className="w-4 h-4 text-white" />
+                        </div>
+                        Activity Log
+                    </h3>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={loadActivities}
+                        className="h-8 w-8 text-amber-700/50 hover:text-amber-700 hover:bg-amber-100/50"
+                    >
+                        <RefreshCw className="w-4 h-4" />
+                    </Button>
+                </div>
             </div>
 
-            <div className="max-h-[300px] overflow-y-auto">
+            <div className="max-h-[320px] overflow-y-auto scrollbar-thin">
                 {loading ? (
-                    <div className="p-8 text-center">
-                        <p className="text-[10px] uppercase font-bold tracking-widest text-black/30">Loading...</p>
+                    <div className="p-12 text-center">
+                        <RefreshCw className="w-8 h-8 mx-auto animate-spin text-amber-300" />
+                        <p className="text-[10px] uppercase font-bold tracking-widest text-amber-700/30 mt-4">Syncing History...</p>
                     </div>
                 ) : activities.length === 0 ? (
-                    <div className="p-8 text-center border-t border-dashed border-black/10">
-                        <p className="text-[10px] uppercase font-bold tracking-widest text-black/20">
-                            No activity recorded yet
+                    <div className="p-12 text-center flex flex-col items-center">
+                        <ScrollText className="w-12 h-12 text-amber-100 mb-4" />
+                        <p className="text-[10px] uppercase font-bold tracking-widest text-amber-700/20">
+                            The Archives are Empty
                         </p>
-                        <p className="text-[9px] text-black/30 mt-1">
-                            Your actions will appear here
+                        <p className="text-[11px] text-amber-700/30 mt-1 font-medium italic">
+                            Your glorious deeds will be recorded here
                         </p>
                     </div>
                 ) : (
-                    <div className="divide-y divide-black/5">
-                        {activities.slice(0, 15).map((activity) => (
+                    <div className="divide-y divide-amber-100">
+                        {activities.slice(0, 15).map((activity, i) => (
                             <div
                                 key={activity.id}
-                                className="px-4 py-3 flex items-start gap-3 hover:bg-secondary/30 transition-colors"
+                                className="px-5 py-4 flex items-start gap-4 hover:bg-amber-50/50 transition-colors group"
+                                style={{ animationDelay: `${i * 0.05}s` }}
                             >
-                                <span className="text-base mt-0.5">{getActivityIcon(activity.type)}</span>
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-xs font-medium leading-tight truncate">
+                                <div className="text-xl h-10 w-10 shrink-0 bg-white border border-amber-100 rounded-lg flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                                    {getActivityIcon(activity.type)}
+                                </div>
+                                <div className="flex-1 min-w-0 py-0.5">
+                                    <p className="text-sm font-bold leading-tight text-amber-900 group-hover:text-amber-700 transition-colors">
                                         {activity.message}
                                     </p>
-                                    <p className="text-[9px] text-black/40 font-mono uppercase mt-1">
+                                    <p className="text-[10px] text-amber-600/40 font-mono uppercase mt-1.5 flex items-center gap-1.5">
+                                        <div className="w-1 h-1 bg-amber-200 rounded-full" />
                                         {formatDistanceToNow(activity.timestamp, { addSuffix: true })}
                                     </p>
                                 </div>
@@ -79,6 +89,10 @@ export function ActivityHistory() {
                         ))}
                     </div>
                 )}
+            </div>
+
+            <div className="p-3 bg-amber-50/30 border-t border-amber-200/50 text-center">
+                <p className="text-[9px] font-bold uppercase tracking-widest text-amber-700/40">Latest 15 Protocol Events</p>
             </div>
         </div>
     );

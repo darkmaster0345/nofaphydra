@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, AreaChart, Area, Label, ReferenceDot
 } from "recharts";
-import { Heart, Brain, Activity, ShieldCheck, Info, Flame, Target } from "lucide-react";
+import { Heart, Brain, Activity, ShieldCheck, Info, Flame, Target, Sparkles } from "lucide-react";
 import { format, subDays, startOfDay, isSameDay, isAfter } from "date-fns";
 import { motion } from "framer-motion";
 import {
@@ -44,10 +44,10 @@ export default function Vitals() {
     }, []);
 
     const handleRefresh = () => {
-        loadData(true); // Silent update for real-time charts
+        loadData(true);
     };
 
-    // Prepare Streak Chart Data (Mental Discipline) - FOG OF WAR IMPLEMENTED
+    // Prepare Streak Chart Data
     const streakChartData = useMemo(() => {
         const data = [];
         const today = startOfDay(new Date());
@@ -57,15 +57,11 @@ export default function Vitals() {
             const date = subDays(today, i);
             const dateStr = format(date, "MMM d");
 
-            // Fog of war: Future dates or "ahead of today" shouldn't exist in historical record
-            // but since we are always looking back from today, every point i>=0 is <= today.
-
             let dayValue = 0;
             if (start && date >= startOfDay(start)) {
                 dayValue = Math.floor((date.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
             }
 
-            // Milestone flags
             const isMilestone = dayValue === 7 || dayValue === 14 || dayValue === 30;
 
             data.push({
@@ -85,7 +81,7 @@ export default function Vitals() {
     const nextLevel = getNextAvatarLevel(currentLiveDays);
     const daysToNext = getDaysUntilNextLevel(currentLiveDays);
 
-    // Prepare NPT Chart Data (Physical Recovery)
+    // Prepare NPT Chart Data
     const nptChartData = useMemo(() => {
         const data = [];
         const today = new Date();
@@ -113,223 +109,204 @@ export default function Vitals() {
             <div className="container max-w-4xl mx-auto px-4">
                 <Header />
 
-                <header className="mb-8 mt-4">
-                    <h1 className="text-3xl font-black uppercase italic tracking-tighter flex items-center gap-3">
-                        <Activity className="w-8 h-8" />
-                        Biological Vitals
-                    </h1>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-black/40 mt-1">
-                        Real-time tracking of mental and physical recovery
-                    </p>
+                <header className="mb-8 mt-4 page-transition" style={{ animationDelay: "0.1s" }}>
+                    <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center shadow-lg shadow-amber-500/20">
+                            <Activity className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                            <h1 className="text-3xl font-display text-amber-900 tracking-tight">Biological Vitals</h1>
+                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-600/50">Restoration of Fitra</p>
+                        </div>
+                    </div>
                 </header>
 
-                <div className="mb-8">
+                <div className="mb-8 page-transition" style={{ animationDelay: "0.15s" }}>
                     <DailyHealthCheck onUpdate={handleRefresh} />
                 </div>
 
-                <div className="grid gap-6">
+                <div className="grid gap-8">
                     {/* Mental Discipline Chart */}
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.98 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.4 }}
-                    >
-                        <Card className="rounded-none border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden">
-                            <CardHeader className="pb-2 border-b border-black/5 flex flex-row items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <Brain className="w-5 h-5 text-purple-600" />
-                                    <div>
-                                        <CardTitle className="text-sm font-black uppercase tracking-tight">Mental Discipline</CardTitle>
-                                        <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-black/40">Streak Continuity (15D)</CardDescription>
-                                    </div>
+                    <div className="royal-card overflow-hidden page-transition" style={{ animationDelay: "0.2s" }}>
+                        <div className="p-5 border-b border-amber-200/50 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                                    <Brain className="w-4 h-4 text-white" />
                                 </div>
-                                <Dialog>
-                                    <DialogTrigger asChild>
-                                        <button className="p-2 hover:bg-black/5 rounded-full transition-colors">
-                                            <Info className="w-4 h-4 text-black/40" />
-                                        </button>
-                                    </DialogTrigger>
-                                    <DialogContent className="rounded-none border-black">
-                                        <DialogHeader>
-                                            <DialogTitle className="font-black uppercase italic tracking-tighter">Willpower Metrics</DialogTitle>
-                                            <DialogDescription className="text-black font-medium text-sm pt-4">
-                                                Tracks your streak continuity. Higher peaks represent stabilized dopamine levels and improved prefrontal cortex control.
-                                                Each day of discipline strengthens the neural pathways associated with self-regulation.
-                                            </DialogDescription>
-                                        </DialogHeader>
-                                    </DialogContent>
-                                </Dialog>
-                            </CardHeader>
-                            <CardContent className="pt-6">
-                                <div className="h-[200px] w-full">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <AreaChart data={streakChartData} margin={{ left: 10, right: 10, top: 20 }}>
-                                            <defs>
-                                                <linearGradient id="colorDays" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.6} />
-                                                    <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.1} />
-                                                </linearGradient>
-                                            </defs>
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#000" strokeOpacity={0.05} />
-                                            <XAxis
-                                                dataKey="date"
-                                                axisLine={false}
-                                                tickLine={false}
-                                                tick={{ fontSize: 9, fontWeight: 900, fill: '#0008' }}
-                                            />
-                                            <YAxis
-                                                axisLine={false}
-                                                tickLine={false}
-                                                tick={{ fontSize: 9, fontWeight: 900, fill: '#0008' }}
-                                                allowDecimals={false}
-                                            >
-                                                <Label
-                                                    value="WILLPOWER LEVEL"
-                                                    angle={-90}
-                                                    position="insideLeft"
-                                                    style={{ fontSize: '8px', fontWeight: 900, fill: '#0004' }}
-                                                    offset={0}
+                                <div>
+                                    <h3 className="text-sm font-black uppercase tracking-tight text-amber-800">Mental Aql (العقل)</h3>
+                                    <p className="text-[10px] font-bold text-amber-600/50 uppercase tracking-widest">Persistence Metrics</p>
+                                </div>
+                            </div>
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <button className="p-2 hover:bg-amber-100/50 rounded-full transition-colors">
+                                        <Info className="w-4 h-4 text-amber-400" />
+                                    </button>
+                                </DialogTrigger>
+                                <DialogContent className="rounded-2xl border-amber-200 bg-white">
+                                    <DialogHeader>
+                                        <DialogTitle className="text-amber-900 text-2xl font-display">Willpower Metrics</DialogTitle>
+                                        <DialogDescription className="text-amber-800/70 font-medium text-sm pt-4">
+                                            This reflects your Nafs al-Ammarah being tamed by Nafs al-Lawwama. Stay consistent to reach Nafs al-Mutma'innah.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                </DialogContent>
+                            </Dialog>
+                        </div>
+                        <div className="p-6">
+                            <div className="h-[220px] w-full">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <AreaChart data={streakChartData} margin={{ left: -20, right: 10, top: 20 }}>
+                                        <defs>
+                                            <linearGradient id="colorDays" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="#d97706" stopOpacity={0.2} />
+                                                <stop offset="95%" stopColor="#d97706" stopOpacity={0} />
+                                            </linearGradient>
+                                        </defs>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#d97706" strokeOpacity={0.1} />
+                                        <XAxis
+                                            dataKey="date"
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tick={{ fontSize: 9, fontWeight: 700, fill: '#92400e' }}
+                                        />
+                                        <YAxis
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tick={{ fontSize: 9, fontWeight: 700, fill: '#92400e' }}
+                                            allowDecimals={false}
+                                        />
+                                        <Tooltip
+                                            contentStyle={{
+                                                backgroundColor: '#fff',
+                                                border: '1px solid #fde68a',
+                                                borderRadius: '12px',
+                                                fontSize: '10px',
+                                                fontWeight: 'bold',
+                                                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
+                                            }}
+                                        />
+                                        <Area
+                                            type="monotone"
+                                            dataKey="days"
+                                            stroke="#d97706"
+                                            strokeWidth={4}
+                                            fillOpacity={1}
+                                            fill="url(#colorDays)"
+                                            animationDuration={1500}
+                                        />
+                                        {streakChartData.map((entry, idx) => (
+                                            entry.milestone && (
+                                                <ReferenceDot
+                                                    key={`milestone-${idx}`}
+                                                    x={entry.date}
+                                                    y={entry.days}
+                                                    r={6}
+                                                    fill="#d97706"
+                                                    stroke="#fff"
+                                                    strokeWidth={2}
+                                                    isFront={true}
                                                 />
-                                            </YAxis>
-                                            <Tooltip
-                                                contentStyle={{ backgroundColor: '#fff', border: '1px solid black', borderRadius: '0', fontSize: '10px', fontWeight: 'bold' }}
-                                                cursor={{ stroke: '#000', strokeWidth: 1, strokeDasharray: '4 4' }}
-                                            />
-                                            <Area
-                                                type="monotone"
-                                                dataKey="days"
-                                                stroke="#8b5cf6"
-                                                strokeWidth={3}
-                                                fillOpacity={1}
-                                                fill="url(#colorDays)"
-                                                animationDuration={1500}
-                                            />
-                                            {streakChartData.map((entry, idx) => (
-                                                entry.milestone && (
-                                                    <ReferenceDot
-                                                        key={`milestone-${idx}`}
-                                                        x={entry.date}
-                                                        y={entry.days}
-                                                        r={6}
-                                                        fill="#000"
-                                                        stroke="#fff"
-                                                        strokeWidth={2}
-                                                        isFront={true}
-                                                    />
-                                                )
-                                            ))}
-                                        </AreaChart>
-                                    </ResponsiveContainer>
+                                            )
+                                        ))}
+                                    </AreaChart>
+                                </ResponsiveContainer>
+                            </div>
+                            <div className="mt-6 p-4 rounded-xl bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200/50 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <Sparkles className="w-5 h-5 text-amber-500" />
+                                    <p className="text-[11px] text-amber-900 font-bold leading-tight uppercase tracking-tight">
+                                        Current: {currentLiveDays} Days. {daysToNext > 0 ? `${daysToNext} days to ${nextLevel?.name}.` : 'Apex level achieved.'}
+                                    </p>
                                 </div>
-                                <div className="mt-4 p-3 bg-purple-50 border border-purple-100 flex items-center justify-between gap-3">
-                                    <div className="flex items-center gap-3">
-                                        <Info className="w-4 h-4 text-purple-600 shrink-0" />
-                                        <p className="text-[10px] text-purple-900 font-bold leading-tight uppercase tracking-tight">
-                                            Current Strength: {currentLiveDays} Days. {daysToNext > 0 ? `${daysToNext} days away from ${nextLevel?.name || 'Milestone'}.` : 'Max biological level achieved.'}
-                                        </p>
-                                    </div>
-                                    <Flame className="w-4 h-4 text-red-500 animate-pulse" />
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </motion.div>
+                                <Flame className="w-5 h-5 text-orange-500 animate-pulse" />
+                            </div>
+                        </div>
+                    </div>
 
-                    {/* Physical Recovery Chart */}
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.98 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.4, delay: 0.1 }}
-                    >
-                        <Card className="rounded-none border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden">
-                            <CardHeader className="pb-2 border-b border-black/5 flex flex-row items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <Heart className="w-5 h-5 text-red-600" />
-                                    <div>
-                                        <CardTitle className="text-sm font-black uppercase tracking-tight">Physical recovery</CardTitle>
-                                        <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-black/40">NPT Frequency (15D)</CardDescription>
-                                    </div>
+                    {/* Physical Fitra Restoration Chart */}
+                    <div className="royal-card overflow-hidden page-transition" style={{ animationDelay: "0.25s" }}>
+                        <div className="p-5 border-b border-amber-200/50 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-rose-400 to-pink-500 flex items-center justify-center shadow-lg shadow-rose-500/20">
+                                    <Heart className="w-4 h-4 text-white" />
                                 </div>
-                                <Dialog>
-                                    <DialogTrigger asChild>
-                                        <button className="p-2 hover:bg-black/5 rounded-full transition-colors">
-                                            <Info className="w-4 h-4 text-black/40" />
-                                        </button>
-                                    </DialogTrigger>
-                                    <DialogContent className="rounded-none border-black">
-                                        <DialogHeader>
-                                            <DialogTitle className="font-black uppercase italic tracking-tighter">Vascular Bio-Metrics</DialogTitle>
-                                            <DialogDescription className="text-black font-medium text-sm pt-4">
-                                                Tracks NPT (Nocturnal Penile Tumescence) frequency. Regular signals indicate recovering cardiovascular health, proper blood flow, and hormonal balance.
-                                                NPT is a primary biological indicator of physical vitality.
-                                            </DialogDescription>
-                                        </DialogHeader>
-                                    </DialogContent>
-                                </Dialog>
-                            </CardHeader>
-                            <CardContent className="pt-6">
-                                <div className="h-[200px] w-full">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart data={nptChartData}>
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#000" strokeOpacity={0.05} />
-                                            <XAxis
-                                                dataKey="date"
-                                                axisLine={false}
-                                                tickLine={false}
-                                                tick={{ fontSize: 9, fontWeight: 900, fill: '#0008' }}
-                                            />
-                                            <YAxis width={20}>
-                                                <Label
-                                                    value="VASCULAR SIGNAL"
-                                                    angle={-90}
-                                                    position="insideLeft"
-                                                    style={{ fontSize: '8px', fontWeight: 900, fill: '#0004' }}
-                                                    offset={5}
+                                <div>
+                                    <h3 className="text-sm font-black uppercase tracking-tight text-amber-800">Physical Amanah (الأمانة)</h3>
+                                    <p className="text-[10px] font-bold text-amber-600/50 uppercase tracking-widest">Vascular Bio-Signals</p>
+                                </div>
+                            </div>
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <button className="p-2 hover:bg-amber-100/50 rounded-full transition-colors">
+                                        <Info className="w-4 h-4 text-amber-400" />
+                                    </button>
+                                </DialogTrigger>
+                                <DialogContent className="rounded-2xl border-amber-200 bg-white">
+                                    <DialogHeader>
+                                        <DialogTitle className="text-amber-900 text-2xl font-display">Biological Amanah</DialogTitle>
+                                        <DialogDescription className="text-amber-800/70 font-medium text-sm pt-4">
+                                            Your body is a trust. Tracking NPT health ensures your biological Fitra is returning to its natural, healthy state.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                </DialogContent>
+                            </Dialog>
+                        </div>
+                        <div className="p-6">
+                            <div className="h-[220px] w-full">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={nptChartData}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ec4899" strokeOpacity={0.05} />
+                                        <XAxis
+                                            dataKey="date"
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tick={{ fontSize: 9, fontWeight: 700, fill: '#9d174d' }}
+                                        />
+                                        <Tooltip
+                                            cursor={{ fill: 'rgba(244, 114, 182, 0.05)' }}
+                                            content={({ active, payload }) => {
+                                                if (active && payload && payload.length) {
+                                                    const data = payload[0].payload;
+                                                    return (
+                                                        <div className="bg-white border border-rose-100 p-3 rounded-xl shadow-xl">
+                                                            <p className="text-[10px] font-black uppercase text-rose-300 mb-1">{data.date}</p>
+                                                            <p className={`text-xs font-black ${data.status === 'YES' ? 'text-rose-600' : data.status === 'NO' ? 'text-rose-900' : 'text-gray-300'}`}>
+                                                                SIGNAL: {data.status}
+                                                            </p>
+                                                        </div>
+                                                    );
+                                                }
+                                                return null;
+                                            }}
+                                        />
+                                        <Bar dataKey="value" radius={[6, 6, 6, 6]}>
+                                            {nptChartData.map((entry, index) => (
+                                                <Cell
+                                                    key={`cell-${index}`}
+                                                    fill={entry.status === 'YES' ? '#f43f5e' : entry.status === 'NO' ? '#9f1239' : '#fbcfe8'}
                                                 />
-                                            </YAxis>
-                                            <Tooltip
-                                                cursor={{ fill: 'rgba(0,0,0,0.05)' }}
-                                                content={({ active, payload }) => {
-                                                    if (active && payload && payload.length) {
-                                                        const data = payload[0].payload;
-                                                        return (
-                                                            <div className="bg-white border border-black p-2 shadow-sm">
-                                                                <p className="text-[10px] font-black uppercase">{data.date}</p>
-                                                                <p className={`text-xs font-black ${data.status === 'YES' ? 'text-green-600' : data.status === 'NO' ? 'text-red-500' : 'text-gray-400'}`}>
-                                                                    NPT: {data.status}
-                                                                </p>
-                                                            </div>
-                                                        );
-                                                    }
-                                                    return null;
-                                                }}
-                                            />
-                                            <Bar dataKey="value" radius={[0, 0, 0, 0]}>
-                                                {nptChartData.map((entry, index) => (
-                                                    <Cell
-                                                        key={`cell-${index}`}
-                                                        fill={entry.status === 'YES' ? '#ef4444' : entry.status === 'NO' ? '#7f1d1d' : '#e5e7eb'}
-                                                    />
-                                                ))}
-                                            </Bar>
-                                        </BarChart>
-                                    </ResponsiveContainer>
+                                            ))}
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                            <div className="mt-6 p-4 rounded-xl bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-100 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <ShieldCheck className="w-5 h-5 text-rose-500" />
+                                    <p className="text-[11px] text-rose-900 font-bold leading-tight uppercase tracking-tight">
+                                        Status: {healthHistory.filter(h => h.npt).length > 4 ? 'Optimal Integrity' : 'Gathering Data'}.
+                                    </p>
                                 </div>
-                                <div className="mt-4 p-3 bg-red-50 border border-red-100 flex items-center justify-between gap-3">
-                                    <div className="flex items-center gap-3">
-                                        <ShieldCheck className="w-4 h-4 text-red-600 shrink-0" />
-                                        <p className="text-[10px] text-red-900 font-bold leading-tight uppercase tracking-tight">
-                                            Status: {healthHistory.filter(h => h.npt).length > 4 ? 'Vascular Optimal' : 'Monitoring Signal'}. Vascular integrity protocol in effect.
-                                        </p>
-                                    </div>
-                                    <Target className="w-4 h-4 text-black animate-spin-slow" />
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </motion.div>
+                                <Target className="w-5 h-5 text-rose-900 animate-spin-slow" />
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <footer className="mt-12 text-center text-muted-foreground">
-                    <p className="font-bold uppercase tracking-widest text-[9px] opacity-40">NoFap Hydra Protocol // Stay disciplined. Become legendary. 🐉</p>
+                <footer className="mt-16 mb-8 text-center text-amber-800/20">
+                    <p className="font-bold uppercase tracking-[0.5em] text-[10px]">NoFap Fursan Protocol // Persistence is Legend ⚔️</p>
                 </footer>
             </div>
             <BottomNav />

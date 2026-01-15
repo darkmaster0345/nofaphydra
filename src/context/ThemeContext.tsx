@@ -13,7 +13,7 @@ const ThemeContext = createContext<ThemeContextType | null>(null);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [currentTheme, setCurrentThemeState] = useState<ThemeDefinition>(THEMES[0]);
-    const [unlockedThemes, setUnlockedThemes] = useState<string[]>(["hydra"]);
+    const [unlockedThemes, setUnlockedThemes] = useState<string[]>(["fursan"]);
     const previewTimeoutRef = useRef<number | null>(null);
 
     useEffect(() => {
@@ -28,7 +28,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             }
 
             // Check levels for unlocks
-            const streakStored = localStorage.getItem('hydra_streak_data');
+            const streakStored = localStorage.getItem('fursan_streak_data');
             if (streakStored) {
                 const data = JSON.parse(streakStored);
                 const days = calculateDays(data.startDate);
@@ -38,8 +38,8 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         };
         loadTheme();
 
-        window.addEventListener('hydra_streak_updated', loadTheme);
-        return () => window.removeEventListener('hydra_streak_updated', loadTheme);
+        window.addEventListener('fursan_streak_updated', loadTheme);
+        return () => window.removeEventListener('fursan_streak_updated', loadTheme);
     }, []);
 
     const calculateDays = (startDate: string | null) => {

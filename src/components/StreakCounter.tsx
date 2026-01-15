@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { Clock, Calendar } from "lucide-react";
+import { Clock, Calendar, Sparkles } from "lucide-react";
 import { calculateStreak } from "@/lib/streakUtils";
 import { motion } from "framer-motion";
 import { DynamicFire } from "@/components/DynamicComponents";
@@ -25,28 +25,34 @@ export function StreakCounter({ startDate, isSyncing, isOnline, pendingCount }: 
   const isNewUser = !startDate;
 
   return (
-    <div className="streak-card relative overflow-hidden border border-black rounded-none shadow-none bg-white p-6">
+    <div className="royal-card relative overflow-hidden p-6 page-transition">
+      {/* Decorative corner accents */}
+      <div className="absolute top-0 left-0 w-12 h-12 border-t-2 border-l-2 border-amber-400/40 rounded-tl-lg" />
+      <div className="absolute top-0 right-0 w-12 h-12 border-t-2 border-r-2 border-amber-400/40 rounded-tr-lg" />
+      <div className="absolute bottom-0 left-0 w-12 h-12 border-b-2 border-l-2 border-amber-400/40 rounded-bl-lg" />
+      <div className="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-amber-400/40 rounded-br-lg" />
+
       <div className="flex items-center justify-between mb-4 relative z-10 px-1">
         <div className="flex items-center gap-2">
-          <DynamicFire streakDays={streak.days} className="w-5 h-5 text-black" />
-          <span className="text-black font-black uppercase tracking-widest text-[10px]">Active Persistence</span>
+          <DynamicFire streakDays={streak.days} className="w-5 h-5 text-amber-600" />
+          <span className="text-amber-800 font-black uppercase tracking-widest text-[10px]">Days of Sabr</span>
         </div>
 
         {startDate && (
-          <div className="flex items-center gap-1.5 px-2 py-0.5 border border-black rounded-none bg-black text-white text-[9px] font-bold uppercase tracking-widest">
+          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-amber-100 to-yellow-100 border border-amber-300/50 text-amber-700 text-[9px] font-bold uppercase tracking-widest">
             {isSyncing ? (
               <>
-                <div className="w-1 h-1 bg-white rounded-full animate-pulse" />
+                <div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
                 SYNCING
               </>
             ) : isOnline ? (
               <>
-                <div className="w-1 h-1 bg-white rounded-full" />
+                <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
                 SYNCED
               </>
             ) : (
               <>
-                <div className="w-1 h-1 bg-red-500 rounded-full" />
+                <div className="w-1.5 h-1.5 bg-red-500 rounded-full" />
                 OFFLINE
               </>
             )}
@@ -55,10 +61,11 @@ export function StreakCounter({ startDate, isSyncing, isOnline, pendingCount }: 
       </div>
 
       {isNewUser ? (
-        <div className="text-center py-8 relative z-10 border border-dashed border-black/20">
-          <p className="text-2xl font-black uppercase tracking-tighter mb-2">Dormant State</p>
-          <p className="text-black/40 text-[10px] uppercase font-bold tracking-widest">
-            Initiate streak to begin transformation
+        <div className="text-center py-10 relative z-10 border-2 border-dashed border-amber-300/40 rounded-lg bg-gradient-to-b from-amber-50/50 to-transparent">
+          <Sparkles className="w-8 h-8 mx-auto mb-3 text-amber-400 pulse-dormant" />
+          <p className="text-2xl font-black uppercase tracking-tighter mb-2 text-gradient-gold">Begin Your Journey</p>
+          <p className="text-amber-700/60 text-[11px] uppercase font-bold tracking-widest">
+            Start your Sabr count and become a Fursan Knight
           </p>
         </div>
       ) : (
@@ -68,33 +75,33 @@ export function StreakCounter({ startDate, isSyncing, isOnline, pendingCount }: 
               key={streak.days}
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              className="text-8xl font-black tracking-tighter leading-none"
+              className="text-8xl font-black tracking-tighter leading-none text-gradient-gold"
             >
               {streak.days}
             </motion.span>
-            <span className="text-xl font-black uppercase tracking-widest text-black/20">Days</span>
+            <span className="text-2xl font-black uppercase tracking-widest text-amber-700/40">Days</span>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="flex items-center gap-3 p-4 border border-black bg-white group hover:bg-black hover:text-white transition-all">
-              <Clock className="w-4 h-4" />
+            <div className="flex items-center gap-3 p-4 rounded-lg bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200/50 group hover:border-amber-400/50 hover:shadow-md transition-all">
+              <Clock className="w-5 h-5 text-amber-600" />
               <div>
-                <p className="text-xl font-black leading-none">{streak.hours}</p>
-                <p className="text-[9px] uppercase font-bold tracking-widest opacity-40">Hours</p>
+                <p className="text-2xl font-black leading-none text-amber-800">{streak.hours}</p>
+                <p className="text-[9px] uppercase font-bold tracking-widest text-amber-600/60">Hours</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 p-4 border border-black bg-white group hover:bg-black hover:text-white transition-all">
-              <Calendar className="w-4 h-4" />
+            <div className="flex items-center gap-3 p-4 rounded-lg bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200/50 group hover:border-amber-400/50 hover:shadow-md transition-all">
+              <Calendar className="w-5 h-5 text-amber-600" />
               <div>
-                <p className="text-xl font-black leading-none">{streak.minutes}</p>
-                <p className="text-[9px] uppercase font-bold tracking-widest opacity-40">Minutes</p>
+                <p className="text-2xl font-black leading-none text-amber-800">{streak.minutes}</p>
+                <p className="text-[9px] uppercase font-bold tracking-widest text-amber-600/60">Minutes</p>
               </div>
             </div>
           </div>
 
-          <div className="mt-6 pt-4 border-t border-black/5">
-            <p className="text-[10px] font-mono text-black/40 uppercase tracking-tight">
-              Deployment Hash: {new Date(startDate).getTime().toString(16).toUpperCase()}
+          <div className="mt-6 pt-4 border-t border-amber-200/50">
+            <p className="text-[10px] font-mono text-amber-600/50 uppercase tracking-tight">
+              Journey ID: {new Date(startDate).getTime().toString(16).toUpperCase()}
             </p>
           </div>
         </div>

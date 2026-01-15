@@ -1,7 +1,7 @@
 {
-  "id": "com.nofap.hydra",
-  "name": "NoFap Hydra",
-  "short_name": "NoFap Hydra",
+  "id": "com.nofap.fursan",
+  "name": "NoFap Fursan",
+  "short_name": "NoFap Fursan",
   "description": "Track your streak, unlock achievements, and become legendary",
   "start_url": "/",
   "scope": "/",

@@ -1,8 +1,8 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.nofaphydra.app',
-  appName: 'NoFap Hydra',
+  appId: 'com.nofapfursan.app',
+  appName: 'NoFap Fursan',
   webDir: 'dist',
   server: {
     androidScheme: 'https'

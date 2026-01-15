@@ -25,38 +25,46 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 0%;
+    /* Fursan Royal - Light Gold/Cream Theme */
+    --background: 45 50% 96%;
+    /* Warm cream #FAF6F0 */
+    --foreground: 30 20% 15%;
+    /* Dark brown for text */
 
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 0%;
+    --card: 45 40% 98%;
+    /* Off-white */
+    --card-foreground: 30 20% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 0%;
+    --popover-foreground: 30 20% 15%;
 
-    --primary: 0 0% 0%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 43 96% 56%;
+    /* Rich Gold #F5C842 */
+    --primary-foreground: 30 20% 10%;
 
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 0%;
+    --secondary: 39 35% 92%;
+    /* Soft cream #F0EBE3 */
+    --secondary-foreground: 30 20% 20%;
 
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 40%;
+    --muted: 45 30% 85%;
+    --muted-foreground: 30 10% 40%;
 
-    --accent: 0 0% 96%;
-    --accent-foreground: 0 0% 0%;
+    --accent: 145 50% 40%;
+    /* Deep Emerald for accents */
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    --success: 0 0% 0%;
+    --success: 145 50% 40%;
     --success-foreground: 0 0% 100%;
 
-    --border: 0 0% 0%;
-    --input: 0 0% 90%;
-    --ring: 0 0% 0%;
+    --border: 43 40% 75%;
+    /* Gold-tinted border */
+    --input: 45 30% 90%;
+    --ring: 43 96% 56%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
     --font-display: 'Bebas Neue', 'Bebas Neue Fallback', Arial, sans-serif;
     --font-body: 'Inter', 'Inter Fallback', Arial, sans-serif;
@@ -66,11 +74,37 @@
 @layer base {
   * {
     @apply border-border;
+    -webkit-tap-highlight-color: transparent;
+    /* Remove the blue overlay on tap */
+  }
+
+  html,
+  body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    overscroll-behavior-y: none;
+    /* Prevent browser bounce */
+    -webkit-user-select: none;
+    /* Disable selection felt in long-pressing buttons */
+    user-select: none;
+    touch-action: manipulation;
+    /* Faster taps by disabling double-tap-to-zoom */
+  }
+
+  input,
+  textarea {
+    user-select: text;
+    /* Allow text selection in inputs */
   }
 
   body {
     @apply bg-background text-foreground font-body antialiased;
     font-family: var(--font-body);
+    background-color: #FAF6F0;
+    /* Fallback for smooth loading */
   }
 
   h1,
@@ -80,21 +114,137 @@
     font-family: var(--font-display);
     letter-spacing: 0.05em;
   }
+
+  /* Standard Android-like shadows */
+  .shadow-md-android {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+}
+
+@layer utilities {
+  .safe-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
 }
 
 @layer components {
 
-  /* Strict Minimalist Theme-Aware Borders */
-  .streak-card {
-    @apply border border-primary bg-background p-6 transition-all duration-500;
+  /* Improved Royal Gold Card - more native elevation */
+  .royal-card {
+    background: linear-gradient(145deg, #FFFFFF 0%, #FAF6F0 100%);
+    border: 1px solid rgba(245, 200, 66, 0.15);
+    box-shadow:
+      0 2px 8px -1px rgba(0, 0, 0, 0.05),
+      0 4px 20px -2px rgba(245, 200, 66, 0.08);
+    border-radius: 24px;
+    /* Even more rounded for MD3 feel */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  .glass-card {
-    @apply border border-primary bg-background;
+  .royal-card:hover {
+    border-color: rgba(245, 200, 66, 0.5);
+    box-shadow:
+      0 8px 30px rgba(245, 200, 66, 0.25),
+      0 2px 4px rgba(0, 0, 0, 0.05),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8);
   }
 
-  .android-card {
-    @apply border border-primary bg-background p-4 transition-all duration-500;
+  .royal-card:active {
+    transform: scale(0.98);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Staggered entrance animations */
+  @keyframes stagger-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .stagger-item {
+    animation: stagger-fade-in 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+  }
+
+  /* Floating animation */
+  @keyframes float {
+
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(-5px);
+    }
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  /* Gold Glass Card Effect - for dark overlays */
+  .gold-glass {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(245, 200, 66, 0.2);
+    box-shadow: 0 8px 32px rgba(245, 200, 66, 0.08);
+  }
+
+  /* Legacy dark-glass support - now maps to gold-glass */
+  .dark-glass-card {
+    @apply royal-card p-5;
+  }
+
+  /* Gold text styling */
+  .gold-text {
+    color: #B8860B;
+    /* DarkGoldenRod for readability on light bg */
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+  }
+
+  .cream-text {
+    color: #5D4E37;
+    /* Warm brown */
+  }
+
+  .ivory-text {
+    color: #4A3C2A;
+  }
+
+  /* Emerald accent text */
+  .emerald-text {
+    color: #2E8B57;
+  }
+
+  /* Fursan Logo Glow Effect */
+  .fursan-logo-glow {
+    filter: drop-shadow(0 0 12px rgba(245, 200, 66, 0.5)) drop-shadow(0 0 24px rgba(245, 200, 66, 0.3));
+  }
+
+  /* Gold gradient text */
+  .text-gradient-gold {
+    background: linear-gradient(135deg, #B8860B 0%, #DAA520 50%, #B8860B 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-legendary {
+    background: linear-gradient(135deg, #DAA520 0%, #2E8B57 50%, #DAA520 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
   /* Minimalist Scrollbar */
@@ -104,27 +254,16 @@
   }
 
   ::-webkit-scrollbar-track {
-    background: transparent;
+    background: rgba(245, 200, 66, 0.1);
   }
 
   ::-webkit-scrollbar-thumb {
-    background: hsl(var(--primary));
-    border-radius: 0;
+    background: rgba(245, 200, 66, 0.4);
+    border-radius: 3px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: hsla(var(--primary), 0.8);
-  }
-
-  /* Remove flashy effects */
-  .text-gradient-fire,
-  .text-gradient-gold,
-  .text-gradient-legendary {
-    @apply text-foreground;
-    background: none;
-    -webkit-background-clip: unset;
-    -webkit-text-fill-color: initial;
-    background-clip: unset;
+    background: rgba(245, 200, 66, 0.6);
   }
 
   /* Safe area for iOS notched devices */
@@ -132,7 +271,7 @@
     padding-bottom: env(safe-area-inset-bottom, 0);
   }
 
-  /* Daily Loot Aura Effect */
+  /* Fursan Aura Effect - Gold themed */
   .aura-effect {
     position: relative;
     display: inline-block;
@@ -142,35 +281,108 @@
   .aura-effect::after {
     content: '';
     position: absolute;
-    inset: -2px -6px;
-    background: linear-gradient(45deg, #FFD700, #FF0080, #7928CA, #4299E1);
+    inset: -3px -8px;
+    background: linear-gradient(45deg, #DAA520, #2E8B57, #DAA520, #2E8B57);
     background-size: 400% 400%;
     z-index: -1;
-    filter: blur(8px);
-    opacity: 0.6;
+    filter: blur(10px);
+    opacity: 0.5;
     animation: aura-pulse 3s ease infinite;
     pointer-events: none;
-    border-radius: 4px;
+    border-radius: 8px;
   }
 
   @keyframes aura-pulse {
     0% {
       background-position: 0% 50%;
-      opacity: 0.4;
+      opacity: 0.3;
       transform: scale(1);
     }
 
     50% {
       background-position: 100% 50%;
-      opacity: 0.8;
+      opacity: 0.6;
       transform: scale(1.05);
     }
 
     100% {
       background-position: 0% 50%;
-      opacity: 0.4;
+      opacity: 0.3;
       transform: scale(1);
     }
+  }
+
+  /* Pulse animation for dormant state */
+  .pulse-dormant {
+    animation: pulse-dormant 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-dormant {
+
+    0%,
+    100% {
+      opacity: 0.7;
+      transform: scale(1);
+    }
+
+    50% {
+      opacity: 1;
+      transform: scale(1.05);
+    }
+  }
+
+  /* Heartbeat animation for milestones */
+  .heartbeat {
+    animation: heartbeat 1.5s ease-in-out infinite;
+  }
+
+  @keyframes heartbeat {
+    0% {
+      transform: scale(1);
+    }
+
+    14% {
+      transform: scale(1.1);
+    }
+
+    28% {
+      transform: scale(1);
+    }
+
+    42% {
+      transform: scale(1.1);
+    }
+
+    70% {
+      transform: scale(1);
+    }
+  }
+
+  /* Islamic Page Transition */
+  .page-transition {
+    animation: page-enter 0.4s ease-out;
+  }
+
+  @keyframes page-enter {
+    0% {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Islamic geometric pattern overlay for transitions */
+  .islamic-pattern-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+    background:
+      radial-gradient(circle at center, transparent 0%, rgba(245, 200, 66, 0.1) 100%);
   }
 
   .animate-spin-slow {
@@ -185,5 +397,21 @@
     to {
       transform: rotate(360deg);
     }
+  }
+
+  /* Button improvements */
+  .btn-gold {
+    @apply bg-gradient-to-r from-amber-500 to-yellow-500 text-white font-bold;
+    @apply shadow-lg shadow-amber-500/25;
+    @apply hover:shadow-xl hover:shadow-amber-500/30;
+    @apply transition-all duration-300;
+  }
+
+  .btn-royal {
+    @apply bg-white border-2 border-amber-400/50;
+    @apply text-amber-800 font-bold;
+    @apply hover:bg-amber-50 hover:border-amber-400;
+    @apply shadow-md hover:shadow-lg;
+    @apply transition-all duration-300;
   }
 }

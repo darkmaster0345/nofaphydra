@@ -92,7 +92,7 @@ export function SecuritySettings() {
             toast.success("Identity imported successfully!");
 
             // Auto-fetch streak
-            toast.info("Restoring streak from relays...");
+            toast.info("Restoring Sabr Count from relays...");
             const streak = await fetchStreak();
 
             if (streak) {
@@ -103,11 +103,11 @@ export function SecuritySettings() {
                     totalRelapses: streak.totalRelapses,
                 };
                 saveStreakData(localFormat);
-                toast.success("Streak restored!");
+                toast.success("Sabr Count restored!");
                 // Force refresh somehow? Window reload is nuclear but effective for this critical change
                 setTimeout(() => window.location.reload(), 1500);
             } else {
-                toast.warning("No streak data found for this key.");
+                toast.warning("No Sabr Count data found for this key.");
             }
 
             loadKeys(); // Refresh displayed keys
@@ -123,7 +123,7 @@ export function SecuritySettings() {
         const element = document.createElement("a");
         const file = new Blob([`Nostr Private Key (nsec): ${keys.nsec}\nKeep this file secure and offline!`], { type: 'text/plain' });
         element.href = URL.createObjectURL(file);
-        element.download = "hydra_backup_nsec.txt";
+        element.download = "fursan_backup_nsec.txt";
         document.body.appendChild(element);
         element.click();
         document.body.removeChild(element);
@@ -198,7 +198,7 @@ export function SecuritySettings() {
                     <div className="p-3 border border-black bg-gray-50 flex items-start gap-2">
                         <AlertTriangle className="h-4 w-4 text-black shrink-0 mt-0.5" />
                         <p className="text-[10px] leading-tight font-medium uppercase">
-                            Never share your nsec! Loss of this key means loss of your identity and streak.
+                            Never share your nsec! Loss of this key means loss of your identity and Sabr Count.
                         </p>
                     </div>
                 </div>

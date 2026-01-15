@@ -9,27 +9,32 @@ export interface ThemeDefinition {
 
 export const THEMES: ThemeDefinition[] = [
     {
-        id: "hydra",
-        name: "Hydra Standard",
+        id: "fursan",
+        name: "Fursan Royal",
         minDays: 0,
-        description: "The classic brutalist monochrome look.",
-        preview: "#000000",
+        description: "The official Gold and Cream theme of the protocol.",
+        preview: "#F5C842",
         vars: {
-            "--background": "0 0% 100%",
-            "--foreground": "0 0% 0%",
-            "--primary": "0 0% 0%",
-            "--primary-foreground": "0 0% 100%",
-            "--secondary": "0 0% 96%",
-            "--border": "0 0% 0%",
-            "--accent": "0 0% 96%",
-            "--ring": "0 0% 0%"
+            "--background": "45 50% 96%",
+            "--foreground": "30 20% 15%",
+            "--primary": "43 96% 56%",
+            "--primary-foreground": "30 20% 10%",
+            "--secondary": "39 35% 92%",
+            "--secondary-foreground": "30 20% 20%",
+            "--border": "43 40% 75%",
+            "--accent": "145 50% 40%",
+            "--ring": "43 96% 56%",
+            "--card": "45 40% 98%",
+            "--card-foreground": "30 20% 15%",
+            "--muted": "45 30% 85%",
+            "--muted-foreground": "30 10% 40%"
         }
     },
     {
         id: "emerald",
         name: "Emerald Discipline",
         minDays: 7,
-        description: "Unlocked at Warrior level.",
+        description: "Unlocked at Initiate level.",
         preview: "#10b981",
         vars: {
             "--background": "160 30% 98%",
@@ -97,7 +102,7 @@ export const THEMES: ThemeDefinition[] = [
         id: "solar",
         name: "Solar Legend",
         minDays: 90,
-        description: "Unlocked at Legend level.",
+        description: "Unlocked at Faris level.",
         preview: "#f59e0b",
         vars: {
             "--background": "30 20% 98%",

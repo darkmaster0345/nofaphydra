@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { finalizeEvent } from 'nostr-tools';
 import { hexToBytes } from '@noble/hashes/utils';
-import { Save, RefreshCw, Download } from 'lucide-react';
+import { Save, RefreshCw, Download, ShieldCheck, Sparkles } from 'lucide-react';
 import { RELAYS } from '@/services/nostr';
 import { SimplePool } from 'nostr-tools';
+import { toast } from 'sonner';
 
 interface IdentityManagementProps {
     userPrivateKey: string;
@@ -17,7 +18,7 @@ interface IdentityManagementProps {
 export const IdentityManagement = ({
     userPrivateKey,
     pool,
-    initialAlias = "HYDRO_OPERATIVE",
+    initialAlias = "FURSAN_KNIGHT",
     onUpdateSuccess,
     onSync,
     onFetch
@@ -37,47 +38,47 @@ export const IdentityManagement = ({
                 content: JSON.stringify({
                     name: alias.trim(),
                     display_name: alias.trim(),
-                    about: "Hydra Operative | NoFap Warrior 🐉",
+                    about: "Fursan Knight | Sabr Protocol Warrior ⚔️",
                 }),
             };
 
-            // Sign using the key stored in your app
             const sk = hexToBytes(userPrivateKey);
             const signedEvent = finalizeEvent(eventTemplate, sk);
 
-            // Publish to active relays
             await Promise.all(
                 RELAYS.map(url => pool.publish([url], signedEvent))
             );
 
-            console.log("[HYDRA] Metadata Broadcasted:", alias);
-            alert(`IDENTITY UPDATED: ${alias}`);
+            console.log("[FURSAN] Metadata Broadcasted:", alias);
+            toast.success(`Identity Updated: ${alias}`);
             if (onUpdateSuccess) onUpdateSuccess(alias.trim());
         } catch (err) {
-            console.error("[HYDRA] Metadata Failure:", err);
-            alert("Failed to update metadata. Check relay connections.");
+            console.error("[FURSAN] Metadata Failure:", err);
+            toast.error("Failed to update metadata. Check relay connections.");
         } finally {
             setIsUpdating(false);
         }
     };
 
     return (
-        <div className="w-full space-y-8 bg-white border-2 border-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] animate-in fade-in slide-in-from-bottom-2 duration-500">
-
+        <div className="w-full space-y-6">
             {/* Alias Input Section */}
-            <div className="space-y-2">
-                <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-black/50">
-                    Broadcasting Alias
+            <div className="space-y-3">
+                <label className="block text-[11px] font-black uppercase tracking-[0.2em] text-amber-800">
+                    Knightly Alias
                 </label>
-                <input
-                    type="text"
-                    value={alias}
-                    onChange={(e) => setAlias(e.target.value)}
-                    className="w-full bg-white border-2 border-black p-4 font-mono text-lg uppercase tracking-tighter outline-none focus:bg-zinc-50 transition-colors"
-                    placeholder="ENTER_ALIAS..."
-                />
-                <p className="text-[8px] font-mono text-black/30 uppercase tracking-widest">
-                    Nostr NIP-01 identification name.
+                <div className="relative group">
+                    <input
+                        type="text"
+                        value={alias}
+                        onChange={(e) => setAlias(e.target.value)}
+                        className="w-full bg-amber-50/30 border-2 border-amber-100 p-4 rounded-xl font-display text-xl uppercase tracking-widest text-amber-900 outline-none focus:border-amber-400 focus:bg-white transition-all shadow-sm"
+                        placeholder="ENTER_ALIAS..."
+                    />
+                    <Sparkles className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-amber-300 group-focus-within:text-amber-500 transition-colors" />
+                </div>
+                <p className="text-[10px] font-bold text-amber-600/40 uppercase tracking-widest px-1">
+                    Your public identifier on the Nostr network.
                 </p>
             </div>
 
@@ -85,36 +86,37 @@ export const IdentityManagement = ({
             <button
                 onClick={updateMetadata}
                 disabled={isUpdating}
-                className={`w-full flex items-center justify-center gap-3 p-5 font-black uppercase italic tracking-tighter border-2 border-black transition-all active:translate-x-1 active:translate-y-1 active:shadow-none
-          ${isUpdating ? 'bg-zinc-200 text-zinc-500 cursor-not-allowed' : 'bg-black text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)] hover:bg-zinc-800'}`}
+                className={`w-full flex items-center justify-center gap-3 h-16 rounded-xl font-black uppercase text-sm tracking-widest transition-all shadow-lg active:scale-95
+                   ${isUpdating
+                        ? 'bg-amber-100 text-amber-400 cursor-not-allowed'
+                        : 'bg-gradient-to-r from-amber-500 to-yellow-500 text-white shadow-amber-500/20 hover:shadow-xl hover:scale-[1.01]'}`}
             >
-                <Save size={18} className={isUpdating ? "animate-pulse" : ""} />
-                {isUpdating ? "Broadcasting..." : "Update Metadata"}
+                {isUpdating ? <RefreshCw size={20} className="animate-spin" /> : <Save size={20} />}
+                {isUpdating ? "BROADCASTING..." : "UPDATE IDENTITY"}
             </button>
 
             {/* Sync/Fetch Sub-grid */}
             <div className="grid grid-cols-2 gap-4">
                 <button
                     onClick={onSync}
-                    className="flex items-center justify-center gap-2 p-3 border-2 border-black font-bold text-[10px] uppercase tracking-widest hover:bg-black hover:text-white transition-all active:scale-95"
+                    className="flex items-center justify-center gap-2 h-12 rounded-xl border-2 border-amber-200 bg-white text-amber-800 font-bold text-[10px] uppercase tracking-widest hover:bg-amber-50 transition-all active:scale-95 shadow-sm"
                 >
-                    <RefreshCw size={14} /> SYNC
+                    <RefreshCw size={14} className="text-amber-500" /> SYNC PROGRESS
                 </button>
                 <button
                     onClick={onFetch}
-                    className="flex items-center justify-center gap-2 p-3 border-2 border-black font-bold text-[10px] uppercase tracking-widest hover:bg-black hover:text-white transition-all active:scale-95"
+                    className="flex items-center justify-center gap-2 h-12 rounded-xl border-2 border-amber-200 bg-white text-amber-800 font-bold text-[10px] uppercase tracking-widest hover:bg-amber-50 transition-all active:scale-95 shadow-sm"
                 >
-                    <Download size={14} /> FETCH
+                    <Download size={14} className="text-amber-500" /> FETCH CLOUD
                 </button>
             </div>
 
-            {/* Terminal UI Style Footer */}
-            <div className="pt-4 border-t border-black/10">
-                <div className="flex justify-between items-center text-[9px] font-mono uppercase text-black/40">
-                    <span>Status: Verified</span>
-                    <div className="flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-green-600 animate-pulse" />
-                        <span className="text-green-600">Protocol Active</span>
+            {/* Secure Footer */}
+            <div className="pt-4 border-t border-amber-100">
+                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-amber-800/30">
+                    <div className="flex items-center gap-2">
+                        <ShieldCheck className="w-3 h-3" />
+                        <span>NIP-01 VERIFIED</span>
                     </div>
                 </div>
             </div>

@@ -6,7 +6,7 @@ export interface ActivityEntry {
     timestamp: number;
 }
 
-const STORAGE_KEY = 'hydra_activity_log';
+const STORAGE_KEY = 'fursan_activity_log';
 const MAX_ENTRIES = 50;
 
 export function getActivityLog(): ActivityEntry[] {

@@ -265,7 +265,7 @@ export const NostrProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             )
         );
 
-        console.log("[HYDRA-DEBUG] Forcing NIP-01 Object Filter:", finalFilter);
+        console.log("[FURSAN-DEBUG] Forcing NIP-01 Object Filter:", finalFilter);
 
         // Use the standard subscribe method with a single object (Silver Bullet Fix)
         // We cast to any to ensure we can access 'subscribe' if it's considered internal/alias
@@ -274,7 +274,7 @@ export const NostrProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             finalFilter,
             {
                 onevent: (event: Event) => {
-                    console.log("[HYDRA] EVENT:", event.content);
+                    console.log("[FURSAN] EVENT:", event.content);
 
                     // Automatic Profile Discovery
                     if (event.kind === 1 && !profiles[event.pubkey]) {
@@ -302,7 +302,7 @@ export const NostrProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                     onEvent(event);
                 },
                 oneose: () => {
-                    console.log("[HYDRA] EOSE reached");
+                    console.log("[FURSAN] EOSE reached");
                 }
             }
         );
@@ -319,7 +319,7 @@ export const NostrProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 content: JSON.stringify({
                     name: newName,
                     display_name: newName,
-                    about: "NoFap Hydra Warrior 🐉"
+                    about: "NoFap Fursan Warrior ⚔️"
                 }),
             };
 
@@ -332,13 +332,13 @@ export const NostrProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 relays.map(url => poolRef.current.publish([url], signedEvent))
             );
 
-            console.log("[HYDRA] Profile updated to:", newName);
+            console.log("[FURSAN] Profile updated to:", newName);
             // Update local profiles state
             setProfiles(prev => ({ ...prev, [signedEvent.pubkey]: newName }));
             alert("Success! Your name is now " + newName);
             return true;
         } catch (error) {
-            console.error("[HYDRA] Update failed:", error);
+            console.error("[FURSAN] Update failed:", error);
             return false;
         }
     }, [relays]);

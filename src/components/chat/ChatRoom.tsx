@@ -163,7 +163,7 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
       // Step 1: Fix the Clock - Ensure event's created_at is strictly in seconds
       const tags = [
         ['e', ROOM_IDS[roomId], '', 'root'],
-        ['t', 'nofaphydra'],
+        ['t', 'nofapfursan'],
         ['streak', currentStreak.days.toString()]
       ];
 
@@ -256,7 +256,7 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
           <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
           {roomId} Channel
         </h2>
-        <span className="text-[9px] font-mono opacity-50 uppercase">Hydra v1.0</span>
+        <span className="text-[9px] font-mono opacity-50 uppercase">Fursan v1.0</span>
       </div>
 
       <div className="flex-1 overflow-y-auto space-y-4 p-4 scrollbar-thin scrollbar-thumb-black">

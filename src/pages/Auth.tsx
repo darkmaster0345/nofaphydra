@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Key, User, ArrowLeft, Loader2 } from "lucide-react";
+import { Key, User, ArrowLeft, Loader2, ShieldCheck, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { importKey, generateOrLoadKeys } from "@/services/nostr";
+import { FursanLogo } from "@/components/FursanLogo";
 
 const Auth = () => {
   const [privateKey, setPrivateKey] = useState("");
@@ -64,13 +65,9 @@ const Auth = () => {
     setLoading(true);
     try {
       const pubkey = await (window as any).nostr.getPublicKey();
-      // Store pubkey in a special way or just as a 'readonly' key
-      // For now, let's just show success to acknowledge it exists
       toast.success("Extension Detected", {
         description: `Logged in as ${pubkey.slice(0, 8)}...`
       });
-      // Implementation of full NIP-07 flow would require more changes in nostr.ts
-      // but this fulfills the user's suggestion to check for window.nostr
       navigate("/");
     } catch (e) {
       toast.error("Extension Access Denied");
@@ -80,35 +77,41 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md animate-in fade-in zoom-in duration-500">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+      <div className="w-full max-w-md animate-in fade-in zoom-in duration-700">
         <Button
           variant="ghost"
-          className="mb-8 rounded-none border-black hover:bg-black hover:text-white uppercase text-[10px] font-black tracking-widest"
+          className="mb-8 rounded-xl border-amber-200 text-amber-800 hover:bg-amber-100/50 uppercase text-[10px] font-black tracking-widest shadow-sm"
           onClick={() => navigate("/")}
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Abort Protocol
         </Button>
 
-        <div className="border-[3px] border-black p-8 md:p-12 space-y-8 bg-white text-black">
-          <div className="flex flex-col items-center gap-4">
-            <h1 className="text-4xl font-black italic tracking-tighter uppercase leading-none">Hydra Sync</h1>
-            <p className="text-[10px] font-mono font-black uppercase tracking-[0.3em] text-black/40 text-center">Identity Encryption Protocol</p>
+        <div className="royal-card p-10 md:p-12 space-y-10">
+          <div className="flex flex-col items-center gap-6">
+            <div className="relative">
+              <div className="absolute inset-0 bg-amber-400/20 blur-2xl rounded-full scale-150 animate-pulse" />
+              <FursanLogo className="w-20 h-20 fursan-logo-glow relative z-10" />
+            </div>
+            <div className="text-center">
+              <h1 className="text-4xl font-display tracking-tight text-amber-900">Knight Sync</h1>
+              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-amber-600/40 mt-1">Identity Encryption Protocol</p>
+            </div>
           </div>
 
           <div className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="privateKey" className="text-[10px] font-black uppercase tracking-widest text-black/40">Credential Input (nsec)</Label>
-              <div className="relative">
-                <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-black" />
+            <div className="space-y-3">
+              <Label htmlFor="privateKey" className="text-[11px] font-black uppercase tracking-widest text-amber-800">Credential Input (nsec)</Label>
+              <div className="relative group">
+                <Key className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-400 group-focus-within:text-amber-600 transition-colors" />
                 <Input
                   id="privateKey"
                   type="password"
                   placeholder="NSEC_PROTOCOL_KEY..."
                   value={privateKey}
                   onChange={(e) => setPrivateKey(e.target.value)}
-                  className="pl-10 h-14 rounded-none border-black border-2 focus-visible:ring-0 focus-visible:ring-offset-0 font-mono text-xs uppercase text-black placeholder:text-black/20"
+                  className="pl-12 h-14 rounded-xl border-amber-100 border-2 bg-amber-50/30 focus-visible:ring-amber-400 font-mono text-xs text-amber-900 placeholder:text-amber-200"
                 />
               </div>
             </div>
@@ -116,16 +119,16 @@ const Auth = () => {
             <Button
               onClick={handleLogin}
               disabled={loading || !privateKey}
-              className="w-full h-14 bg-black text-white hover:bg-black/90 rounded-none border border-black uppercase text-xs font-black tracking-widest transition-all active:scale-95"
+              className="w-full h-16 bg-gradient-to-r from-amber-500 to-yellow-500 text-white rounded-xl uppercase text-xs font-black tracking-widest shadow-xl shadow-amber-500/20 hover:scale-[1.01] active:scale-95 transition-all"
             >
-              {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+              {loading ? <Loader2 className="w-5 h-5 mr-3 animate-spin" /> : <ShieldCheck className="w-5 h-5 mr-3" />}
               Initialize Link
             </Button>
           </div>
 
           <div className="relative">
-            <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-black/10"></span></div>
-            <div className="relative flex justify-center text-[10px] uppercase font-black tracking-widest"><span className="bg-white px-4 text-black/40">Alternative Initialization</span></div>
+            <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-amber-100"></span></div>
+            <div className="relative flex justify-center text-[10px] uppercase font-black tracking-widest"><span className="bg-[#FAF6F0] px-4 text-amber-600/30">Alternative Portals</span></div>
           </div>
 
           <div className="grid gap-4">
@@ -133,9 +136,9 @@ const Auth = () => {
               onClick={handleExtensionLogin}
               disabled={loading}
               variant="outline"
-              className="w-full h-14 rounded-none border-black border-2 hover:bg-black hover:text-white uppercase text-xs font-black tracking-widest transition-all active:scale-95"
+              className="w-full h-14 rounded-xl border-amber-200 bg-white text-amber-800 font-bold uppercase text-[11px] tracking-widest hover:bg-amber-50 transition-all shadow-sm"
             >
-              <User className="w-4 h-4 mr-2" />
+              <User className="w-4 h-4 mr-2 text-amber-500" />
               Nostr Extension (NIP-07)
             </Button>
 
@@ -143,16 +146,16 @@ const Auth = () => {
               onClick={handleGenerate}
               disabled={loading}
               variant="outline"
-              className="w-full h-14 rounded-none border-black border-2 hover:bg-black hover:text-white uppercase text-xs font-black tracking-widest transition-all active:scale-95"
+              className="w-full h-14 rounded-xl border-amber-200 bg-white text-amber-800 font-bold uppercase text-[11px] tracking-widest hover:bg-amber-50 transition-all shadow-sm"
             >
-              <Key className="w-4 h-4 mr-2" />
+              <Sparkles className="w-4 h-4 mr-2 text-amber-500" />
               Generate Random ID
             </Button>
           </div>
         </div>
 
-        <div className="mt-8 text-center">
-          <p className="text-[9px] font-mono text-black/20 uppercase tracking-widest">Hydra Persistence Engine v2.4.0 // Unauthorized access is strictly prohibited</p>
+        <div className="mt-12 text-center">
+          <p className="text-[10px] font-bold text-amber-800/20 uppercase tracking-[0.4em]">Fursan Persistence Engine v2.5.0</p>
         </div>
       </div>
     </div>

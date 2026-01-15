@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Capacitor } from '@capacitor/core';
-import { MOTIVATIONAL_MESSAGES, getRandomMotivation } from "@/data/motivation";
+import { MOTIVATIONAL_MESSAGES, getFormattedMotivation } from "@/data/motivation";
+import { getPrayerNotificationTimes } from "@/lib/prayerUtils";
 
-const STORAGE_KEY = "hydra_notifications_enabled";
+const STORAGE_KEY = "fursan_notifications_enabled";
 const NOTIFICATION_INTERVAL_MS = 3 * 60 * 60 * 1000; // 3 hours
 
 export function useNotifications() {
@@ -26,53 +27,72 @@ export function useNotifications() {
   }, [checkPermission]);
 
   const scheduleNotifications = useCallback(async () => {
-    if (!Capacitor.isNativePlatform()) return;
+    if (!Capacitor.isNativePlatform() && !("Notification" in window)) return;
 
     try {
       // 1. Clear all existing pending notifications to avoid duplicates
-      const pending = await LocalNotifications.getPending();
-      if (pending.notifications.length > 0) {
-        await LocalNotifications.cancel(pending);
+      if (Capacitor.isNativePlatform()) {
+        const pending = await LocalNotifications.getPending();
+        if (pending.notifications.length > 0) {
+          await LocalNotifications.cancel(pending);
+        }
       }
 
-      // 2. Schedule a batch for the next 48 hours (16 notifications at 3h intervals)
-      // This ensures the user gets notifications even if they don't open the app for 2 days.
       const notifications = [];
-      for (let i = 1; i <= 16; i++) {
+      let notificationId = 1;
+
+      // 2. Schedule Adhan (Prayer Time) Notifications
+      const prayerTimes = await getPrayerNotificationTimes();
+      prayerTimes.forEach(p => {
         notifications.push({
-          title: "NoFap Hydra 🐉",
+          title: `Adhan: ${p.name} 🕌`,
+          body: `It is time for ${p.name}. Rise, ya Faris, for the success is in Salah.`,
+          id: notificationId++,
+          schedule: { at: p.time },
+          smallIcon: "res://ic_stat_icon",
+          sound: "adhan.wav", // Native apps can play a custom adhan sound if provided
+        });
+      });
+
+      // 3. Schedule periodic motivational signals (every 3h)
+      for (let i = 1; i <= 10; i++) {
+        notifications.push({
+          title: "Fursan Shield ⚔️",
           body: MOTIVATIONAL_MESSAGES[Math.floor(Math.random() * MOTIVATIONAL_MESSAGES.length)],
-          id: i,
+          id: notificationId++,
           schedule: { at: new Date(Date.now() + (NOTIFICATION_INTERVAL_MS * i)) },
-          smallIcon: "res://ic_stat_icon", // Fallback to system icon for status bar
-          actionTypeId: "",
-          extra: null
+          smallIcon: "res://ic_stat_icon",
         });
       }
 
-      await LocalNotifications.schedule({ notifications });
-      console.log(`[HYDRA] scheduled ${notifications.length} periodic signals.`);
+      if (Capacitor.isNativePlatform()) {
+        await LocalNotifications.schedule({ notifications });
+      } else {
+        console.log("[FURSAN] Web notifications scheduled (SIMULATED):", notifications);
+      }
+
+      console.log(`[FURSAN] scheduled ${notifications.length} protocol signals (including Adhans).`);
     } catch (err) {
       console.error("Failed to schedule notifications", err);
     }
   }, []);
 
   const showTestNotification = useCallback(async () => {
-    const quote = getRandomMotivation();
+    const quote = getFormattedMotivation();
 
     if (Capacitor.isNativePlatform()) {
       await LocalNotifications.schedule({
         notifications: [
           {
-            title: "Hydra Shield Active 🐉",
+            title: "Fursan Shield Active ⚔️",
             body: quote,
-            id: 99,
+            id: 999,
             schedule: { at: new Date(Date.now() + 1000) },
           }
         ]
       });
     } else if ("Notification" in window && Notification.permission === "granted") {
-      new Notification("Hydra Shield Active 🐉", { body: quote });
+      new Notification("Fursan Shield Active ⚔️", { body: quote });
     }
   }, []);
 
@@ -89,13 +109,24 @@ export function useNotifications() {
         return true;
       }
     } else if ("Notification" in window) {
-      const result = await Notification.requestPermission();
-      setPermission(result);
-      if (result === "granted") {
-        setEnabled(true);
-        localStorage.setItem(STORAGE_KEY, "true");
-        await showTestNotification();
-        return true;
+      const result = await Notification.permission;
+      if (result === "default") {
+        const webResult = await Notification.requestPermission();
+        setPermission(webResult);
+        if (webResult === "granted") {
+          setEnabled(true);
+          localStorage.setItem(STORAGE_KEY, "true");
+          await showTestNotification();
+          return true;
+        }
+      } else {
+        setPermission(result);
+        if (result === "granted") {
+          setEnabled(true);
+          localStorage.setItem(STORAGE_KEY, "true");
+          await showTestNotification();
+          return true;
+        }
       }
     }
     return false;
@@ -103,7 +134,8 @@ export function useNotifications() {
 
   const toggleNotifications = async () => {
     if (!enabled) {
-      return await requestPermission();
+      const success = await requestPermission();
+      return success;
     } else {
       setEnabled(false);
       localStorage.setItem(STORAGE_KEY, "false");
@@ -117,9 +149,9 @@ export function useNotifications() {
     }
   };
 
-  // Reschedule whenever the app is opened to keep the 48h window moving forward
+  // Reschedule whenever the app is opened to keep the window moving forward
   useEffect(() => {
-    if (enabled && permission === "granted") {
+    if (enabled && (permission === "granted" || permission === "provisional")) {
       scheduleNotifications();
     }
   }, [enabled, permission, scheduleNotifications]);

@@ -7,7 +7,7 @@ export async function registerServiceWorker() {
       scope: '/',
     });
 
-    console.log('[HYDRA] SW registered:', registration.scope);
+    console.log('[FURSAN] SW registered:', registration.scope);
 
     // Check for updates
     registration.addEventListener('updatefound', () => {
@@ -15,7 +15,7 @@ export async function registerServiceWorker() {
       if (newWorker) {
         newWorker.addEventListener('statechange', () => {
           if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-            console.log('[HYDRA] New content available, refresh to update');
+            console.log('[FURSAN] New content available, refresh to update');
           }
         });
       }
@@ -23,7 +23,7 @@ export async function registerServiceWorker() {
 
     return registration;
   } catch (error) {
-    console.warn('[HYDRA] SW registration failed (non-blocking):', error);
+    console.warn('[FURSAN] SW registration failed (non-blocking):', error);
     return null;
   }
   return null;
@@ -35,11 +35,11 @@ export async function registerBackgroundSync() {
     const registration = await navigator.serviceWorker.ready;
     if ('sync' in registration) {
       await (registration as any).sync.register('sync-streak-data');
-      console.log('[HYDRA-PWA] Background sync registered');
+      console.log('[FURSAN-PWA] Background sync registered');
       return true;
     }
   } catch (error) {
-    console.warn('[HYDRA-PWA] Background sync not supported or denied (non-blocking).');
+    console.warn('[FURSAN-PWA] Background sync not supported or denied (non-blocking).');
   }
   return false;
 }

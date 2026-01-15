@@ -6,14 +6,14 @@ export function ChatRules() {
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    const seen = localStorage.getItem("hydra_chat_rules_seen");
+    const seen = localStorage.getItem("fursan_chat_rules_seen");
     if (seen) {
       setDismissed(true);
     }
   }, []);
 
   const handleDismiss = () => {
-    localStorage.setItem("hydra_chat_rules_seen", "true");
+    localStorage.setItem("fursan_chat_rules_seen", "true");
     setDismissed(true);
   };
 

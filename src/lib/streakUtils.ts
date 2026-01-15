@@ -14,14 +14,10 @@ export interface AvatarLevel {
 }
 
 export const AVATAR_LEVELS: AvatarLevel[] = [
-  { name: "Seedling", emoji: "🌱", minDays: 0, maxDays: 0, color: "text-emerald-400", description: "Planting the seed of change" },
-  { name: "Apprentice", emoji: "📚", minDays: 1, maxDays: 6, color: "text-yellow-500", description: "Learning self-control" },
-  { name: "Warrior", emoji: "⚔️", minDays: 7, maxDays: 13, color: "text-orange-500", description: "Fighting urges daily" },
-  { name: "Guardian", emoji: "🛡️", minDays: 14, maxDays: 29, color: "text-blue-500", description: "Protecting your progress" },
-  { name: "Champion", emoji: "🏆", minDays: 30, maxDays: 59, color: "text-purple-500", description: "1 month of discipline" },
-  { name: "Master", emoji: "🧘", minDays: 60, maxDays: 89, color: "text-primary", description: "Mind over impulse" },
-  { name: "Legend", emoji: "🐉", minDays: 90, maxDays: 179, color: "text-gradient-fire", description: "90 days - Rewired!" },
-  { name: "Immortal", emoji: "👑", minDays: 180, maxDays: Infinity, color: "text-gradient-legendary", description: "Complete transformation" },
+  { name: "Initiate (المريد)", emoji: "📿", minDays: 0, maxDays: 7, color: "text-emerald-400", description: "The Initiate - Beginning the Path" },
+  { name: "Mujahid (المجاهد)", emoji: "⚔️", minDays: 8, maxDays: 40, color: "text-emerald-500", description: "The Mujahid - Striving in Battle" },
+  { name: "Faris (الفارس)", emoji: "🏇", minDays: 41, maxDays: 90, color: "text-amber-500", description: "The Faris - Knight of Discipline" },
+  { name: "Amir (الأمير)", emoji: "👑", minDays: 91, maxDays: Infinity, color: "text-gradient-legendary", description: "The Amir - Commander of Sabr" },
 ];
 
 export const MOTIVATIONAL_QUOTES = [
@@ -31,7 +27,7 @@ export const MOTIVATIONAL_QUOTES = [
   "You're not just breaking a habit, you're building a new you.",
   "Champions are made when no one is watching.",
   "The only way out is through. Keep going.",
-  "Your streak is proof of your inner strength.",
+  "Your Sabr Count is proof of your inner strength.",
   "One day at a time, one victory at a time.",
   "Discipline is choosing what you want most over what you want now.",
   "You are stronger than your urges.",
@@ -40,7 +36,7 @@ export const MOTIVATIONAL_QUOTES = [
 ];
 
 export function getStreakData(): StreakData {
-  const stored = localStorage.getItem('hydra_streak_data');
+  const stored = localStorage.getItem('fursan_streak_data');
   if (stored) {
     return JSON.parse(stored);
   }
@@ -52,8 +48,8 @@ export function getStreakData(): StreakData {
 }
 
 export function saveStreakData(data: StreakData): void {
-  localStorage.setItem('hydra_streak_data', JSON.stringify(data));
-  window.dispatchEvent(new Event('hydra_streak_updated'));
+  localStorage.setItem('fursan_streak_data', JSON.stringify(data));
+  window.dispatchEvent(new Event('fursan_streak_updated'));
 }
 
 export function calculateStreak(startDate: string | null): { days: number; hours: number; minutes: number } {

@@ -46,7 +46,7 @@ async function getRelays(): Promise<string[]> {
 
 // Private kind for encrypted streak data (NIP-78)
 const STREAK_CLOUD_KIND = 30078;
-const STREAK_CLOUD_D_TAG = "nofaphydra-streak";
+const STREAK_CLOUD_D_TAG = "nofapfursan-streak";
 
 // Storage key for pending offline events
 const PENDING_SYNC_KEY = "pending_sync";
@@ -209,7 +209,7 @@ async function flushPendingEvents(): Promise<void> {
             const success = await resilientPublish(pendingEvent.signedEvent);
 
             if (success) {
-                console.log("[HYDRA-DEBUG]: Nostr Event Published (from queue)", pendingEvent.signedEvent.id);
+                console.log("[FURSAN-DEBUG]: Nostr Event Published (from queue)", pendingEvent.signedEvent.id);
                 console.log("[Nostr] Flushed queued event:", pendingEvent.signedEvent.id);
                 await removeFromQueue(pendingEvent.id);
             } else {
@@ -391,7 +391,7 @@ export async function generateOrLoadKeys(): Promise<NostrKeys> {
         }
 
         if (value) {
-            console.log("[HYDRA] Welcome back! Identity loaded.");
+            console.log("[FURSAN] Welcome back! Identity loaded.");
             const privKey = hexToBytes(value);
             // Ensure we migrate/save to the new standard key
             await Preferences.set({ key: 'user_nsec', value: value });
@@ -408,7 +408,7 @@ export async function generateOrLoadKeys(): Promise<NostrKeys> {
         const hex = bytesToHex(newKey);
         await Preferences.set({ key: 'user_nsec', value: hex });
 
-        console.log("[HYDRA] New identity created and saved to device.");
+        console.log("[FURSAN] New identity created and saved to device.");
         return {
             privateKey: newKey,
             publicKey: getPublicKey(newKey),
@@ -558,7 +558,7 @@ export async function saveStreak(streakData: StreakPayload): Promise<boolean> {
             created_at: Math.floor(Date.now() / 1000),
             tags: [
                 ["d", STREAK_CLOUD_D_TAG],
-                ["t", "nofaphydra"],
+                ["t", "nofapfursan"],
                 ["encrypted", "nip44"],
             ],
             content: encryptedContent,
@@ -706,7 +706,7 @@ export interface HealthCheck {
     timestamp: number;
 }
 
-const HEALTH_CHECK_TAG = "nofaphydra-health";
+const HEALTH_CHECK_TAG = "nofapfursan-health";
 
 /**
  * Save an encrypted health check entry

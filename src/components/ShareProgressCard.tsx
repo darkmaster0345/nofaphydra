@@ -1,4 +1,4 @@
-import { Share2, Globe, CheckCircle2, Download, Flame } from "lucide-react";
+import { Share2, Globe, CheckCircle2, Download, Flame, Sparkles } from "lucide-react";
 import { useState, useRef } from "react";
 import { useNostr } from "@/hooks/useNostr";
 import { generateOrLoadKeys } from "@/services/nostr";
@@ -43,30 +43,31 @@ export function ShareProgressCard({ streak, avatarUrl }: ShareProgressCardProps)
   const { publish } = useNostr();
   const shareableRef = useRef<HTMLDivElement>(null);
 
-  const appLink = "https://github.com/darkmaster0345/nofaphydra";
-  const shareText = `I am on day ${streak?.days || 0} of my journey with NoFap Hydra! 🐉\n\nJoin the resistance: ${appLink} `;
+  const appLink = "https://github.com/darkmaster0345/nofapfursan";
+  const shareText = `I am on day ${streak?.days || 0} of my journey with NoFap Fursan! ⚔️\n\nJoin the resistance: ${appLink} `;
 
   const handleNativeShare = async () => {
     try {
       if (Capacitor.isNativePlatform()) {
         await Share.share({
-          title: "NoFap Hydra - Progress Report",
+          title: "NoFap Fursan - Progress Report",
           text: shareText,
           url: appLink,
           dialogTitle: "Share your progress",
         });
-        toast.success("Progress shared! 🐉");
+        toast.success("Progress shared! ⚔️");
         triggerSuccess();
       } else if (navigator.share) {
         await navigator.share({
-          title: "NoFap Hydra - Progress Report",
+          title: "NoFap Fursan - Progress Report",
           text: shareText,
+          url: appLink,
         });
-        toast.success("Progress shared to system! 🐉");
+        toast.success("Progress shared to system! ⚔️");
         triggerSuccess();
       } else {
         await navigator.clipboard.writeText(shareText);
-        toast.success("Streak text copied to clipboard!");
+        toast.success("Sabr Count text copied to clipboard!");
         triggerSuccess();
       }
     } catch (err) {
@@ -90,7 +91,7 @@ export function ShareProgressCard({ streak, avatarUrl }: ShareProgressCardProps)
         kind: 1,
         created_at: Math.floor(Date.now() / 1000),
         tags: [
-          ['t', 'nofaphydra'],
+          ['t', 'nofapfursan'],
           ['r', appLink],
         ],
         content: shareText,
@@ -100,14 +101,14 @@ export function ShareProgressCard({ streak, avatarUrl }: ShareProgressCardProps)
       const success = await publish(signedEvent);
 
       if (success) {
-        toast.success("Posted to Community! 🐉");
+        toast.success("Posted to Community! ⚔️");
         triggerSuccess();
       } else {
         throw new Error("No relays accepted the event");
       }
     } catch (err) {
       console.error('Nostr share failed:', err);
-      toast.error("Failed to post to Hydra community.");
+      toast.error("Failed to post to Fursan community.");
     } finally {
       setSharing(false);
     }
@@ -127,31 +128,21 @@ export function ShareProgressCard({ streak, avatarUrl }: ShareProgressCardProps)
       // Small delay to ensure state update renders in the hidden element
       await new Promise(r => setTimeout(r, 100));
 
-      // Step 2: Generate PNG with stability settings to prevent cross-origin CSS crash
+      // Step 2: Generate PNG
       const dataUrl = await toPng(shareableRef.current, {
         cacheBust: true,
-        backgroundColor: '#ffffff',
+        backgroundColor: '#FAF6F0',
         pixelRatio: 2,
         skipFonts: true,
-        fontEmbedCSS: '', // Disable font embedding to avoid cross-origin CSS issues
-        ...({ copyStyles: false } as any), // Prevents accessing cssRules of cross-origin stylesheets
-        includeQueryParams: false,
-        filter: (node: HTMLElement) => {
-          if (node.tagName === 'LINK') return false;
-          return true;
-        }
       });
 
-      const fileName = `hydra-progress-day-${streak?.days || 0}.png`;
+      const fileName = `fursan-sabr-count-day-${streak?.days || 0}.png`;
 
-      // Native Capacitor Download Logic (Gallery visibility)
+      // Native Capacitor Download Logic
       if (Capacitor.isNativePlatform()) {
         try {
-          // 1. Write to private app storage first
           const base64Data = dataUrl.split(',')[1];
-
-          // Use a clean filename without special characters
-          const safeFileName = `hydra_progress_${streak?.days || 0}.png`;
+          const safeFileName = `fursan_progress_${streak?.days || 0}.png`;
 
           const savedFile = await Filesystem.writeFile({
             path: safeFileName,
@@ -159,33 +150,21 @@ export function ShareProgressCard({ streak, avatarUrl }: ShareProgressCardProps)
             directory: Directory.Cache
           });
 
-          // 2. Save to public gallery using Media plugin
-          // Note: On Android, albumIdentifier is the name of the album/folder
-          try {
-            await Media.savePhoto({
-              path: savedFile.uri,
-              albumIdentifier: 'NofapHydra'
-            });
-            toast.success("Progress picture saved into 'NofapHydra' album! 🐉");
-          } catch (mediaErr) {
-            console.warn('Media save failed, trying without album', mediaErr);
-            // Fallback: Save to default gallery if album creation/access fails
-            await Media.savePhoto({
-              path: savedFile.uri
-            });
-            toast.success("Progress picture saved to Gallery! 🐉");
-          }
+          await Media.savePhoto({
+            path: savedFile.uri,
+            albumIdentifier: 'NofapFursan'
+          });
+          toast.success("Progress picture saved into 'NofapFursan' album! ⚔️");
         } catch (err) {
-          console.error('Capacitor download fatal error:', err);
+          console.error('Capacitor download error:', err);
           throw err;
         }
       } else {
-        // Web Fallback
         const link = document.createElement('a');
         link.download = fileName;
         link.href = dataUrl;
         link.click();
-        toast.success("Progress report generated! 🐉");
+        toast.success("Progress report generated! ⚔️");
       }
 
       triggerSuccess();
@@ -204,22 +183,24 @@ export function ShareProgressCard({ streak, avatarUrl }: ShareProgressCardProps)
   };
 
   return (
-    <div className="border border-black bg-white p-6 space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
+    <div className="royal-card p-6 space-y-4 page-transition" style={{ animationDelay: "0.3s" }}>
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-xs font-black uppercase tracking-[0.3em] flex items-center gap-2">
-          {justShared ? (
-            <CheckCircle2 className="w-4 h-4 text-black animate-bounce" />
-          ) : (
-            <Share2 className="w-4 h-4" />
-          )}
-          Share Progress
-        </h3>
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-400 to-blue-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+            {justShared ? (
+              <CheckCircle2 className="w-4 h-4 text-white animate-bounce" />
+            ) : (
+              <Share2 className="w-4 h-4 text-white" />
+            )}
+          </div>
+          <h3 className="text-sm font-black uppercase tracking-tight text-amber-800">Share Progress</h3>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-3">
         <Button
           onClick={handleNativeShare}
-          className="w-full border border-black rounded-none h-14 bg-black text-white hover:bg-black/90 uppercase text-[10px] font-black tracking-[0.2em] transition-all hover:translate-y-[-2px] active:translate-y-[0px] shadow-none"
+          className="w-full rounded-xl h-14 bg-gradient-to-r from-amber-500 to-yellow-500 text-white font-black uppercase text-[10px] tracking-[0.2em] shadow-lg shadow-amber-500/25 active:scale-95 transition-all"
         >
           <Share2 className="w-4 h-4 mr-2" />
           System Share
@@ -229,7 +210,7 @@ export function ShareProgressCard({ streak, avatarUrl }: ShareProgressCardProps)
           onClick={handleNostrShare}
           disabled={sharing}
           variant="outline"
-          className="w-full border border-black rounded-none h-14 bg-white text-black hover:bg-black hover:text-white uppercase text-[10px] font-black tracking-[0.2em] transition-all hover:translate-y-[-2px] active:translate-y-[0px] shadow-none"
+          className="w-full rounded-xl h-14 border-2 border-amber-300 bg-white text-amber-800 font-black uppercase text-[10px] tracking-[0.2em] hover:bg-amber-50 active:scale-95 transition-all"
         >
           <Globe className="w-4 h-4 mr-2" />
           {sharing ? "POSTING..." : "Post to Community"}
@@ -239,60 +220,66 @@ export function ShareProgressCard({ streak, avatarUrl }: ShareProgressCardProps)
           onClick={handleDownloadImage}
           disabled={downloading}
           variant="ghost"
-          className="w-full text-black/40 hover:text-black uppercase text-[10px] font-bold truncate h-8"
+          className="w-full text-amber-700/60 hover:text-amber-700 uppercase text-[10px] font-bold truncate h-8"
         >
           <Download className="w-3 h-3 mr-2" />
-          {downloading ? "GENERATING ENCRYPTED IMAGE..." : "Download Progress Picture"}
+          {downloading ? "GENERATING..." : "Get Progress Picture"}
         </Button>
       </div>
 
       <div className="pt-2">
-        <div className="bg-secondary p-4 border border-dashed border-black/20 font-mono text-[10px] whitespace-pre-wrap leading-tight text-muted-foreground select-none uppercase">
+        <div className="bg-amber-50/50 p-4 rounded-lg border border-dashed border-amber-200/50 font-mono text-[10px] whitespace-pre-wrap leading-tight text-amber-800/60 select-none uppercase">
           {shareText}
         </div>
       </div>
 
-      {/* Hidden Capture Element - Absolute positioning for better Android Webview rendering */}
+      {/* Hidden Capture Element */}
       <div className="absolute top-[-9999px] left-[-9999px] pointer-events-none overflow-hidden" aria-hidden="true">
         <div
           ref={shareableRef}
-          className="w-[500px] bg-white p-16 border-[16px] border-black flex flex-col items-center justify-center text-center space-y-8"
+          className="w-[500px] bg-[#FAF6F0] p-16 border-[16px] border-amber-400/50 flex flex-col items-center justify-center text-center space-y-8"
         >
           {/* Avatar Section */}
           {(base64Avatar || avatarUrl) && (
             <div className="relative mb-4">
-              <div className="w-32 h-32 border-4 border-black overflow-hidden bg-white">
+              <div className="w-32 h-32 border-4 border-amber-500/30 overflow-hidden bg-white rounded-full">
                 <img
                   src={base64Avatar || avatarUrl || ""}
                   alt="User Avatar"
-                  className="w-full h-full object-cover grayscale"
+                  className="w-full h-full object-cover"
                 />
               </div>
-              <div className="absolute -bottom-2 -right-2 bg-black text-white p-1">
+              <div className="absolute -bottom-2 -right-2 bg-gradient-to-br from-amber-400 to-yellow-500 text-white p-2 rounded-full shadow-lg">
                 <Flame className="w-6 h-6" />
               </div>
             </div>
           )}
 
           <div className="flex flex-col items-center gap-2">
-            <h1 className="text-5xl font-black uppercase tracking-[0.2em] italic leading-none">NOFAP HYDRA</h1>
-            <p className="text-[10px] font-mono font-black uppercase tracking-[0.4em] opacity-40">Persistence Protocol // Verified Output</p>
+            <h1 className="text-5xl font-black uppercase tracking-[0.2em] italic leading-none text-amber-900">
+              NOFAP <span className="text-amber-500">FURSAN</span>
+            </h1>
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-3 h-3 text-amber-400" />
+              <p className="text-[10px] font-mono font-black uppercase tracking-[0.4em] text-amber-800/40">Verified Sabr Protocol</p>
+              <Sparkles className="w-3 h-3 text-amber-400" />
+            </div>
           </div>
 
-          <div className="space-y-0 py-8 border-y-2 border-black w-full">
-            <p className="text-[140px] font-black leading-none tracking-tighter">{streak?.days || 0}</p>
-            <p className="text-2xl font-black uppercase tracking-[0.4em] text-black">DAYS STRONG</p>
+          <div className="space-y-0 py-8 border-y-2 border-amber-200/50 w-full bg-white/50">
+            <p className="text-[140px] font-black leading-none tracking-tighter text-amber-900">{streak?.days || 0}</p>
+            <p className="text-2xl font-black uppercase tracking-[0.4em] text-amber-500">DAYS OF SABR</p>
           </div>
 
           <div className="w-full pt-4">
-            <div className="flex justify-between items-end">
+            <div className="flex justify-between items-end border-t border-amber-200/50 pt-4">
               <div className="text-left">
-                <p className="text-[10px] font-black uppercase tracking-widest text-black/40">Reference Link</p>
-                <p className="text-xs font-bold">nofaphydra.vercel.app</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-amber-800/40">Reference</p>
+                <p className="text-xs font-bold text-amber-900">nofapfursan.org</p>
               </div>
               <div className="text-right">
-                <p className="text-[10px] font-black uppercase tracking-widest text-black/40">Timestamp</p>
-                <p className="text-xs font-bold font-mono">{new Date().toISOString().split('T')[0]}</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-amber-800/40">Timestamp</p>
+                <p className="text-xs font-bold font-mono text-amber-900">{new Date().toISOString().split('T')[0]}</p>
               </div>
             </div>
           </div>

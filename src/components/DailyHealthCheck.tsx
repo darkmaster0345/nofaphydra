@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { saveHealthCheck, fetchHealthChecks, HealthCheck } from "@/services/nostr";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Shield, Activity, AlertCircle, Heart, CheckCircle2, Info } from "lucide-react";
+import { Shield, Activity, AlertCircle, Heart, CheckCircle2, Info, Stethoscope } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { logActivity } from "@/lib/activityLog";
@@ -65,6 +65,10 @@ export function DailyHealthCheck({ onUpdate }: DailyHealthCheckProps) {
 
         const success = await saveHealthCheck(entry);
         if (success) {
+            // Haptic feedback for native feel
+            if ('vibrate' in navigator) {
+                navigator.vibrate(50);
+            }
             toast.success("Health signal encrypted and synchronized. 🛡️");
             logActivity('health_check', `NPT Check: ${npt ? 'YES' : 'NO'}`);
             setHasSubmitedToday(true);
@@ -93,13 +97,17 @@ export function DailyHealthCheck({ onUpdate }: DailyHealthCheckProps) {
 
         if (yesCount >= 4) return {
             status: "OPTIMAL",
-            color: "text-green-600",
+            color: "text-emerald-600",
+            bgColor: "bg-emerald-50",
+            borderColor: "border-emerald-200",
             insight: "Hormones (Testosterone) and Blood Flow are in great shape.",
             icon: <CheckCircle2 className="w-4 h-4" />
         };
         if (yesCount >= 1) return {
             status: "WARNING",
-            color: "text-yellow-600",
+            color: "text-amber-600",
+            bgColor: "bg-amber-50",
+            borderColor: "border-amber-200",
             insight: "Could be due to poor sleep quality, high stress, or early signs of low T.",
             icon: <AlertCircle className="w-4 h-4" />
         };
@@ -109,12 +117,21 @@ export function DailyHealthCheck({ onUpdate }: DailyHealthCheckProps) {
             return {
                 status: "CRITICAL",
                 color: "text-red-600",
+                bgColor: "bg-red-50",
+                borderColor: "border-red-200",
                 insight: "Critical: Early warning sign of heart disease or diabetes.",
                 icon: <Activity className="w-4 h-4" />
             };
         }
 
-        return { status: "MONITORING", color: "text-blue-600", insight: "Gathering biological data...", icon: <Info className="w-4 h-4" /> };
+        return {
+            status: "MONITORING",
+            color: "text-blue-600",
+            bgColor: "bg-blue-50",
+            borderColor: "border-blue-200",
+            insight: "Gathering biological data...",
+            icon: <Info className="w-4 h-4" />
+        };
     };
 
     const statusInfo = getHealthStatus();
@@ -122,37 +139,40 @@ export function DailyHealthCheck({ onUpdate }: DailyHealthCheckProps) {
     if (loading) return null;
 
     return (
-        <div className="space-y-4">
-            <Card className="rounded-none border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                <CardHeader className="pb-3">
+        <div className="space-y-4 page-transition" style={{ animationDelay: "0.05s" }}>
+            <div className="royal-card overflow-hidden">
+                <div className="p-5 border-b border-amber-200/50">
                     <div className="flex justify-between items-start">
-                        <div>
-                            <CardTitle className="text-xl font-black uppercase italic tracking-tighter">Bio-Signal Capture</CardTitle>
-                            <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-black/40 mt-1">
-                                Morning Wood / NPT Health Signal
-                            </CardDescription>
+                        <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-rose-400 to-pink-500 flex items-center justify-center shadow-lg shadow-rose-500/20">
+                                <Heart className="w-4 h-4 text-white" />
+                            </div>
+                            <div>
+                                <h3 className="text-sm font-black uppercase tracking-tight text-amber-800">Bio-Signal Check</h3>
+                                <p className="text-[10px] font-bold uppercase tracking-widest text-amber-600/50">Morning Health Marker</p>
+                            </div>
                         </div>
                         {statusInfo && (
-                            <div className={`flex items-center gap-1.5 px-2 py-1 border border-black text-[9px] font-black ${statusInfo.color}`}>
+                            <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full ${statusInfo.bgColor} ${statusInfo.borderColor} border text-[9px] font-bold ${statusInfo.color}`}>
                                 {statusInfo.icon}
                                 {statusInfo.status}
                             </div>
                         )}
                     </div>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    <div className="bg-black/5 p-4 border border-black/10">
-                        <p className="text-sm font-medium leading-relaxed">
-                            Did you experience <span className="font-black italic underline">Morning Wood</span> (NPT) today?
+                </div>
+                <div className="p-5 space-y-5">
+                    <div className="p-4 rounded-lg bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200/50">
+                        <p className="text-sm font-medium leading-relaxed text-amber-800">
+                            Did you experience <span className="font-black italic text-amber-600">Morning Wood</span> (NPT) today?
                         </p>
-                        <p className="text-[10px] text-black/60 uppercase font-bold mt-2 flex items-center gap-1">
-                            <Info className="w-3 h-3" /> A quick check of your biological health markers.
+                        <p className="text-[10px] text-amber-600/70 uppercase font-bold mt-2 flex items-center gap-1">
+                            <Stethoscope className="w-3 h-3" /> A quick check of your biological health markers.
                         </p>
                     </div>
 
                     {statusInfo && statusInfo.insight && (
-                        <div className={`text-[10px] font-bold uppercase tracking-wide p-2 border border-black/5 bg-black/[0.02] ${statusInfo.color}`}>
-                            {statusInfo.insight}
+                        <div className={`text-[11px] font-medium p-3 rounded-lg ${statusInfo.bgColor} ${statusInfo.borderColor} border ${statusInfo.color}`}>
+                            💡 {statusInfo.insight}
                         </div>
                     )}
 
@@ -162,56 +182,57 @@ export function DailyHealthCheck({ onUpdate }: DailyHealthCheckProps) {
                                 variant="outline"
                                 onClick={() => handleCheck(true)}
                                 disabled={saving}
-                                className="h-16 rounded-none border-black hover:bg-green-50 hover:text-green-600 transition-all font-black text-lg group"
+                                className="h-16 rounded-xl border-2 border-emerald-300 bg-gradient-to-br from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100 hover:border-emerald-400 transition-all font-black text-lg text-emerald-700 group shadow-md hover:shadow-lg"
                             >
-                                YES <CheckCircle2 className="ml-2 w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                YES <CheckCircle2 className="ml-2 w-5 h-5 opacity-70 group-hover:opacity-100 transition-opacity" />
                             </Button>
                             <Button
                                 variant="outline"
                                 onClick={() => handleCheck(false)}
                                 disabled={saving}
-                                className="h-16 rounded-none border-black hover:bg-red-50 hover:text-red-600 transition-all font-black text-lg group"
+                                className="h-16 rounded-xl border-2 border-rose-300 bg-gradient-to-br from-rose-50 to-pink-50 hover:from-rose-100 hover:to-pink-100 hover:border-rose-400 transition-all font-black text-lg text-rose-700 group shadow-md hover:shadow-lg"
                             >
-                                NO <AlertCircle className="ml-2 w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                NO <AlertCircle className="ml-2 w-5 h-5 opacity-70 group-hover:opacity-100 transition-opacity" />
                             </Button>
                         </div>
                     ) : (
-                        <div className="py-4 text-center border border-dashed border-black/20">
-                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-black/40">Daily Check Complete</p>
-                            <p className="text-xs font-bold mt-1">Biological markers logged. Stay disciplined.</p>
+                        <div className="py-5 text-center rounded-lg bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200/50">
+                            <CheckCircle2 className="w-8 h-8 mx-auto mb-2 text-emerald-500" />
+                            <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-700">Daily Check Complete</p>
+                            <p className="text-[11px] font-medium mt-1 text-emerald-600/70">Biological markers logged. Stay disciplined.</p>
                         </div>
                     )}
 
-                    <div className="flex items-start gap-3 bg-blue-50/50 p-3 border border-blue-200/50">
+                    <div className="flex items-start gap-3 p-4 rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/50">
                         <Shield className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
                         <div>
                             <p className="text-[11px] font-black uppercase tracking-tight text-blue-800">Privacy Protocol Active</p>
                             <p className="text-[10px] text-blue-700/80 font-medium leading-tight mt-0.5">
-                                This data is encrypted using NIP-44. Not even the developers can see your health logs. Only your private key can decrypt this signal.
+                                This data is encrypted using NIP-44. Only your private key can decrypt this signal.
                             </p>
                         </div>
                     </div>
-                </CardContent>
-            </Card>
+                </div>
+            </div>
 
             <Dialog open={showMedicalAlert} onOpenChange={setShowMedicalAlert}>
-                <DialogContent className="rounded-none border-black bg-white max-w-md">
+                <DialogContent className="rounded-2xl border-amber-200 bg-white max-w-md shadow-2xl">
                     <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2 text-red-600 font-black uppercase italic text-2xl">
-                            <Activity className="w-8 h-8" /> Health Insight
+                        <DialogTitle className="flex items-center gap-2 text-red-600 font-black uppercase text-xl">
+                            <Activity className="w-6 h-6" /> Health Insight
                         </DialogTitle>
-                        <DialogDescription className="text-black font-medium text-base pt-4">
+                        <DialogDescription className="text-gray-700 font-medium text-sm pt-4">
                             🛡️ We've noticed a lack of NPT for 2 weeks. While this can be caused by stress, it is also a primary indicator of vascular health.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="bg-red-50 p-4 border border-red-100 my-4">
+                    <div className="bg-red-50 p-4 rounded-lg border border-red-100 my-4">
                         <p className="text-sm text-red-900 font-bold italic">
                             "We recommend a routine check-up with a urologist to ensure your cardiovascular system is 100%."
                         </p>
                     </div>
                     <DialogFooter>
                         <Button
-                            className="w-full rounded-none bg-black text-white font-black uppercase tracking-widest h-12"
+                            className="w-full rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 text-white font-black uppercase tracking-widest h-12 shadow-lg shadow-amber-500/30 hover:shadow-xl"
                             onClick={() => setShowMedicalAlert(false)}
                         >
                             ACKNOWLEDGED
