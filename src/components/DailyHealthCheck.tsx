@@ -122,9 +122,9 @@ export function DailyHealthCheck() {
                 <CardHeader className="pb-3">
                     <div className="flex justify-between items-start">
                         <div>
-                            <CardTitle className="text-xl font-black uppercase italic tracking-tighter">Biological Dashboard</CardTitle>
+                            <CardTitle className="text-xl font-black uppercase italic tracking-tighter">Bio-Telemetry Input</CardTitle>
                             <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-black/40 mt-1">
-                                Nocturnal Penile Tumescence (NPT) Check
+                                Morning Wood / NPT Health Signal
                             </CardDescription>
                         </div>
                         {statusInfo && (
@@ -138,7 +138,7 @@ export function DailyHealthCheck() {
                 <CardContent className="space-y-6">
                     <div className="bg-black/5 p-4 border border-black/10">
                         <p className="text-sm font-medium leading-relaxed">
-                            Did you wake up with <span className="font-black italic underline">NPT</span> today?
+                            Did you experience <span className="font-black italic underline">Morning Wood</span> (NPT) today?
                         </p>
                         <p className="text-[10px] text-black/60 uppercase font-bold mt-2 flex items-center gap-1">
                             <Info className="w-3 h-3" /> A quick check of your biological health markers.

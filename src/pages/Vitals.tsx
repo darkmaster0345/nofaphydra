@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
+import { DailyHealthCheck } from "@/components/DailyHealthCheck";
 import { fetchHealthChecks, HealthCheck } from "@/services/nostr";
 import { getActivityLog } from "@/lib/activityLog";
 import { useStreak } from "@/hooks/useStreak";
@@ -119,6 +120,10 @@ export default function Vitals() {
                         Real-time tracking of mental and physical recovery
                     </p>
                 </header>
+
+                <div className="mb-8">
+                    <DailyHealthCheck />
+                </div>
 
                 <div className="grid gap-6">
                     {/* Mental Discipline Chart */}
