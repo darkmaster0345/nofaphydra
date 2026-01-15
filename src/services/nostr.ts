@@ -697,6 +697,97 @@ export async function getPendingCount(): Promise<number> {
 }
 
 // ============================================================================
+// HEALTH CHECK FEATURE
+// ============================================================================
+
+export interface HealthCheck {
+    id?: string;
+    npt: boolean; // Did you wake up with NPT?
+    timestamp: number;
+}
+
+const HEALTH_CHECK_TAG = "nofaphydra-health";
+
+/**
+ * Save an encrypted health check entry
+ */
+export async function saveHealthCheck(entry: HealthCheck): Promise<boolean> {
+    try {
+        const keys = await generateOrLoadKeys();
+
+        // Encrypt the JSON entry
+        const plaintext = JSON.stringify(entry);
+        const conversationKey = nip44.v2.utils.getConversationKey(keys.privateKey, keys.publicKey);
+        const ciphertext = nip44.v2.encrypt(plaintext, conversationKey);
+
+        const eventTemplate = {
+            kind: 1, // Using kind 1 with a specific tag for health logs
+            created_at: Math.floor(Date.now() / 1000),
+            tags: [
+                ["t", HEALTH_CHECK_TAG],
+                ["encrypted", "nip44"],
+            ],
+            content: ciphertext,
+        };
+
+        const signedEvent = finalizeEvent(eventTemplate, keys.privateKey);
+
+        if (!networkState.isOnline) {
+            await queueEvent(signedEvent);
+            return true;
+        }
+
+        const success = await resilientPublish(signedEvent);
+        if (!success) {
+            await queueEvent(signedEvent);
+        }
+
+        return true;
+    } catch (error) {
+        console.error("Failed to save health check:", error);
+        return false;
+    }
+}
+
+/**
+ * Fetch health check entries
+ */
+export async function fetchHealthChecks(): Promise<HealthCheck[]> {
+    if (!networkState.isOnline) return [];
+
+    try {
+        const keys = await generateOrLoadKeys();
+        const currentRelays = await getRelays();
+
+        const filter = {
+            kinds: [1],
+            authors: [keys.publicKey],
+            "#t": [HEALTH_CHECK_TAG],
+            limit: 100, // Fetch enough to cover more than 14 days
+        };
+
+        const events = await pool.querySync(currentRelays, filter);
+        const entries: HealthCheck[] = [];
+        const conversationKey = nip44.v2.utils.getConversationKey(keys.privateKey, keys.publicKey);
+
+        for (const event of events) {
+            try {
+                const plaintext = nip44.v2.decrypt(event.content, conversationKey);
+                const data = JSON.parse(plaintext);
+                entries.push({ ...data, id: event.id });
+            } catch (e) {
+                console.warn("Failed to decrypt health check", event.id);
+            }
+        }
+
+        return entries.sort((a, b) => b.timestamp - a.timestamp);
+    } catch (error) {
+        console.error("Failed to fetch health checks:", error);
+        return [];
+    }
+}
+
+// ============================================================================
 // JOURNAL FEATURE
 // ============================================================================
 

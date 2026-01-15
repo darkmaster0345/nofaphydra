@@ -12,6 +12,7 @@ import { ShareProgressCard } from "@/components/ShareProgressCard";
 import { SyncIndicator } from "@/components/SyncIndicator";
 import { ActivityHeatmap } from "@/components/DynamicComponents";
 import { ActivityHistory } from "@/components/ActivityHistory";
+import { DailyHealthCheck } from "@/components/DailyHealthCheck";
 import { useStreak } from "@/hooks/useStreak";
 import { Loader2 } from "lucide-react";
 import { generateOrLoadKeys } from "@/services/nostr";
@@ -79,6 +80,7 @@ const Index = () => {
               isOnline={isOnline}
               pendingCount={pendingCount}
             />
+            <DailyHealthCheck />
             <MotivationCard />
             <ShareProgressCard streak={liveStreak} avatarUrl={avatarUrl} />
             <NotificationToggle />

@@ -10,6 +10,7 @@ import Community from "./pages/Community";
 import Profile from "./pages/Profile";
 import Journal from "./pages/Journal";
 import Join from "./pages/Join";
+import Vitals from "./pages/Vitals";
 import NotFound from "./pages/NotFound";
 import { NostrProvider } from "./context/NostrContext";
 import { ThemeProvider } from "./context/ThemeContext";
@@ -36,6 +37,7 @@ const App = () => {
                   <Route path='/' element={<Index />} />
                   <Route path='/auth' element={<Auth />} />
                   <Route path='/journal' element={<Journal />} />
+                  <Route path='/vitals' element={<Vitals />} />
                   <Route path='/community' element={<Community />} />
                   <Route path='/profile' element={<Profile />} />
                   <Route path='/join' element={<Join />} />

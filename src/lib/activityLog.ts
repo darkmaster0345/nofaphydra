@@ -1,7 +1,7 @@
 // Activity Log Utility for tracking user actions
 export interface ActivityEntry {
     id: string;
-    type: 'journal_save' | 'streak_start' | 'streak_reset' | 'profile_update' | 'cloud_sync';
+    type: 'journal_save' | 'streak_start' | 'streak_reset' | 'profile_update' | 'cloud_sync' | 'health_check';
     message: string;
     timestamp: number;
 }
@@ -42,6 +42,7 @@ export function getActivityIcon(type: ActivityEntry['type']): string {
         case 'streak_reset': return '🔄';
         case 'profile_update': return '👤';
         case 'cloud_sync': return '☁️';
+        case 'health_check': return '🩺';
         default: return '📌';
     }
 }
