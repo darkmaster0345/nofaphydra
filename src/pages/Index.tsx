@@ -19,6 +19,8 @@ import { useStreak } from "@/hooks/useStreak";
 import { Loader2 } from "lucide-react";
 import { generateOrLoadKeys } from "@/services/nostr";
 
+import { LocationTimeCard } from "@/components/LocationTimeCard";
+
 const Index = () => {
   const {
     streakData,
@@ -71,6 +73,10 @@ const Index = () => {
 
         <div className="grid gap-6 md:grid-cols-2">
           <div className="space-y-6">
+            <div className="stagger-item" style={{ animationDelay: '0.05s' }}>
+              <LocationTimeCard />
+            </div>
+
             <div className="stagger-item" style={{ animationDelay: '0.1s' }}>
               <StreakCounter
                 startDate={streakData?.startDate}
