@@ -9,6 +9,7 @@ import { toPng } from 'html-to-image';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Media } from '@capacitor-community/media';
 import { Capacitor } from '@capacitor/core';
+import { Share } from '@capacitor/share';
 
 interface ShareProgressCardProps {
   streak: {
@@ -47,7 +48,16 @@ export function ShareProgressCard({ streak, avatarUrl }: ShareProgressCardProps)
 
   const handleNativeShare = async () => {
     try {
-      if (navigator.share) {
+      if (Capacitor.isNativePlatform()) {
+        await Share.share({
+          title: "NoFap Hydra - Progress Report",
+          text: shareText,
+          url: appLink,
+          dialogTitle: "Share your progress",
+        });
+        toast.success("Progress shared! 🐉");
+        triggerSuccess();
+      } else if (navigator.share) {
         await navigator.share({
           title: "NoFap Hydra - Progress Report",
           text: shareText,
@@ -61,8 +71,8 @@ export function ShareProgressCard({ streak, avatarUrl }: ShareProgressCardProps)
       }
     } catch (err) {
       if ((err as Error).name !== 'AbortError') {
-        console.error('Native share failed:', err);
-        toast.error("Could not open system share menu.");
+        console.error('Share failed:', err);
+        toast.error("Could not open share menu.");
       }
     }
   };
