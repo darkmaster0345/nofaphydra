@@ -6,6 +6,9 @@ import { finalizeEvent } from "nostr-tools";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { toPng } from 'html-to-image';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Media } from '@capacitor-community/media';
+import { Capacitor } from '@capacitor/core';
 
 interface ShareProgressCardProps {
   streak: {
@@ -129,12 +132,39 @@ export function ShareProgressCard({ streak, avatarUrl }: ShareProgressCardProps)
         }
       });
 
-      const link = document.createElement('a');
-      link.download = `hydra-progress-day-${streak?.days || 0}.png`;
-      link.href = dataUrl;
-      link.click();
+      const fileName = `hydra-progress-day-${streak?.days || 0}.png`;
 
-      toast.success("Progress report generated! 🐉");
+      // Native Capacitor Download Logic (Gallery visibility)
+      if (Capacitor.isNativePlatform()) {
+        try {
+          // 1. Write to private app storage first
+          const base64Data = dataUrl.split(',')[1];
+          const savedFile = await Filesystem.writeFile({
+            path: fileName,
+            data: base64Data,
+            directory: Directory.Cache
+          });
+
+          // 2. Save to public gallery using Media plugin
+          await Media.savePhoto({
+            path: savedFile.uri,
+            album: 'NofapHydra'
+          });
+
+          toast.success("Progress picture saved to Gallery! 🐉");
+        } catch (err) {
+          console.error('Capacitor download failed:', err);
+          throw err;
+        }
+      } else {
+        // Web Fallback
+        const link = document.createElement('a');
+        link.download = fileName;
+        link.href = dataUrl;
+        link.click();
+        toast.success("Progress report generated! 🐉");
+      }
+
       triggerSuccess();
     } catch (err) {
       console.error('Image generation failed:', err);
