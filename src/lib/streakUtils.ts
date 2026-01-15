@@ -53,6 +53,7 @@ export function getStreakData(): StreakData {
 
 export function saveStreakData(data: StreakData): void {
   localStorage.setItem('hydra_streak_data', JSON.stringify(data));
+  window.dispatchEvent(new Event('hydra_streak_updated'));
 }
 
 export function calculateStreak(startDate: string | null): { days: number; hours: number; minutes: number } {

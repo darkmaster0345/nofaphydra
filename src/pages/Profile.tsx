@@ -12,6 +12,7 @@ import { AvatarUpload } from "@/components/AvatarUpload";
 import { BottomNav } from "@/components/BottomNav";
 import { RelaySettings } from "@/components/RelaySettings";
 import { SecuritySettings } from "@/components/SecuritySettings";
+import { ThemeSelector } from "@/components/ThemeSelector";
 
 const Profile = () => {
   const [username, setUsername] = useState("");
@@ -205,6 +206,9 @@ const Profile = () => {
           <div className="pt-8 space-y-8 border-t border-black">
             <RelaySettings />
             <SecuritySettings />
+            <div className="pt-8 border-t border-black">
+              <ThemeSelector />
+            </div>
           </div>
 
           {/* Logout Section */}

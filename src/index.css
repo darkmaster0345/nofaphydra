@@ -52,7 +52,7 @@
     --success: 0 0% 0%;
     --success-foreground: 0 0% 100%;
 
-    --border: 0 0% 90%;
+    --border: 0 0% 0%;
     --input: 0 0% 90%;
     --ring: 0 0% 0%;
 
@@ -84,17 +84,17 @@
 
 @layer components {
 
-  /* Strict Minimalist B&W Borders */
+  /* Strict Minimalist Theme-Aware Borders */
   .streak-card {
-    @apply border border-black bg-white p-6 transition-all duration-300;
+    @apply border border-primary bg-background p-6 transition-all duration-500;
   }
 
   .glass-card {
-    @apply border border-black bg-white;
+    @apply border border-primary bg-background;
   }
 
   .android-card {
-    @apply border border-black bg-white p-4 transition-all duration-300;
+    @apply border border-primary bg-background p-4 transition-all duration-500;
   }
 
   /* Minimalist Scrollbar */
@@ -108,12 +108,12 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: #000;
+    background: hsl(var(--primary));
     border-radius: 0;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: #333;
+    background: hsla(var(--primary), 0.8);
   }
 
   /* Remove flashy effects */
