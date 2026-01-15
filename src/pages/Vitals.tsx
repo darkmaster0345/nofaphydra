@@ -6,11 +6,20 @@ import { getActivityLog } from "@/lib/activityLog";
 import { useStreak } from "@/hooks/useStreak";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
-    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, AreaChart, Area
+    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, AreaChart, Area, Label, ReferenceDot
 } from "recharts";
-import { Heart, Brain, Activity, ShieldCheck, Info } from "lucide-react";
-import { format, subDays, startOfDay, isSameDay } from "date-fns";
+import { Heart, Brain, Activity, ShieldCheck, Info, Flame, Target } from "lucide-react";
+import { format, subDays, startOfDay, isSameDay, isAfter } from "date-fns";
 import { motion } from "framer-motion";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogTrigger,
+} from "@/components/ui/dialog";
+import { getDaysUntilNextLevel, getNextAvatarLevel } from "@/lib/streakUtils";
 
 export default function Vitals() {
     const { streakData } = useStreak();
@@ -31,25 +40,43 @@ export default function Vitals() {
         loadData();
     }, []);
 
-    // Prepare Streak Chart Data (Mental Discipline)
+    // Prepare Streak Chart Data (Mental Discipline) - FOG OF WAR IMPLEMENTED
     const streakChartData = useMemo(() => {
         const data = [];
-        const today = new Date();
+        const today = startOfDay(new Date());
         const start = streakData.startDate ? new Date(streakData.startDate) : null;
 
         for (let i = 14; i >= 0; i--) {
             const date = subDays(today, i);
             const dateStr = format(date, "MMM d");
 
+            // Fog of war: Future dates or "ahead of today" shouldn't exist in historical record
+            // but since we are always looking back from today, every point i>=0 is <= today.
+
             let dayValue = 0;
             if (start && date >= startOfDay(start)) {
                 dayValue = Math.floor((date.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
             }
 
-            data.push({ date: dateStr, days: Math.max(0, dayValue) });
+            // Milestone flags
+            const isMilestone = dayValue === 7 || dayValue === 14 || dayValue === 30;
+
+            data.push({
+                date: dateStr,
+                days: Math.max(0, dayValue),
+                milestone: isMilestone ? dayValue : null
+            });
         }
         return data;
     }, [streakData.startDate]);
+
+    const currentLiveDays = useMemo(() => {
+        if (!streakData.startDate) return 0;
+        return Math.floor((new Date().getTime() - new Date(streakData.startDate).getTime()) / (1000 * 60 * 60 * 24));
+    }, [streakData.startDate]);
+
+    const nextLevel = getNextAvatarLevel(currentLiveDays);
+    const daysToNext = getDaysUntilNextLevel(currentLiveDays);
 
     // Prepare NPT Chart Data (Physical Recovery)
     const nptChartData = useMemo(() => {
@@ -100,8 +127,8 @@ export default function Vitals() {
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.4 }}
                     >
-                        <Card className="rounded-none border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                            <CardHeader className="pb-2 border-b border-black/5">
+                        <Card className="rounded-none border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden">
+                            <CardHeader className="pb-2 border-b border-black/5 flex flex-row items-center justify-between">
                                 <div className="flex items-center gap-2">
                                     <Brain className="w-5 h-5 text-purple-600" />
                                     <div>
@@ -109,15 +136,31 @@ export default function Vitals() {
                                         <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-black/40">Streak Continuity (15D)</CardDescription>
                                     </div>
                                 </div>
+                                <Dialog>
+                                    <DialogTrigger asChild>
+                                        <button className="p-2 hover:bg-black/5 rounded-full transition-colors">
+                                            <Info className="w-4 h-4 text-black/40" />
+                                        </button>
+                                    </DialogTrigger>
+                                    <DialogContent className="rounded-none border-black">
+                                        <DialogHeader>
+                                            <DialogTitle className="font-black uppercase italic tracking-tighter">Willpower Telemetry</DialogTitle>
+                                            <DialogDescription className="text-black font-medium text-sm pt-4">
+                                                Tracks your streak continuity. Higher peaks represent stabilized dopamine levels and improved prefrontal cortex control.
+                                                Each day of discipline strengthens the neural pathways associated with self-regulation.
+                                            </DialogDescription>
+                                        </DialogHeader>
+                                    </DialogContent>
+                                </Dialog>
                             </CardHeader>
                             <CardContent className="pt-6">
                                 <div className="h-[200px] w-full">
                                     <ResponsiveContainer width="100%" height="100%">
-                                        <AreaChart data={streakChartData}>
+                                        <AreaChart data={streakChartData} margin={{ left: 10, right: 10, top: 20 }}>
                                             <defs>
                                                 <linearGradient id="colorDays" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="#000" stopOpacity={0.1} />
-                                                    <stop offset="95%" stopColor="#000" stopOpacity={0} />
+                                                    <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.6} />
+                                                    <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.1} />
                                                 </linearGradient>
                                             </defs>
                                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#000" strokeOpacity={0.05} />
@@ -132,27 +175,53 @@ export default function Vitals() {
                                                 tickLine={false}
                                                 tick={{ fontSize: 9, fontWeight: 900, fill: '#0008' }}
                                                 allowDecimals={false}
-                                            />
+                                            >
+                                                <Label
+                                                    value="WILLPOWER LEVEL"
+                                                    angle={-90}
+                                                    position="insideLeft"
+                                                    style={{ fontSize: '8px', fontWeight: 900, fill: '#0004' }}
+                                                    offset={0}
+                                                />
+                                            </YAxis>
                                             <Tooltip
                                                 contentStyle={{ backgroundColor: '#fff', border: '1px solid black', borderRadius: '0', fontSize: '10px', fontWeight: 'bold' }}
                                                 cursor={{ stroke: '#000', strokeWidth: 1, strokeDasharray: '4 4' }}
                                             />
                                             <Area
-                                                type="stepAfter"
+                                                type="monotone"
                                                 dataKey="days"
-                                                stroke="#000"
+                                                stroke="#8b5cf6"
                                                 strokeWidth={3}
                                                 fillOpacity={1}
                                                 fill="url(#colorDays)"
+                                                animationDuration={1500}
                                             />
+                                            {streakChartData.map((entry, idx) => (
+                                                entry.milestone && (
+                                                    <ReferenceDot
+                                                        key={`milestone-${idx}`}
+                                                        x={entry.date}
+                                                        y={entry.days}
+                                                        r={6}
+                                                        fill="#000"
+                                                        stroke="#fff"
+                                                        strokeWidth={2}
+                                                        isFront={true}
+                                                    />
+                                                )
+                                            ))}
                                         </AreaChart>
                                     </ResponsiveContainer>
                                 </div>
-                                <div className="mt-4 p-3 bg-purple-50 border border-purple-100 flex items-center gap-3">
-                                    <Info className="w-4 h-4 text-purple-600 shrink-0" />
-                                    <p className="text-[10px] text-purple-900 font-bold leading-tight uppercase tracking-tight">
-                                        resilience is built in the gaps between relapses. keep climbing.
-                                    </p>
+                                <div className="mt-4 p-3 bg-purple-50 border border-purple-100 flex items-center justify-between gap-3">
+                                    <div className="flex items-center gap-3">
+                                        <Info className="w-4 h-4 text-purple-600 shrink-0" />
+                                        <p className="text-[10px] text-purple-900 font-bold leading-tight uppercase tracking-tight">
+                                            Current Strength: {currentLiveDays} Days. {daysToNext > 0 ? `${daysToNext} days away from ${nextLevel?.name || 'Milestone'}.` : 'Max biological level achieved.'}
+                                        </p>
+                                    </div>
+                                    <Flame className="w-4 h-4 text-red-500 animate-pulse" />
                                 </div>
                             </CardContent>
                         </Card>
@@ -164,8 +233,8 @@ export default function Vitals() {
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.4, delay: 0.1 }}
                     >
-                        <Card className="rounded-none border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                            <CardHeader className="pb-2 border-b border-black/5">
+                        <Card className="rounded-none border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden">
+                            <CardHeader className="pb-2 border-b border-black/5 flex flex-row items-center justify-between">
                                 <div className="flex items-center gap-2">
                                     <Heart className="w-5 h-5 text-red-600" />
                                     <div>
@@ -173,6 +242,22 @@ export default function Vitals() {
                                         <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-black/40">NPT Frequency (15D)</CardDescription>
                                     </div>
                                 </div>
+                                <Dialog>
+                                    <DialogTrigger asChild>
+                                        <button className="p-2 hover:bg-black/5 rounded-full transition-colors">
+                                            <Info className="w-4 h-4 text-black/40" />
+                                        </button>
+                                    </DialogTrigger>
+                                    <DialogContent className="rounded-none border-black">
+                                        <DialogHeader>
+                                            <DialogTitle className="font-black uppercase italic tracking-tighter">Vascular Telemetry</DialogTitle>
+                                            <DialogDescription className="text-black font-medium text-sm pt-4">
+                                                Tracks NPT (Nocturnal Penile Tumescence) frequency. Regular signals indicate recovering cardiovascular health, proper blood flow, and hormonal balance.
+                                                NPT is a primary biological indicator of physical vitality.
+                                            </DialogDescription>
+                                        </DialogHeader>
+                                    </DialogContent>
+                                </Dialog>
                             </CardHeader>
                             <CardContent className="pt-6">
                                 <div className="h-[200px] w-full">
@@ -185,7 +270,15 @@ export default function Vitals() {
                                                 tickLine={false}
                                                 tick={{ fontSize: 9, fontWeight: 900, fill: '#0008' }}
                                             />
-                                            <YAxis hide />
+                                            <YAxis width={20}>
+                                                <Label
+                                                    value="VASCULAR SIGNAL"
+                                                    angle={-90}
+                                                    position="insideLeft"
+                                                    style={{ fontSize: '8px', fontWeight: 900, fill: '#0004' }}
+                                                    offset={5}
+                                                />
+                                            </YAxis>
                                             <Tooltip
                                                 cursor={{ fill: 'rgba(0,0,0,0.05)' }}
                                                 content={({ active, payload }) => {
@@ -207,18 +300,21 @@ export default function Vitals() {
                                                 {nptChartData.map((entry, index) => (
                                                     <Cell
                                                         key={`cell-${index}`}
-                                                        fill={entry.status === 'YES' ? '#16a34a' : entry.status === 'NO' ? '#ef4444' : '#e5e7eb'}
+                                                        fill={entry.status === 'YES' ? '#ef4444' : entry.status === 'NO' ? '#7f1d1d' : '#e5e7eb'}
                                                     />
                                                 ))}
                                             </Bar>
                                         </BarChart>
                                     </ResponsiveContainer>
                                 </div>
-                                <div className="mt-4 p-3 bg-blue-50 border border-blue-100 flex items-center gap-3">
-                                    <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0" />
-                                    <p className="text-[10px] text-blue-900 font-bold leading-tight uppercase tracking-tight">
-                                        bio-dashboard monitoring vascular health. encrypted signal active.
-                                    </p>
+                                <div className="mt-4 p-3 bg-red-50 border border-red-100 flex items-center justify-between gap-3">
+                                    <div className="flex items-center gap-3">
+                                        <ShieldCheck className="w-4 h-4 text-red-600 shrink-0" />
+                                        <p className="text-[10px] text-red-900 font-bold leading-tight uppercase tracking-tight">
+                                            Status: {healthHistory.filter(h => h.npt).length > 4 ? 'Vascular Optimal' : 'Monitoring Signal'}. Vascular integrity protocol in effect.
+                                        </p>
+                                    </div>
+                                    <Target className="w-4 h-4 text-black animate-spin-slow" />
                                 </div>
                             </CardContent>
                         </Card>
