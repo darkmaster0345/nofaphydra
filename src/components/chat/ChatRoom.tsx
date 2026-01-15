@@ -46,6 +46,8 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
 
   useEffect(() => {
     if (!identity) return;
+    console.log(`[CHAT-DEBUG] Room Switch: ${roomId} (ID: ${ROOM_IDS[roomId]})`);
+    setMessages([]); // Explicitly clear on room/identity change
     const unsub = subscribe({
       kinds: [42],
       '#e': [ROOM_IDS[roomId]],
@@ -57,10 +59,14 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
   useEffect(() => {
     // Process incoming events
     const incomingMessages = events
-      .filter(event =>
-        event.kind === 42 &&
-        event.tags.some(t => t[0] === 'e' && t[1] === ROOM_IDS[roomId])
-      )
+      .filter(event => {
+        const isKind42 = event.kind === 42;
+        const matchesRoom = event.tags.some(t => t[0] === 'e' && t[1] === ROOM_IDS[roomId]);
+        if (isKind42 && !matchesRoom) {
+          console.warn(`[CHAT-DEBUG] Filtering out Kind 42 from different room: ${event.id}`);
+        }
+        return isKind42 && matchesRoom;
+      })
       .map(event => ({
         id: event.id!,
         content: event.content,
@@ -68,6 +74,8 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
         created_at: event.created_at,
         status: 'received' as const
       }));
+
+    console.log(`[CHAT-DEBUG] Received ${incomingMessages.length} messages for ${roomId}`);
 
     setMessages(prev => {
       // Merge incoming with existing, avoiding duplicates
