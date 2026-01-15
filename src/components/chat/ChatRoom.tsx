@@ -24,6 +24,12 @@ interface ChatRoomProps {
 
 const BROADCAST_TIMEOUT = 5000; // 5 seconds
 
+const ROOM_IDS: Record<string, string> = {
+  global: "0000000000000000000000000000000000000000000000000000000000000001",
+  beginners: "0000000000000000000000000000000000000000000000000000000000000002",
+  veterans: "0000000000000000000000000000000000000000000000000000000000000003"
+};
+
 export function ChatRoom({ roomId }: ChatRoomProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
@@ -41,8 +47,8 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
   useEffect(() => {
     if (!identity) return;
     const unsub = subscribe({
-      kinds: [1],
-      '#t': ['nofaphydra', roomId], // Array for multiple tag values is correct in filter object
+      kinds: [42],
+      '#e': [ROOM_IDS[roomId]],
       limit: 100
     });
     return () => unsub && unsub();
@@ -52,8 +58,8 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
     // Process incoming events
     const incomingMessages = events
       .filter(event =>
-        event.tags.some(t => t[0] === 't' && t[1] === roomId) &&
-        event.tags.some(t => t[0] === 't' && t[1] === 'nofaphydra')
+        event.kind === 42 &&
+        event.tags.some(t => t[0] === 'e' && t[1] === ROOM_IDS[roomId])
       )
       .map(event => ({
         id: event.id!,
@@ -133,11 +139,11 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
     try {
       // Step 1: Fix the Clock - Ensure event's created_at is strictly in seconds
       const eventTemplate = {
-        kind: 1,
+        kind: 42,
         created_at: Math.floor(Date.now() / 1000),
         tags: [
-          ['t', 'nofaphydra'],
-          ['t', roomId]
+          ['e', ROOM_IDS[roomId], '', 'root'],
+          ['t', 'nofaphydra']
         ],
         content,
       };
