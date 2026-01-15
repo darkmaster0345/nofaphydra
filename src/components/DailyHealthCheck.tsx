@@ -127,7 +127,7 @@ export function DailyHealthCheck({ onUpdate }: DailyHealthCheckProps) {
                 <CardHeader className="pb-3">
                     <div className="flex justify-between items-start">
                         <div>
-                            <CardTitle className="text-xl font-black uppercase italic tracking-tighter">Bio-Telemetry Input</CardTitle>
+                            <CardTitle className="text-xl font-black uppercase italic tracking-tighter">Bio-Signal Capture</CardTitle>
                             <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-black/40 mt-1">
                                 Morning Wood / NPT Health Signal
                             </CardDescription>

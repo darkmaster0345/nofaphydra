@@ -13,6 +13,7 @@ import { SyncIndicator } from "@/components/SyncIndicator";
 import { ActivityHeatmap } from "@/components/DynamicComponents";
 import { ActivityHistory } from "@/components/ActivityHistory";
 import { DailyHealthCheck } from "@/components/DailyHealthCheck";
+import { LoadingScreen } from "@/components/LoadingScreen";
 import { useStreak } from "@/hooks/useStreak";
 import { Loader2 } from "lucide-react";
 import { generateOrLoadKeys } from "@/services/nostr";
@@ -48,12 +49,7 @@ const Index = () => {
 
   // Stability Check: Prevent white screen while streak logic initializes
   if (!streakData || !liveStreak) {
-    return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
-        <Loader2 className="w-12 h-12 text-black animate-spin" strokeWidth={3} />
-        <p className="mt-4 text-[10px] font-black uppercase tracking-widest text-black/40">Loading NoFap Hydra...</p>
-      </div>
-    );
+    return <LoadingScreen message="Initializing Protocol" subMessage="Establishing P2P Identity" />;
   }
 
   const isActive = streakData?.startDate !== null;

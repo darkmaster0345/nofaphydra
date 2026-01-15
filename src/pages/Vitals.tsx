@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { DailyHealthCheck } from "@/components/DailyHealthCheck";
+import { LoadingScreen } from "@/components/LoadingScreen";
 import { fetchHealthChecks, HealthCheck } from "@/services/nostr";
 import { getActivityLog } from "@/lib/activityLog";
 import { useStreak } from "@/hooks/useStreak";
@@ -104,54 +105,7 @@ export default function Vitals() {
     }, [healthHistory]);
 
     if (loading) {
-        return (
-            <div className="min-h-screen bg-black flex flex-col items-center justify-center p-6 space-y-8 overflow-hidden">
-                <div className="relative">
-                    {/* Glowing outer ring */}
-                    <div className="absolute inset-0 rounded-full bg-primary/20 blur-3xl animate-pulse scale-150" />
-
-                    {/* Animated Hydra Scanline */}
-                    <motion.div
-                        initial={{ rotate: 0 }}
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                        className="w-32 h-32 border-2 border-dashed border-white/20 rounded-full flex items-center justify-center p-1"
-                    >
-                        <motion.div
-                            initial={{ scale: 0.8, opacity: 0.5 }}
-                            animate={{ scale: 1.1, opacity: 1 }}
-                            transition={{ duration: 1.5, repeat: Infinity, repeatType: "reverse" }}
-                            className="bg-white p-4 rounded-none border-2 border-black shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]"
-                        >
-                            <Activity className="w-8 h-8 text-black" />
-                        </motion.div>
-                    </motion.div>
-
-                    {/* Radar ping */}
-                    <motion.div
-                        initial={{ scale: 0.5, opacity: 1 }}
-                        animate={{ scale: 2.5, opacity: 0 }}
-                        transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
-                        className="absolute inset-0 border-2 border-white rounded-full"
-                    />
-                </div>
-
-                <div className="text-center space-y-3">
-                    <h2 className="text-white text-2xl font-black uppercase italic tracking-tighter">Initializing Telemetry</h2>
-                    <div className="flex flex-col items-center gap-1">
-                        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 animate-pulse">Scanning Bio-Signal History</p>
-                        <div className="w-48 h-[2px] bg-white/10 mt-2 overflow-hidden relative">
-                            <motion.div
-                                initial={{ x: "-100%" }}
-                                animate={{ x: "100%" }}
-                                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                                className="absolute inset-0 bg-white"
-                            />
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
+        return <LoadingScreen message="Syncing Bio-Signals" subMessage="Decoding Health Blockchain" />;
     }
 
     return (
@@ -197,7 +151,7 @@ export default function Vitals() {
                                     </DialogTrigger>
                                     <DialogContent className="rounded-none border-black">
                                         <DialogHeader>
-                                            <DialogTitle className="font-black uppercase italic tracking-tighter">Willpower Telemetry</DialogTitle>
+                                            <DialogTitle className="font-black uppercase italic tracking-tighter">Willpower Metrics</DialogTitle>
                                             <DialogDescription className="text-black font-medium text-sm pt-4">
                                                 Tracks your streak continuity. Higher peaks represent stabilized dopamine levels and improved prefrontal cortex control.
                                                 Each day of discipline strengthens the neural pathways associated with self-regulation.
@@ -303,7 +257,7 @@ export default function Vitals() {
                                     </DialogTrigger>
                                     <DialogContent className="rounded-none border-black">
                                         <DialogHeader>
-                                            <DialogTitle className="font-black uppercase italic tracking-tighter">Vascular Telemetry</DialogTitle>
+                                            <DialogTitle className="font-black uppercase italic tracking-tighter">Vascular Bio-Metrics</DialogTitle>
                                             <DialogDescription className="text-black font-medium text-sm pt-4">
                                                 Tracks NPT (Nocturnal Penile Tumescence) frequency. Regular signals indicate recovering cardiovascular health, proper blood flow, and hormonal balance.
                                                 NPT is a primary biological indicator of physical vitality.

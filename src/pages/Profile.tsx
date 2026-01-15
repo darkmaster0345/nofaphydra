@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { generateOrLoadKeys, clearKeys, NostrKeys } from "@/services/nostr";
 import { AvatarUpload } from "@/components/AvatarUpload";
 import { BottomNav } from "@/components/BottomNav";
+import { LoadingScreen } from "@/components/LoadingScreen";
 import { RelaySettings } from "@/components/RelaySettings";
 import { SecuritySettings } from "@/components/SecuritySettings";
 import { ThemeSelector } from "@/components/ThemeSelector";
@@ -106,11 +107,7 @@ const Profile = () => {
   };
 
   if (loading || !identity) {
-    return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-        <Loader2 className="w-12 h-12 text-primary animate-spin" strokeWidth={3} />
-      </div>
-    );
+    return <LoadingScreen message="Syncing Keys" subMessage="Verifying Cryptographic Identity" />;
   }
 
   return (
