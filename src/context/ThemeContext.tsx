@@ -1,10 +1,11 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { THEMES, ThemeDefinition } from '@/data/themes';
 import { Preferences } from '@capacitor/preferences';
 
 interface ThemeContextType {
     currentTheme: ThemeDefinition;
     setTheme: (themeId: string) => Promise<void>;
+    previewTheme: (themeId: string) => void;
     unlockedThemes: string[];
 }
 
@@ -13,6 +14,7 @@ const ThemeContext = createContext<ThemeContextType | null>(null);
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [currentTheme, setCurrentThemeState] = useState<ThemeDefinition>(THEMES[0]);
     const [unlockedThemes, setUnlockedThemes] = useState<string[]>(["hydra"]);
+    const previewTimeoutRef = useRef<number | null>(null);
 
     useEffect(() => {
         const loadTheme = async () => {
@@ -55,6 +57,10 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
 
     const setTheme = async (themeId: string) => {
+        if (previewTimeoutRef.current) {
+            window.clearTimeout(previewTimeoutRef.current);
+            previewTimeoutRef.current = null;
+        }
         const theme = THEMES.find(t => t.id === themeId);
         if (theme) {
             setCurrentThemeState(theme);
@@ -63,8 +69,23 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
     };
 
+    const previewTheme = (themeId: string) => {
+        if (previewTimeoutRef.current) {
+            window.clearTimeout(previewTimeoutRef.current);
+        }
+        const theme = THEMES.find(t => t.id === themeId);
+        if (theme) {
+            applyTheme(theme);
+            // Revert after 3 seconds
+            previewTimeoutRef.current = window.setTimeout(() => {
+                applyTheme(currentTheme);
+                previewTimeoutRef.current = null;
+            }, 3000);
+        }
+    };
+
     return (
-        <ThemeContext.Provider value={{ currentTheme, setTheme, unlockedThemes }}>
+        <ThemeContext.Provider value={{ currentTheme, setTheme, previewTheme, unlockedThemes }}>
             {children}
         </ThemeContext.Provider>
     );

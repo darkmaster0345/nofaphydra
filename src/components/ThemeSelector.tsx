@@ -5,7 +5,7 @@ import { Button } from "./ui/button";
 import { toast } from "sonner";
 
 export function ThemeSelector() {
-    const { currentTheme, setTheme, unlockedThemes } = useTheme();
+    const { currentTheme, setTheme, previewTheme, unlockedThemes } = useTheme();
 
     const handleSetTheme = (themeId: string, isUnlocked: boolean) => {
         if (!isUnlocked) {
@@ -57,9 +57,40 @@ export function ThemeSelector() {
                             </div>
 
                             <p className="text-[10px] font-black uppercase tracking-widest">{theme.name}</p>
-                            <p className="text-[8px] uppercase opacity-60 font-medium leading-tight mt-1">
+                            <p className="text-[8px] uppercase opacity-60 font-medium leading-tight mt-1 mb-3">
                                 {isUnlocked ? theme.description : `Unlocks at ${theme.minDays} days`}
                             </p>
+
+                            <div className="flex gap-2">
+                                <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-6 px-2 text-[8px] border border-primary/20 rounded-none uppercase font-black tracking-tighter hover:bg-primary hover:text-background"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        previewTheme(theme.id);
+                                        toast.info("Theme Preview", {
+                                            description: `Temporarily applying ${theme.name} for 3 seconds.`,
+                                            duration: 3000
+                                        });
+                                    }}
+                                >
+                                    Preview
+                                </Button>
+                                {isUnlocked && !isSelected && (
+                                    <Button
+                                        size="sm"
+                                        variant="default"
+                                        className="h-6 px-2 text-[8px] rounded-none uppercase font-black tracking-tighter"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleSetTheme(theme.id, true);
+                                        }}
+                                    >
+                                        Apply
+                                    </Button>
+                                )}
+                            </div>
 
                             {isSelected && (
                                 <div className="absolute inset-0 border-2 border-primary animate-pulse pointer-events-none" />
