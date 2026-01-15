@@ -98,3 +98,58 @@ export function getDaysUntilNextLevel(days: number): number {
   if (!nextLevel) return 0;
   return nextLevel.minDays - days;
 }
+
+/**
+ * Calculate consecutive days of check-ins from health history
+ */
+export function calculateConsecutiveCheckins(history: { timestamp: number }[]): number {
+  if (!history || history.length === 0) return 0;
+
+  // Sort by timestamp descending
+  const sorted = [...history].sort((a, b) => b.timestamp - a.timestamp);
+
+  // Get unique days (toDateString)
+  const days = new Set<string>();
+  sorted.forEach(h => days.add(new Date(h.timestamp).toDateString()));
+
+  const uniqueDays = Array.from(days);
+  if (uniqueDays.length === 0) return 0;
+
+  let consecutive = 0;
+  const today = new Date();
+  const todayStr = today.toDateString();
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+  const yesterdayStr = yesterday.toDateString();
+
+  // If no check-in today or yesterday, consecutive is 0 (broken streak)
+  if (uniqueDays[0] !== todayStr && uniqueDays[0] !== yesterdayStr) {
+    return 0;
+  }
+
+  // Count backwards
+  let lastDate = new Date(uniqueDays[0]);
+  consecutive = 1;
+
+  for (let i = 1; i < uniqueDays.length; i++) {
+    const currentDate = new Date(uniqueDays[i]);
+    const diffTime = Math.abs(lastDate.getTime() - currentDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 1) {
+      consecutive++;
+      lastDate = currentDate;
+    } else {
+      break;
+    }
+  }
+
+  return consecutive;
+}
+
+/**
+ * Check if the user qualifies for the Aura bonus (5+ consecutive check-ins)
+ */
+export function hasAuraBonus(history: { timestamp: number }[]): boolean {
+  return calculateConsecutiveCheckins(history) >= 5;
+}

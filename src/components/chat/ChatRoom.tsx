@@ -4,11 +4,12 @@ import { Input } from "@/components/ui/input";
 import { Send, Loader2, RefreshCw, AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useNostr } from "@/hooks/useNostr";
-import { RELAYS } from "@/services/nostr";
+import { RELAYS, fetchHealthChecks } from "@/services/nostr";
 import { generateOrLoadKeys, NostrKeys } from "@/services/nostr";
 import { finalizeEvent } from "nostr-tools";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
+import { hasAuraBonus, calculateStreak, getStreakData } from "@/lib/streakUtils";
 
 interface Message {
   id: string;
@@ -16,6 +17,8 @@ interface Message {
   pubkey: string;
   created_at: number;
   status?: 'sending' | 'sent' | 'received' | 'failed';
+  streak?: number;
+  bonus?: string;
 }
 
 interface ChatRoomProps {
@@ -67,13 +70,20 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
         }
         return isKind42 && matchesRoom;
       })
-      .map(event => ({
-        id: event.id!,
-        content: event.content,
-        pubkey: event.pubkey,
-        created_at: event.created_at,
-        status: 'received' as const
-      }));
+      .map(event => {
+        const streakTag = event.tags.find(t => t[0] === 'streak');
+        const bonusTag = event.tags.find(t => t[0] === 'bonus');
+
+        return {
+          id: event.id!,
+          content: event.content,
+          pubkey: event.pubkey,
+          created_at: event.created_at,
+          status: 'received' as const,
+          streak: streakTag ? parseInt(streakTag[1]) : undefined,
+          bonus: bonusTag ? bonusTag[1] : undefined
+        };
+      });
 
     console.log(`[CHAT-DEBUG] Received ${incomingMessages.length} messages for ${roomId}`);
 
@@ -145,14 +155,26 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
     if (!identity?.privateKey) return;
 
     try {
+      const streakData = getStreakData();
+      const currentStreak = calculateStreak(streakData.startDate);
+      const healthHistory = await fetchHealthChecks();
+      const hasAura = hasAuraBonus(healthHistory);
+
       // Step 1: Fix the Clock - Ensure event's created_at is strictly in seconds
+      const tags = [
+        ['e', ROOM_IDS[roomId], '', 'root'],
+        ['t', 'nofaphydra'],
+        ['streak', currentStreak.days.toString()]
+      ];
+
+      if (hasAura) {
+        tags.push(['bonus', 'aura']);
+      }
+
       const eventTemplate = {
         kind: 42,
         created_at: Math.floor(Date.now() / 1000),
-        tags: [
-          ['e', ROOM_IDS[roomId], '', 'root'],
-          ['t', 'nofaphydra']
-        ],
+        tags,
         content,
       };
 
@@ -198,12 +220,19 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
     if (!content || !identity || !identity.privateKey) return;
 
     const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const streakData = getStreakData();
+    const currentStreak = calculateStreak(streakData.startDate);
+    const healthHistory = await fetchHealthChecks();
+    const hasAura = hasAuraBonus(healthHistory);
+
     const optimisticMsg: Message = {
       id: tempId,
       content,
       pubkey: identity.publicKey,
       created_at: Math.floor(Date.now() / 1000),
-      status: 'sending'
+      status: 'sending',
+      streak: currentStreak.days,
+      bonus: hasAura ? 'aura' : undefined
     };
 
     setMessages(prev => [...prev, optimisticMsg]);
@@ -246,11 +275,14 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
             <div key={message.id} className={`flex ${isOwn ? "justify-end" : "justify-start"} animate-in slide-in-from-bottom-1 duration-300`}>
               <div className={`max-w-[85%] space-y-1 ${isOwn ? "text-right" : "text-left"}`}>
                 <div className={`px-4 py-2 border border-black ${isOwn ? "bg-black text-white" : "bg-white text-black"} ${isSending ? "opacity-40 grayscale" : ""} ${isFailed ? "border-red-500 opacity-60" : ""}`}>
-                  {!isOwn && (
-                    <p className="text-[8px] font-black uppercase tracking-widest mb-1 opacity-50">
-                      {profiles[message.pubkey] || `user:${message.pubkey.slice(0, 5)}`}
-                    </p>
-                  )}
+                  <p className={`text-[8px] font-black uppercase tracking-widest mb-1 ${message.bonus === 'aura' ? 'aura-effect' : 'opacity-50'}`}>
+                    {profiles[message.pubkey] || `user:${message.pubkey.slice(0, 5)}`}
+                    {message.streak !== undefined && (
+                      <span className="ml-1 text-[7px] text-orange-500">
+                        ({message.streak} DAY STREAK 🔥)
+                      </span>
+                    )}
+                  </p>
                   <p className="text-sm font-medium leading-relaxed break-words">{message.content}</p>
                 </div>
                 <div className={`flex items-center gap-2 ${isOwn ? "justify-end" : "justify-start"} px-1`}>
