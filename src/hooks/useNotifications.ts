@@ -1,14 +1,15 @@
 import { useState, useEffect, useCallback } from "react";
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Capacitor } from '@capacitor/core';
+import { MOTIVATIONAL_MESSAGES, getRandomMotivation } from "@/data/motivation";
 
 const STORAGE_KEY = "hydra_notifications_enabled";
+const NOTIFICATION_INTERVAL_MS = 3 * 60 * 60 * 1000; // 3 hours
 
 export function useNotifications() {
   const [permission, setPermission] = useState<string>("default");
   const [enabled, setEnabled] = useState(false);
 
-  // Check current permission status
   const checkPermission = useCallback(async () => {
     if (Capacitor.isNativePlatform()) {
       const status = await LocalNotifications.checkPermissions();
@@ -24,80 +25,40 @@ export function useNotifications() {
     setEnabled(stored === "true");
   }, [checkPermission]);
 
-  const fetchMotivation = async (): Promise<string> => {
-    const quotes = [
-      "Stay strong. Every moment of resistance builds your strength.",
-      "Your discipline today shapes your freedom tomorrow.",
-      "The only easy day was yesterday.",
-      "Conquer yourself, conquer the world.",
-      "Pain is temporary. Glory is forever.",
-      "Hydra protocol: Persistence is mandatory.",
-      "Discipline is the bridge between goals and accomplishment.",
-      "Suffer the pain of discipline or suffer the pain of regret."
-    ];
-    return quotes[Math.floor(Math.random() * quotes.length)];
-  };
-
   const scheduleNotifications = useCallback(async () => {
-    if (!Capacitor.isNativePlatform()) {
-      console.log("Local notifications only supported on native platforms.");
-      return;
-    }
+    if (!Capacitor.isNativePlatform()) return;
 
     try {
-      // Clear pending
+      // 1. Clear all existing pending notifications to avoid duplicates
       const pending = await LocalNotifications.getPending();
       if (pending.notifications.length > 0) {
         await LocalNotifications.cancel(pending);
       }
 
-      // Schedule 3 notifications for the next 9 hours (every 3 hours)
-      const quote1 = await fetchMotivation();
-      const quote2 = await fetchMotivation();
-      const quote3 = await fetchMotivation();
+      // 2. Schedule a batch for the next 48 hours (16 notifications at 3h intervals)
+      // This ensures the user gets notifications even if they don't open the app for 2 days.
+      const notifications = [];
+      for (let i = 1; i <= 16; i++) {
+        notifications.push({
+          title: "NoFap Hydra 🐉",
+          body: MOTIVATIONAL_MESSAGES[Math.floor(Math.random() * MOTIVATIONAL_MESSAGES.length)],
+          id: i,
+          schedule: { at: new Date(Date.now() + (NOTIFICATION_INTERVAL_MS * i)) },
+          smallIcon: "res://ic_stat_icon", // Fallback to system icon for status bar
+          actionTypeId: "",
+          extra: null
+        });
+      }
 
-      await LocalNotifications.schedule({
-        notifications: [
-          {
-            title: "NoFap Hydra 🐉",
-            body: quote1,
-            id: 1,
-            schedule: { at: new Date(Date.now() + 1000 * 60 * 60 * 3) }, // 3 hours
-            sound: undefined,
-            attachments: undefined,
-            actionTypeId: "",
-            extra: null
-          },
-          {
-            title: "NoFap Hydra 🐉",
-            body: quote2,
-            id: 2,
-            schedule: { at: new Date(Date.now() + 1000 * 60 * 60 * 6) }, // 6 hours
-            sound: undefined,
-            attachments: undefined,
-            actionTypeId: "",
-            extra: null
-          },
-          {
-            title: "NoFap Hydra 🐉",
-            body: quote3,
-            id: 3,
-            schedule: { at: new Date(Date.now() + 1000 * 60 * 60 * 9) }, // 9 hours
-            sound: undefined,
-            attachments: undefined,
-            actionTypeId: "",
-            extra: null
-          }
-        ]
-      });
-      console.log("Notifications scheduled successfully");
+      await LocalNotifications.schedule({ notifications });
+      console.log(`[HYDRA] scheduled ${notifications.length} periodic signals.`);
     } catch (err) {
       console.error("Failed to schedule notifications", err);
     }
   }, []);
 
   const showTestNotification = useCallback(async () => {
-    const quote = await fetchMotivation();
+    const quote = getRandomMotivation();
 
     if (Capacitor.isNativePlatform()) {
       await LocalNotifications.schedule({
@@ -106,7 +67,7 @@ export function useNotifications() {
             title: "Hydra Shield Active 🐉",
             body: quote,
             id: 99,
-            schedule: { at: new Date(Date.now() + 1000) }, // 1 sec later
+            schedule: { at: new Date(Date.now() + 1000) },
           }
         ]
       });
@@ -155,6 +116,13 @@ export function useNotifications() {
       return false;
     }
   };
+
+  // Reschedule whenever the app is opened to keep the 48h window moving forward
+  useEffect(() => {
+    if (enabled && permission === "granted") {
+      scheduleNotifications();
+    }
+  }, [enabled, permission, scheduleNotifications]);
 
   return {
     permission,
