@@ -40,10 +40,6 @@ For stable versions, visit the **[Releases](https://github.com/darkmaster0345/no
 
 ---
 
-For stable versions, visit the **[Releases](https://github.com/darkmaster0345/nofapfursan/releases)** page and download the latest `.apk`.
-
----
-
 ## ️ For Developers
 
 Fursan is built with **React**, **TypeScript**, **Vite**, and **Capacitor**.
