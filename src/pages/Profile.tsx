@@ -13,6 +13,7 @@ import { LoadingScreen } from "@/components/LoadingScreen";
 import { RelaySettings } from "@/components/RelaySettings";
 import { SecuritySettings } from "@/components/SecuritySettings";
 import { ThemeSelector } from "@/components/ThemeSelector";
+import { PrivacySettings } from "@/components/PrivacySettings";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { Capacitor } from "@capacitor/core";
 import { Header } from "@/components/Header";
@@ -175,6 +176,10 @@ const Profile = () => {
               </div>
 
               <div className="space-y-4">
+                <PrivacySettings />
+              </div>
+
+              <div className="space-y-4">
                 <div className="flex items-center gap-2 text-amber-800 font-bold text-sm uppercase tracking-widest px-1">
                   <Sparkles className="w-4 h-4 text-amber-500" />
                   Visual Aesthetics
@@ -184,12 +189,7 @@ const Profile = () => {
             </div>
 
             <div className="pt-8 border-t border-amber-100">
-              <Button
-                onClick={handleLogout}
-                className="w-full h-16 rounded-2xl bg-white border-2 border-rose-200 text-rose-500 hover:bg-rose-50 hover:border-rose-300 font-black uppercase text-xs tracking-widest shadow-md transition-all active:scale-95"
-              >
-                <LogOut className="w-4 h-4 mr-3" /> Terminate All Local Data
-              </Button>
+
               <div className="flex flex-col items-center gap-2 mt-8 text-center">
                 <p className="text-[10px] text-amber-800/30 font-bold uppercase tracking-[0.3em]">NoFap Fursan v2.5 Elite</p>
                 <p className="text-[9px] text-amber-800/10 font-mono tracking-widest">BITCOIN // NOSTR // SABR</p>

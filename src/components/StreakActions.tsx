@@ -12,9 +12,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { toast } from "@/hooks/use-toast";
 import { Capacitor } from "@capacitor/core";
+import { luxuryClickVibrate, warningVibrate } from "@/lib/vibrationUtils";
 
 interface StreakActionsProps {
   isActive: boolean;
@@ -29,11 +29,7 @@ export function StreakActions({ isActive, onStart, onReset }: StreakActionsProps
     onStart();
     setShowConfetti(true);
 
-    if (Capacitor.isNativePlatform()) {
-      await Haptics.impact({ style: ImpactStyle.Medium });
-    } else if ('vibrate' in navigator) {
-      navigator.vibrate(100);
-    }
+    await luxuryClickVibrate();
 
     toast({
       title: "⚔️ Protocol Initiated!",
@@ -45,11 +41,7 @@ export function StreakActions({ isActive, onStart, onReset }: StreakActionsProps
   const handleReset = async () => {
     onReset();
 
-    if (Capacitor.isNativePlatform()) {
-      await Haptics.impact({ style: ImpactStyle.Heavy });
-    } else if ('vibrate' in navigator) {
-      navigator.vibrate(150);
-    }
+    await warningVibrate();
 
     toast({
       title: "Sabr Count Reset",
@@ -81,12 +73,12 @@ export function StreakActions({ isActive, onStart, onReset }: StreakActionsProps
         {!isActive ? (
           <Button
             size="xl"
-            className="flex-1 rounded-2xl h-20 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 bg-size-200 animate-gradient-x text-white font-black uppercase text-xl tracking-widest shadow-xl shadow-amber-500/30 hover:shadow-2xl hover:scale-[1.02] active:scale-95 transition-all group"
+            className="flex-1 rounded-2xl h-20 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 bg-size-200 animate-gradient-x text-white font-black uppercase text-lg sm:text-xl tracking-widest shadow-xl shadow-amber-500/30 hover:shadow-2xl hover:scale-[1.02] active:scale-95 transition-all group"
             onClick={handleStart}
           >
-            <Swords className="w-8 h-8 mr-4 group-hover:rotate-12 transition-transform" />
-            INITIATE PROTOCOL
-            <Sparkles className="ml-4 w-6 h-6 animate-pulse" />
+            <Swords className="w-6 h-6 sm:w-8 sm:h-8 mr-2 sm:mr-4 group-hover:rotate-12 transition-transform" />
+            <span className="truncate">INITIATE PROTOCOL</span>
+            <Sparkles className="ml-2 sm:ml-4 w-4 h-4 sm:w-6 sm:h-6 animate-pulse" />
           </Button>
         ) : (
           <AlertDialog>

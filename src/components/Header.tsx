@@ -7,12 +7,15 @@ export function Header() {
   const [level, setLevel] = useState<{ name: string, emoji: string } | null>(null);
 
   useEffect(() => {
-    const data = getStreakData();
-    if (data.startDate) {
-      const { days } = calculateStreak(data.startDate);
-      const lvl = getAvatarLevel(days);
-      setLevel(lvl);
-    }
+    const loadData = async () => {
+      const data = await getStreakData();
+      if (data.startDate) {
+        const { days } = calculateStreak(data.startDate);
+        const lvl = getAvatarLevel(days);
+        setLevel(lvl);
+      }
+    };
+    loadData();
   }, []);
 
   return (
@@ -33,17 +36,17 @@ export function Header() {
         )}
       </div>
 
-      <div className="text-center mt-4">
-        <h1 className="text-4xl md:text-5xl font-display tracking-[0.15em] font-bold">
-          <span className="text-amber-900">NOFAP</span>
-          <span className="text-gradient-gold ml-2">FURSAN</span>
+      <div className="text-center mt-4 w-full px-4">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-display tracking-[0.15em] font-bold break-words">
+          <span className="text-amber-900 inline-block">FURSAN</span>
+          <span className="text-gradient-gold ml-2 inline-block">PROTOCOL</span>
         </h1>
-        <div className="flex items-center justify-center gap-2 mt-2">
-          <Sparkles className="w-3 h-3 text-amber-500" />
-          <p className="text-[10px] tracking-[0.4em] text-amber-800/40 uppercase font-bold">
+        <div className="flex items-center justify-center gap-2 mt-2 flex-wrap">
+          <Sparkles className="w-3 h-3 text-amber-500 flex-shrink-0" />
+          <p className="text-[9px] sm:text-[10px] tracking-[0.2em] sm:tracking-[0.4em] text-amber-800/40 uppercase font-bold text-center leading-relaxed">
             Protocol Active // V2.5 Elite
           </p>
-          <Sparkles className="w-3 h-3 text-amber-500" />
+          <Sparkles className="w-3 h-3 text-amber-500 flex-shrink-0" />
         </div>
       </div>
     </header>

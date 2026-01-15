@@ -77,7 +77,7 @@ export function ActivityHistory() {
                                     {getActivityIcon(activity.type)}
                                 </div>
                                 <div className="flex-1 min-w-0 py-0.5">
-                                    <p className="text-sm font-bold leading-tight text-amber-900 group-hover:text-amber-700 transition-colors">
+                                    <p className="text-sm font-bold leading-tight text-amber-900 group-hover:text-amber-700 transition-colors break-words">
                                         {activity.message}
                                     </p>
                                     <p className="text-[10px] text-amber-600/40 font-mono uppercase mt-1.5 flex items-center gap-1.5">

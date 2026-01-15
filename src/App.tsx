@@ -40,7 +40,7 @@ const AnimatedRoutes = () => {
 const App = () => {
   useEffect(() => {
     console.log("[FURSAN] App component mounted");
-    document.title = "NoFap Fursan";
+    document.title = "Fursan";
   }, []);
 
   return (

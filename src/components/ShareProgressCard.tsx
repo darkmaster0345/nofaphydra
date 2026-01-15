@@ -200,7 +200,7 @@ export function ShareProgressCard({ streak, avatarUrl }: ShareProgressCardProps)
       <div className="grid grid-cols-1 gap-3">
         <Button
           onClick={handleNativeShare}
-          className="w-full rounded-xl h-14 bg-gradient-to-r from-amber-500 to-yellow-500 text-white font-black uppercase text-[10px] tracking-[0.2em] shadow-lg shadow-amber-500/25 active:scale-95 transition-all"
+          className="w-full rounded-xl h-14 bg-gradient-to-r from-amber-500 to-yellow-500 text-white font-black uppercase text-[9px] sm:text-[10px] tracking-[0.2em] shadow-lg shadow-amber-500/25 active:scale-95 transition-all"
         >
           <Share2 className="w-4 h-4 mr-2" />
           System Share
@@ -210,10 +210,10 @@ export function ShareProgressCard({ streak, avatarUrl }: ShareProgressCardProps)
           onClick={handleNostrShare}
           disabled={sharing}
           variant="outline"
-          className="w-full rounded-xl h-14 border-2 border-amber-300 bg-white text-amber-800 font-black uppercase text-[10px] tracking-[0.2em] hover:bg-amber-50 active:scale-95 transition-all"
+          className="w-full rounded-xl h-14 border-2 border-amber-300 bg-white text-amber-800 font-black uppercase text-[9px] sm:text-[10px] tracking-[0.2em] hover:bg-amber-50 active:scale-95 transition-all"
         >
           <Globe className="w-4 h-4 mr-2" />
-          {sharing ? "POSTING..." : "Post to Community"}
+          <span className="truncate">{sharing ? "POSTING..." : "Post to Community"}</span>
         </Button>
 
         <Button
@@ -228,7 +228,7 @@ export function ShareProgressCard({ streak, avatarUrl }: ShareProgressCardProps)
       </div>
 
       <div className="pt-2">
-        <div className="bg-amber-50/50 p-4 rounded-lg border border-dashed border-amber-200/50 font-mono text-[10px] whitespace-pre-wrap leading-tight text-amber-800/60 select-none uppercase">
+        <div className="bg-amber-50/50 p-4 rounded-lg border border-dashed border-amber-200/50 font-mono text-[9px] sm:text-[10px] whitespace-pre-wrap leading-tight text-amber-800/60 select-none uppercase break-all">
           {shareText}
         </div>
       </div>

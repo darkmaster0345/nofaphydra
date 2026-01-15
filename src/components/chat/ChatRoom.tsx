@@ -155,7 +155,7 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
     if (!identity?.privateKey) return;
 
     try {
-      const streakData = getStreakData();
+      const streakData = await getStreakData();
       const currentStreak = calculateStreak(streakData.startDate);
       const healthHistory = await fetchHealthChecks();
       const hasAura = hasAuraBonus(healthHistory);
@@ -220,7 +220,7 @@ export function ChatRoom({ roomId }: ChatRoomProps) {
     if (!content || !identity || !identity.privateKey) return;
 
     const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    const streakData = getStreakData();
+    const streakData = await getStreakData();
     const currentStreak = calculateStreak(streakData.startDate);
     const healthHistory = await fetchHealthChecks();
     const hasAura = hasAuraBonus(healthHistory);

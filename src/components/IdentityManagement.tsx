@@ -96,7 +96,7 @@ export const IdentityManagement = ({
             </button>
 
             {/* Sync/Fetch Sub-grid */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <button
                     onClick={onSync}
                     className="flex items-center justify-center gap-2 h-12 rounded-xl border-2 border-amber-200 bg-white text-amber-800 font-bold text-[10px] uppercase tracking-widest hover:bg-amber-50 transition-all active:scale-95 shadow-sm"

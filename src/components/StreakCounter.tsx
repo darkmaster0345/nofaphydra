@@ -70,31 +70,31 @@ export function StreakCounter({ startDate, isSyncing, isOnline, pendingCount }: 
         </div>
       ) : (
         <div className="relative z-10">
-          <div className="flex items-baseline gap-3 mb-8">
+          <div className="flex flex-col sm:flex-row items-center sm:items-baseline justify-center gap-1 sm:gap-3 mb-8">
             <motion.span
               key={streak.days}
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              className="text-8xl font-black tracking-tighter leading-none text-gradient-gold"
+              className="text-7xl sm:text-8xl font-black tracking-tighter leading-none text-gradient-gold"
             >
               {streak.days}
             </motion.span>
-            <span className="text-2xl font-black uppercase tracking-widest text-amber-700/40">Days</span>
+            <span className="text-xl sm:text-2xl font-black uppercase tracking-widest text-amber-700/40">Days</span>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="flex items-center gap-3 p-4 rounded-lg bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200/50 group hover:border-amber-400/50 hover:shadow-md transition-all">
-              <Clock className="w-5 h-5 text-amber-600" />
-              <div>
-                <p className="text-2xl font-black leading-none text-amber-800">{streak.hours}</p>
-                <p className="text-[9px] uppercase font-bold tracking-widest text-amber-600/60">Hours</p>
+            <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-lg bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200/50 group hover:border-amber-400/50 hover:shadow-md transition-all">
+              <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600 flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xl sm:text-2xl font-black leading-none text-amber-800 truncate">{streak.hours}</p>
+                <p className="text-[8px] sm:text-[9px] uppercase font-bold tracking-widest text-amber-600/60 truncate">Hours</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 p-4 rounded-lg bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200/50 group hover:border-amber-400/50 hover:shadow-md transition-all">
-              <Calendar className="w-5 h-5 text-amber-600" />
-              <div>
-                <p className="text-2xl font-black leading-none text-amber-800">{streak.minutes}</p>
-                <p className="text-[9px] uppercase font-bold tracking-widest text-amber-600/60">Minutes</p>
+            <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-lg bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200/50 group hover:border-amber-400/50 hover:shadow-md transition-all">
+              <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600 flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xl sm:text-2xl font-black leading-none text-amber-800 truncate">{streak.minutes}</p>
+                <p className="text-[8px] sm:text-[9px] uppercase font-bold tracking-widest text-amber-600/60 truncate">Minutes</p>
               </div>
             </div>
           </div>

@@ -36,7 +36,7 @@ The most up-to-date version of the app is always available as a downloadable art
 3.  Scroll down to **Artifacts** and download `Fursan-Chat-Debug-APK`.
 
 ### 📦 Releases
-For stable versions, visit the **[Releases](https://github.com/darkmaster0345/nofaphydra/releases)** page and download the latest `.apk`.
+For stable versions, visit the **[Releases](https://github.com/darkmaster0345/nofapfursan/releases)** page and download the latest `.apk`.
 
 ---
 
@@ -78,4 +78,4 @@ NoFap Fursan is **Free and Open Source Software (FOSS)** under the MIT License. 
 
 ---
 
-*"Stay strong. Stay disciplined. Become legendary."* 🐉
+*"Stay strong. Stay disciplined. Become legendary."* ⚔️

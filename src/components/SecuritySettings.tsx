@@ -143,7 +143,7 @@ export function SecuritySettings() {
                         <Label className="text-[10px] uppercase text-muted-foreground">Private Access Key (nsec)</Label>
                         <div className="relative">
                             <div className="h-12 w-full border border-black bg-white px-3 py-2 flex items-center overflow-hidden">
-                                <span className="truncate font-mono text-xs">
+                                <span className="truncate font-mono text-xs w-full">
                                     {isRevealed && keys ? keys.nsec : "•••••••••••••••••••••••••••••••••••••"}
                                 </span>
                             </div>
@@ -160,10 +160,10 @@ export function SecuritySettings() {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                         <Button
                             variant="outline"
-                            className={`col-span-1 border-black rounded-none h-11 text-xs uppercase font-bold select-none touch-none ${isRevealed ? "bg-black text-white hover:bg-black/90" : "bg-white text-black"}`}
+                            className={`flex-1 border-black rounded-none h-11 text-xs uppercase font-bold select-none touch-none ${isRevealed ? "bg-black text-white hover:bg-black/90" : "bg-white text-black"}`}
                             onMouseDown={startHold}
                             onMouseUp={cancelHold}
                             onMouseLeave={cancelHold}
@@ -171,33 +171,35 @@ export function SecuritySettings() {
                             onTouchEnd={cancelHold}
                             onContextMenu={(e) => e.preventDefault()}
                         >
-                            {isRevealed ? "Hide" : "Reveal"}
+                            {isRevealed ? "Hide" : "Hold to Reveal"}
                         </Button>
 
-                        <Button
-                            variant="outline"
-                            className="border-black rounded-none h-11 text-xs uppercase font-bold bg-white text-black hover:bg-gray-50"
-                            onClick={() => keys && copyToClipboard(keys.nsec, "Private Key")}
-                            disabled={!isRevealed}
-                        >
-                            <Copy className="h-4 w-4 mr-2" />
-                            Copy
-                        </Button>
+                        <div className="flex gap-2 flex-1">
+                            <Button
+                                variant="outline"
+                                className="flex-1 border-black rounded-none h-11 text-xs uppercase font-bold bg-white text-black hover:bg-gray-50"
+                                onClick={() => keys && copyToClipboard(keys.nsec, "Private Key")}
+                                disabled={!isRevealed}
+                            >
+                                <Copy className="h-4 w-4 mr-2" />
+                                Copy
+                            </Button>
 
-                        <Button
-                            variant="outline"
-                            className="border-black rounded-none h-11 text-xs uppercase font-bold bg-white text-black hover:bg-gray-50"
-                            onClick={handleDownload}
-                            disabled={!isRevealed}
-                        >
-                            <Download className="h-4 w-4 mr-2" />
-                            File
-                        </Button>
+                            <Button
+                                variant="outline"
+                                className="flex-1 border-black rounded-none h-11 text-xs uppercase font-bold bg-white text-black hover:bg-gray-50"
+                                onClick={handleDownload}
+                                disabled={!isRevealed}
+                            >
+                                <Download className="h-4 w-4 mr-2" />
+                                File
+                            </Button>
+                        </div>
                     </div>
 
                     <div className="p-3 border border-black bg-gray-50 flex items-start gap-2">
                         <AlertTriangle className="h-4 w-4 text-black shrink-0 mt-0.5" />
-                        <p className="text-[10px] leading-tight font-medium uppercase">
+                        <p className="text-[10px] leading-tight font-medium uppercase break-words">
                             Never share your nsec! Loss of this key means loss of your identity and Sabr Count.
                         </p>
                     </div>

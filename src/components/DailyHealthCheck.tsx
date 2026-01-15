@@ -14,6 +14,7 @@ import {
     DialogDescription,
     DialogFooter,
 } from "@/components/ui/dialog";
+import { luxuryClickVibrate } from "@/lib/vibrationUtils";
 
 interface DailyHealthCheckProps {
     onUpdate?: () => void;
@@ -65,10 +66,9 @@ export function DailyHealthCheck({ onUpdate }: DailyHealthCheckProps) {
 
         const success = await saveHealthCheck(entry);
         if (success) {
-            // Haptic feedback for native feel
-            if ('vibrate' in navigator) {
-                navigator.vibrate(50);
-            }
+            // Haptic feedback for native feel - Luxury Mechanical Click
+            await luxuryClickVibrate();
+
             toast.success("Health signal encrypted and synchronized. 🛡️");
             logActivity('health_check', `NPT Check: ${npt ? 'YES' : 'NO'}`);
             setHasSubmitedToday(true);
@@ -205,9 +205,9 @@ export function DailyHealthCheck({ onUpdate }: DailyHealthCheckProps) {
 
                     <div className="flex items-start gap-3 p-4 rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/50">
                         <Shield className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
-                        <div>
-                            <p className="text-[11px] font-black uppercase tracking-tight text-blue-800">Privacy Protocol Active</p>
-                            <p className="text-[10px] text-blue-700/80 font-medium leading-tight mt-0.5">
+                        <div className="min-w-0">
+                            <p className="text-[11px] font-black uppercase tracking-tight text-blue-800 break-words">Privacy Protocol Active</p>
+                            <p className="text-[10px] text-blue-700/80 font-medium leading-tight mt-0.5 break-words">
                                 This data is encrypted using NIP-44. Only your private key can decrypt this signal.
                             </p>
                         </div>

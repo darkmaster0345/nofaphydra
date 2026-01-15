@@ -39,6 +39,24 @@ export async function confirmVibrate(): Promise<void> {
 }
 
 /**
+ * Luxury Click - Heavy mechanical click feel
+ * Mimics the tactile feedback of a high-end watch complication or mechanical switch.
+ */
+export async function luxuryClickVibrate(): Promise<void> {
+    try {
+        if (Capacitor.isNativePlatform()) {
+            // Heavy impact for that "expensive" mechanical feel
+            await Haptics.impact({ style: ImpactStyle.Heavy });
+        } else if ('vibrate' in navigator) {
+            // Short but sharp
+            navigator.vibrate(15);
+        }
+    } catch (e) {
+        // Silently fail
+    }
+}
+
+/**
  * Double "heartbeat" pulse - for milestone achievements
  * Pattern: short-pause-short (like a heartbeat)
  */

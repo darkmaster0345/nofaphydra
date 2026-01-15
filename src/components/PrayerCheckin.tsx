@@ -10,7 +10,7 @@ import {
     getTodayCompletionPercentage,
     PrayerCheckin as PrayerCheckinType
 } from "@/lib/prayerUtils";
-import { tapVibrate, heartbeatVibrate } from "@/lib/vibrationUtils";
+import { tapVibrate, heartbeatVibrate, luxuryClickVibrate } from "@/lib/vibrationUtils";
 import { cn } from "@/lib/utils";
 
 interface Prayer {
@@ -62,7 +62,7 @@ export function PrayerCheckin() {
 
         // Haptic feedback
         if (newValue) {
-            await tapVibrate();
+            await luxuryClickVibrate();
             toast.success(`${PRAYERS.find(p => p.id === prayerId)?.name} logged ✓`);
         }
 
@@ -105,7 +105,7 @@ export function PrayerCheckin() {
             </div>
 
             <div className="p-5 space-y-4">
-                <div className="grid grid-cols-5 gap-2">
+                <div className="grid grid-cols-5 gap-1 sm:gap-2">
                     {PRAYERS.map((prayer) => {
                         const isCompleted = checkin[prayer.id];
                         const Icon = prayer.icon;
@@ -115,21 +115,21 @@ export function PrayerCheckin() {
                                 key={prayer.id}
                                 onClick={() => handlePrayerToggle(prayer.id)}
                                 className={cn(
-                                    "flex flex-col items-center gap-1 py-3 px-1 rounded-lg transition-all duration-300",
+                                    "flex flex-col items-center gap-1 py-2 sm:py-3 px-0.5 sm:px-1 rounded-lg transition-all duration-300 min-w-0",
                                     isCompleted
                                         ? `bg-gradient-to-br ${prayer.gradient} text-white shadow-lg`
                                         : "bg-amber-50/50 text-amber-700/60 hover:bg-amber-100/70 border border-amber-200/30"
                                 )}
                             >
                                 {isCompleted ? (
-                                    <Check className="w-5 h-5" />
+                                    <Check className="w-4 h-4 sm:w-5 sm:h-5" />
                                 ) : (
-                                    <Icon className="w-5 h-5" />
+                                    <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
                                 )}
-                                <span className="text-[9px] font-bold uppercase tracking-tight">
+                                <span className="text-[8px] sm:text-[9px] font-bold uppercase tracking-tight truncate w-full">
                                     {prayer.name}
                                 </span>
-                                <span className="text-[8px] opacity-80">
+                                <span className="text-[7px] sm:text-[8px] opacity-80 truncate w-full">
                                     {prayer.arabicName}
                                 </span>
                             </button>

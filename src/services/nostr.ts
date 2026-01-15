@@ -365,37 +365,40 @@ export async function initNetworkListener(): Promise<void> {
 }
 
 // ============================================================================
-// KEY MANAGEMENT
+// KEY MANAGEMENT - FORTRESS PROTOCOL
 // ============================================================================
 
+import { SecureStorage } from "./secureStorage";
+
 /**
- * Generate new Nostr keys or load existing ones from secure storage
+ * Generate new Nostr keys or load existing ones from Secure Storage
  */
 export async function generateOrLoadKeys(): Promise<NostrKeys> {
     try {
-        // 1. Try to find an existing key (Standardizing on 'user_nsec' per instruction)
-        let { value } = await Preferences.get({ key: 'user_nsec' });
+        // 1. MIGRATION PHASE: Check for legacy keys in insecure storage
+        // We check common legacy keys and consolidate them to 'user_nsec' in SecureStorage
+        await SecureStorage.migrateFromInsecure('user_private_key');
+        await SecureStorage.migrateFromInsecure('nostr_private_key');
 
-        // Migration path: Check previous keys if strict user_nsec not found
-        if (!value) {
-            const { value: prev } = await Preferences.get({ key: 'user_private_key' });
-            if (prev) value = prev;
+        // Also check if they are in Preferences but under old keys, and migrate to standard 'user_nsec'
+        const oldPrefKey = await SecureStorage.get('user_private_key');
+        if (oldPrefKey) {
+            await SecureStorage.set('user_nsec', oldPrefKey);
+            await SecureStorage.remove('user_private_key');
         }
-        // Fallback checks
-        if (!value) {
-            const { value: oldKey } = await Preferences.get({ key: "nostr_private_key" });
-            if (oldKey) value = oldKey;
+
+        const oldPrefKey2 = await SecureStorage.get('nostr_private_key');
+        if (oldPrefKey2) {
+            await SecureStorage.set('user_nsec', oldPrefKey2);
+            await SecureStorage.remove('nostr_private_key');
         }
-        if (!value) {
-            value = localStorage.getItem('user_private_key') || localStorage.getItem('nostr_private_key');
-        }
+
+        // 2. LOAD PHASE: Try to get the standard key from Secure Storage
+        let value = await SecureStorage.get('user_nsec');
 
         if (value) {
-            console.log("[FURSAN] Welcome back! Identity loaded.");
+            // console.log("[FURSAN] Fortress Identity Loaded."); // Commented out for max privacy logs
             const privKey = hexToBytes(value);
-            // Ensure we migrate/save to the new standard key
-            await Preferences.set({ key: 'user_nsec', value: value });
-
             return {
                 privateKey: privKey,
                 publicKey: getPublicKey(privKey),
@@ -403,36 +406,40 @@ export async function generateOrLoadKeys(): Promise<NostrKeys> {
             };
         }
 
-        // 2. Create and save if it doesn't exist
+        // 3. GENERATION PHASE: Create new identity if none exists
         const newKey = generateSecretKey();
         const hex = bytesToHex(newKey);
-        await Preferences.set({ key: 'user_nsec', value: hex });
+        await SecureStorage.set('user_nsec', hex);
 
-        console.log("[FURSAN] New identity created and saved to device.");
+        console.log("[FURSAN] New Fortress Identity Created.");
         return {
             privateKey: newKey,
             publicKey: getPublicKey(newKey),
             privateKeyHex: hex
         };
     } catch (error) {
-        console.error("[Nostr] Error generating/loading keys:", error);
+        console.error("[Nostr] Critical Identity Error:", error);
         throw error;
     }
 }
 
 /**
- * Check if keys exist in storage
+ * Check if keys exist in Secure Storage
  */
 export async function hasKeys(): Promise<boolean> {
-    const { value } = await Preferences.get({ key: "nostr_private_key" });
+    const value = await SecureStorage.get('user_nsec');
     return !!value;
 }
 
 /**
- * Clear stored keys (use with caution!)
+ * Clear stored keys (PANIC BUTTON USE ONLY)
  */
 export async function clearKeys(): Promise<void> {
-    await Preferences.remove({ key: "nostr_private_key" });
+    await SecureStorage.remove('user_nsec');
+    // Double tap to be sure
+    await SecureStorage.remove('user_private_key');
+    await SecureStorage.remove('nostr_private_key');
+    localStorage.clear(); // NUKE LOCAL STORAGE
 }
 
 /**
@@ -799,7 +806,7 @@ export interface JournalEntry {
     timestamp: number;
 }
 
-const JOURNAL_TAG = "nofaphydra-journal";
+const JOURNAL_TAG = "nofapfursan-journal";
 
 /**
  * Save an encrypted journal entry

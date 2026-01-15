@@ -104,10 +104,10 @@ export function SyncIndicatorCompact({
 
     if (!isOnline) {
         return (
-            <div className={cn("relative", className)}>
-                <CloudOff className="h-5 w-5 text-amber-400" />
+            <div className={cn("relative flex-shrink-0", className)}>
+                <CloudOff className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400" />
                 {pendingCount > 0 && (
-                    <span className="absolute -top-1 -right-2 bg-amber-500 text-black text-[10px] font-bold px-1 rounded-full min-w-[16px] text-center">
+                    <span className="absolute -top-1 -right-2 bg-amber-500 text-black text-[9px] sm:text-[10px] font-bold px-1 rounded-full min-w-[14px] sm:min-w-[16px] text-center">
                         {pendingCount}
                     </span>
                 )}

@@ -30,17 +30,17 @@ export function StatsCard({ data }: StatsCardProps) {
       <div className="space-y-4">
         {/* Longest Streak */}
         <div className="flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200/50">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center shadow-lg shadow-amber-500/20">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center shadow-lg shadow-amber-500/20 flex-shrink-0">
               <Trophy className="w-5 h-5 text-white" />
             </div>
-            <div>
-              <p className="text-[10px] uppercase font-bold text-amber-600/60 tracking-tight">Personal Best</p>
-              <p className="text-xl font-black text-amber-800">{effectiveLongest} Days</p>
+            <div className="min-w-0">
+              <p className="text-[10px] uppercase font-bold text-amber-600/60 tracking-tight truncate">Personal Best</p>
+              <p className="text-xl font-black text-amber-800 truncate">{effectiveLongest} Days</p>
             </div>
           </div>
           {isNewRecord && (
-            <span className="px-3 py-1.5 text-[9px] font-black uppercase tracking-widest bg-gradient-to-r from-amber-400 to-yellow-500 text-white rounded-full shadow-lg shadow-amber-500/30 animate-pulse">
+            <span className="flex-shrink-0 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest bg-gradient-to-r from-amber-400 to-yellow-500 text-white rounded-full shadow-lg shadow-amber-500/30 animate-pulse ml-2">
               NEW RECORD ⚔️
             </span>
           )}
@@ -48,26 +48,26 @@ export function StatsCard({ data }: StatsCardProps) {
 
         {/* Total Resets */}
         <div className="flex items-center justify-between p-4 rounded-lg bg-white/60 border border-amber-200/30">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center flex-shrink-0">
               <RotateCcw className="w-5 h-5 text-gray-600" />
             </div>
-            <div>
-              <p className="text-[10px] uppercase font-bold text-gray-500/80 tracking-tight">Total Resets</p>
-              <p className="text-xl font-black text-gray-700">{data.totalRelapses}</p>
+            <div className="min-w-0">
+              <p className="text-[10px] uppercase font-bold text-gray-500/80 tracking-tight truncate">Total Resets</p>
+              <p className="text-xl font-black text-gray-700 truncate">{data.totalRelapses}</p>
             </div>
           </div>
         </div>
 
         {/* Next Goal with Progress Bar */}
         <div className="p-4 rounded-lg bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200/50">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+          <div className="flex items-center gap-3 mb-3 min-w-0">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/20 flex-shrink-0">
               <Target className="w-5 h-5 text-white" />
             </div>
-            <div className="flex-1">
-              <p className="text-[10px] uppercase font-bold text-emerald-600/60 tracking-tight">Next Milestone: Day {nextGoal}</p>
-              <p className="text-xl font-black text-emerald-800">{daysRemaining} Days To Go</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] uppercase font-bold text-emerald-600/60 tracking-tight truncate">Next Milestone: Day {nextGoal}</p>
+              <p className="text-xl font-black text-emerald-800 truncate">{daysRemaining} Days To Go</p>
             </div>
           </div>
           {/* Progress bar */}

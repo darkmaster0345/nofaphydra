@@ -37,7 +37,7 @@ export function MotivationCard() {
 
       <div className="relative">
         <Quote className="absolute -top-4 -left-2 w-10 h-10 text-amber-200/50 rotate-180" />
-        <blockquote className="text-xl md:text-2xl font-display text-amber-900 leading-tight mb-4 relative z-10 px-2">
+        <blockquote className="text-xl md:text-2xl font-display text-amber-900 leading-tight mb-4 relative z-10 px-2 break-words">
           {motivation.text}
         </blockquote>
         {motivation.source && (

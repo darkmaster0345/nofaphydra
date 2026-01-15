@@ -34,7 +34,7 @@ export function BottomNav() {
             key={item.to}
             to={item.to}
             end={item.to === "/"}
-            className="flex flex-col items-center justify-center gap-1 px-4 py-2 text-amber-700/50 transition-all duration-300 hover:text-amber-600"
+            className="flex flex-col items-center justify-center gap-1 px-2 sm:px-4 py-2 text-amber-700/50 transition-all duration-300 hover:text-amber-600 min-w-0"
             activeClassName="text-amber-600"
           >
             {({ isActive }) => (

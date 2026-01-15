@@ -13,11 +13,11 @@ export interface AvatarLevel {
   description: string;
 }
 
-export const AVATAR_LEVELS: AvatarLevel[] = [
-  { name: "Initiate (المريد)", emoji: "📿", minDays: 0, maxDays: 7, color: "text-emerald-400", description: "The Initiate - Beginning the Path" },
-  { name: "Mujahid (المجاهد)", emoji: "⚔️", minDays: 8, maxDays: 40, color: "text-emerald-500", description: "The Mujahid - Striving in Battle" },
-  { name: "Faris (الفارس)", emoji: "🏇", minDays: 41, maxDays: 90, color: "text-amber-500", description: "The Faris - Knight of Discipline" },
-  { name: "Amir (الأمير)", emoji: "👑", minDays: 91, maxDays: Infinity, color: "text-gradient-legendary", description: "The Amir - Commander of Sabr" },
+export const MILESTONES: AvatarLevel[] = [
+  { name: "The Pledge (Al-Mithaq)", emoji: "📿", minDays: 0, maxDays: 7, color: "text-emerald-400", description: "The promise to oneself. The journey begins with a single step." },
+  { name: "The Struggle (Al-Mujahid)", emoji: "⚔️", minDays: 8, maxDays: 40, color: "text-emerald-500", description: "The battle against the lower self. Resilience is forged in the fire of resistance." },
+  { name: "The Sentinel (Al-Murabit)", emoji: "🛡️", minDays: 41, maxDays: 90, color: "text-amber-500", description: "Standing guard over one's soul. Discipline has become a shield." },
+  { name: "The Sovereign (Al-Sultan)", emoji: "👑", minDays: 91, maxDays: Infinity, color: "text-gradient-legendary", description: "Complete mastery over desire. You are no longer a slave to your impulses." },
 ];
 
 export const MOTIVATIONAL_QUOTES = [
@@ -35,11 +35,24 @@ export const MOTIVATIONAL_QUOTES = [
   "The best time to start was yesterday. The next best time is now.",
 ];
 
-export function getStreakData(): StreakData {
-  const stored = localStorage.getItem('fursan_streak_data');
+import { SecureStorage } from "@/services/secureStorage";
+
+export async function getStreakData(): Promise<StreakData> {
+  // Try secure storage first
+  const stored = await SecureStorage.get('fursan_streak_data');
   if (stored) {
     return JSON.parse(stored);
   }
+
+  // Fallback/Migration: Check localStorage
+  const legacy = localStorage.getItem('fursan_streak_data');
+  if (legacy) {
+    // Migrating to fortress
+    await SecureStorage.set('fursan_streak_data', legacy);
+    localStorage.removeItem('fursan_streak_data');
+    return JSON.parse(legacy);
+  }
+
   return {
     startDate: null,
     longestStreak: 0,
@@ -47,8 +60,8 @@ export function getStreakData(): StreakData {
   };
 }
 
-export function saveStreakData(data: StreakData): void {
-  localStorage.setItem('fursan_streak_data', JSON.stringify(data));
+export async function saveStreakData(data: StreakData): Promise<void> {
+  await SecureStorage.set('fursan_streak_data', JSON.stringify(data));
   window.dispatchEvent(new Event('fursan_streak_updated'));
 }
 
@@ -69,18 +82,18 @@ export function calculateStreak(startDate: string | null): { days: number; hours
 }
 
 export function getAvatarLevel(days: number): AvatarLevel {
-  for (let i = AVATAR_LEVELS.length - 1; i >= 0; i--) {
-    if (days >= AVATAR_LEVELS[i].minDays) {
-      return AVATAR_LEVELS[i];
+  for (let i = MILESTONES.length - 1; i >= 0; i--) {
+    if (days >= MILESTONES[i].minDays) {
+      return MILESTONES[i];
     }
   }
-  return AVATAR_LEVELS[0];
+  return MILESTONES[0];
 }
 
 export function getNextAvatarLevel(days: number): AvatarLevel | null {
-  const currentIndex = AVATAR_LEVELS.findIndex(level => days >= level.minDays && days <= level.maxDays);
-  if (currentIndex < AVATAR_LEVELS.length - 1) {
-    return AVATAR_LEVELS[currentIndex + 1];
+  const currentIndex = MILESTONES.findIndex(level => days >= level.minDays && days <= level.maxDays);
+  if (currentIndex < MILESTONES.length - 1) {
+    return MILESTONES[currentIndex + 1];
   }
   return null;
 }

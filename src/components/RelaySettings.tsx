@@ -54,7 +54,7 @@ export const RelaySettings = () => {
             </div>
 
             <div className="space-y-2">
-                <form onSubmit={handleAdd} className="flex gap-2">
+                <form onSubmit={handleAdd} className="flex flex-col sm:flex-row gap-2">
                     <div className="relative flex-1">
                         <Input
                             value={newRelay}
@@ -75,10 +75,10 @@ export const RelaySettings = () => {
                     <Button
                         type="submit"
                         variant="outline"
-                        className="border-black rounded-none h-12 px-6 bg-black text-white hover:bg-black/90 uppercase text-[10px] font-bold tracking-widest"
+                        className="border-black rounded-none h-12 px-6 bg-black text-white hover:bg-black/90 uppercase text-[10px] font-bold tracking-widest sm:w-auto w-full"
                         disabled={verifying || !newRelay.trim()}
                     >
-                        {verifying ? 'TESTING...' : <><Plus className="w-4 h-4 mr-2" /> ADD</>}
+                        {verifying ? 'TESTING...' : <><Plus className="w-4 h-4 mr-2" /> ADD RELAY</>}
                     </Button>
                 </form>
                 {error && (

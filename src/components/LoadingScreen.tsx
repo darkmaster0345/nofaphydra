@@ -60,6 +60,7 @@ export function LoadingScreen({
 
                 <div className="flex flex-col items-center gap-4">
                     <p className="text-[11px] font-black uppercase tracking-[0.5em] text-amber-800/40">{subMessage}</p>
+                    <p className="text-xs font-medium text-amber-900/60 italic">Discipline over desire.</p>
 
                     {/* Royal progress bar */}
                     <div className="w-56 h-1.5 bg-amber-100 rounded-full overflow-hidden border border-amber-200/50">
