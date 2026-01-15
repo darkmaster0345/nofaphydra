@@ -158,7 +158,7 @@ export function ShareProgressCard({ streak, avatarUrl }: ShareProgressCardProps)
           // 2. Save to public gallery using Media plugin
           await Media.savePhoto({
             path: savedFile.uri,
-            album: 'NofapHydra'
+            albumIdentifier: 'NofapHydra'
           });
 
           toast.success("Progress picture saved to Gallery! 🐉");
