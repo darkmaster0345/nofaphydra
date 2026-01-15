@@ -149,21 +149,34 @@ export function ShareProgressCard({ streak, avatarUrl }: ShareProgressCardProps)
         try {
           // 1. Write to private app storage first
           const base64Data = dataUrl.split(',')[1];
+
+          // Use a clean filename without special characters
+          const safeFileName = `hydra_progress_${streak?.days || 0}.png`;
+
           const savedFile = await Filesystem.writeFile({
-            path: fileName,
+            path: safeFileName,
             data: base64Data,
             directory: Directory.Cache
           });
 
           // 2. Save to public gallery using Media plugin
-          await Media.savePhoto({
-            path: savedFile.uri,
-            albumIdentifier: 'NofapHydra'
-          });
-
-          toast.success("Progress picture saved to Gallery! 🐉");
+          // Note: On Android, albumIdentifier is the name of the album/folder
+          try {
+            await Media.savePhoto({
+              path: savedFile.uri,
+              albumIdentifier: 'NofapHydra'
+            });
+            toast.success("Progress picture saved into 'NofapHydra' album! 🐉");
+          } catch (mediaErr) {
+            console.warn('Media save failed, trying without album', mediaErr);
+            // Fallback: Save to default gallery if album creation/access fails
+            await Media.savePhoto({
+              path: savedFile.uri
+            });
+            toast.success("Progress picture saved to Gallery! 🐉");
+          }
         } catch (err) {
-          console.error('Capacitor download failed:', err);
+          console.error('Capacitor download fatal error:', err);
           throw err;
         }
       } else {
@@ -239,8 +252,8 @@ export function ShareProgressCard({ streak, avatarUrl }: ShareProgressCardProps)
         </div>
       </div>
 
-      {/* Hidden Capture Element */}
-      <div className="fixed -left-[4000px] top-0 pointer-events-none">
+      {/* Hidden Capture Element - Absolute positioning for better Android Webview rendering */}
+      <div className="absolute top-[-9999px] left-[-9999px] pointer-events-none overflow-hidden" aria-hidden="true">
         <div
           ref={shareableRef}
           className="w-[500px] bg-white p-16 border-[16px] border-black flex flex-col items-center justify-center text-center space-y-8"
