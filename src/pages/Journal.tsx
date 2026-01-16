@@ -80,8 +80,8 @@ export default function Journal() {
                     <Button
                         onClick={() => setShowForm(!showForm)}
                         className={`rounded-xl px-6 font-black uppercase text-[10px] tracking-widest h-12 transition-all shadow-lg ${showForm
-                                ? "bg-rose-500 text-white hover:bg-rose-600 shadow-rose-500/20"
-                                : "bg-gradient-to-r from-amber-500 to-yellow-500 text-white shadow-amber-500/25"
+                            ? "bg-rose-500 text-white hover:bg-rose-600 shadow-rose-500/20"
+                            : "bg-gradient-to-r from-amber-500 to-yellow-500 text-white shadow-amber-500/25"
                             }`}
                     >
                         {showForm ? <><X className="w-4 h-4 mr-2" /> DISCARD</> : <><Plus className="w-4 h-4 mr-2" /> NEW LOG</>}
@@ -173,19 +173,29 @@ export default function Journal() {
                                 transition={{ delay: i * 0.05 }}
                                 className="royal-card p-8 space-y-6 group hover:border-amber-400/50 transition-all"
                             >
-                                <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest border-b border-amber-100 pb-4">
-                                    <span className="text-amber-800/40">{format(entry.timestamp, "MMMM d, yyyy • h:mm a")}</span>
-                                    <div className="flex gap-6">
-                                        <span className="flex items-center gap-2 text-amber-600">
-                                            <Smile className="w-4 h-4 opacity-50" />
-                                            <span className="text-amber-900">{entry.mood}</span>
-                                        </span>
-                                        <span className="flex items-center gap-2 text-amber-600">
-                                            <Battery className="w-4 h-4 opacity-50" />
-                                            <span className="text-amber-900">{entry.energy}</span>
-                                        </span>
-                                    </div>
-                                </div>
+                                {(() => {
+                                    let dateStr = "Archive Date Unknown";
+                                    try {
+                                        dateStr = format(entry.timestamp, "MMMM d, yyyy • h:mm a");
+                                    } catch (e) {
+                                        console.warn("Invalid timestamp for entry:", entry.id);
+                                    }
+                                    return (
+                                        <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest border-b border-amber-100 pb-4">
+                                            <span className="text-amber-800/40">{dateStr}</span>
+                                            <div className="flex gap-6">
+                                                <span className="flex items-center gap-2 text-amber-600">
+                                                    <Smile className="w-4 h-4 opacity-50" />
+                                                    <span className="text-amber-900">{entry.mood}</span>
+                                                </span>
+                                                <span className="flex items-center gap-2 text-amber-600">
+                                                    <Battery className="w-4 h-4 opacity-50" />
+                                                    <span className="text-amber-900">{entry.energy}</span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
                                 <p className="whitespace-pre-wrap text-base leading-relaxed text-amber-950 font-medium">
                                     {entry.content}
                                 </p>

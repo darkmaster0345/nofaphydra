@@ -303,8 +303,9 @@ async function resilientPublish(signedEvent: VerifiedEvent): Promise<boolean> {
         // Success if at least MIN_RELAY_CONFIRMATIONS relays acknowledged
         return successfulRelays.length >= MIN_RELAY_CONFIRMATIONS;
 
-    } finally {
-        pool.close(RELAYS);
+    } catch (e) {
+        console.error("[Nostr] Fatal error in resilientPublish:", e);
+        return false;
     }
 }
 

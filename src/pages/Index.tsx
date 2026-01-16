@@ -62,12 +62,12 @@ const Index = () => {
 
           {/* Critical Feature: Active Protocol (Mindset) */}
           <div className="stagger-item" style={{ animationDelay: '0.15s' }}>
-            <DailyHealthCheck showPillar="mindset" days={liveStreak} />
+            <DailyHealthCheck showPillar="mindset" days={liveStreak.days} />
           </div>
 
           {/* Secondary Protocol: Biological Signal */}
           <div className="stagger-item" style={{ animationDelay: '0.2s' }}>
-            <DailyHealthCheck showPillar="biological" days={liveStreak} />
+            <DailyHealthCheck showPillar="biological" days={liveStreak.days} />
           </div>
 
           {/* The Five Pillars: Prayer */}

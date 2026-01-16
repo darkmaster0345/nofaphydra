@@ -67,7 +67,13 @@ export function LocationTimeCard() {
             if (tz) options.timeZone = tz;
         }
 
-        return date.toLocaleTimeString([], options);
+        try {
+            return date.toLocaleTimeString([], options);
+        } catch (e) {
+            console.error("[Vigil] Invalid timezone format detected, falling back to local time.");
+            // Fallback: exclude the custom options that might have invalid timezone
+            return date.toLocaleTimeString();
+        }
     };
 
     const formatDate = (date: Date) => {
