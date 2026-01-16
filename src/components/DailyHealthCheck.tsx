@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { saveHealthCheck, fetchHealthChecks, HealthCheck } from "@/services/nostr";
-import { Button } from "@/components/ui/button";
-import { Shield, Activity, AlertCircle, Heart, CheckCircle2, Zap, CloudLightning, Sun } from "lucide-react";
+import { Shield, Activity, AlertCircle, CheckCircle2, Zap, CloudLightning, Sun } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { logActivity } from "@/lib/activityLog";
@@ -13,21 +12,24 @@ import {
     DialogDescription,
     DialogFooter,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { luxuryClickVibrate } from "@/lib/vibrationUtils";
 import { cn } from "@/lib/utils";
+import { MindsetCheckin } from "./MindsetCheckin";
+import { BiologicalCheckin } from "./BiologicalCheckin";
 
 interface DailyHealthCheckProps {
     onUpdate?: () => void;
     days?: number;
+    showPillar?: 'mindset' | 'biological' | 'all';
 }
 
-export function DailyHealthCheck({ onUpdate, days = 0 }: DailyHealthCheckProps) {
+export function DailyHealthCheck({ onUpdate, days = 0, showPillar = 'all' }: DailyHealthCheckProps) {
     const [history, setHistory] = useState<HealthCheck[]>([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [showMedicalAlert, setShowMedicalAlert] = useState(false);
     const [hasSubmitedToday, setHasSubmitedToday] = useState(false);
-    const [step, setStep] = useState<1 | 2>(1);
     const [tempNpt, setTempNpt] = useState<boolean | null>(null);
     const [isEmergencyLocked, setIsEmergencyLocked] = useState(false);
     const [isCompletionConfirmed, setIsCompletionConfirmed] = useState(false);
@@ -53,7 +55,7 @@ export function DailyHealthCheck({ onUpdate, days = 0 }: DailyHealthCheckProps) 
             setHasSubmitedToday(submittedToday);
 
             // Check for medical alert (14 days of 'No')
-            if (data.length >= 14 && (days >= 4)) {
+            if (data.length >= 14 && days >= 4) {
                 const last14 = data.slice(0, 14);
                 const allNo = last14.every(entry => !entry.npt);
                 if (allNo) {
@@ -67,19 +69,39 @@ export function DailyHealthCheck({ onUpdate, days = 0 }: DailyHealthCheckProps) 
         }
     };
 
-    const handleNptStep = (npt: boolean) => {
-        setTempNpt(npt);
-        setStep(2);
-        luxuryClickVibrate();
+    const handleMindsetSelection = async (mindset: HealthCheck['mindset']) => {
+        // Special case: if we are only showing mindset, we need a default for NPT or wait for it
+        // Actually, the protocol usually flows NPT -> Mindset.
+        // If we move NPT below mindset, we might need to adjust logic.
+        // The user wants: Streak -> Mindset Checkin -> NPT Checkin -> Prayer.
+
+        // Let's allow individual submits if we are in modular mode
+        if (showPillar === 'mindset') {
+            await finalizeProtocol(null, mindset);
+        } else {
+            // Need NPT first usually in step 1
+            // This path is for the 'all' case, where tempNpt would have been set by BiologicalCheckin
+            if (tempNpt === null) return; // Should not happen if flow is correct
+            await finalizeProtocol(tempNpt, mindset);
+        }
     };
 
-    const handleMindsetStep = async (mindset: HealthCheck['mindset']) => {
-        if (tempNpt === null) return;
+    const handleNptSelection = async (npt: boolean) => {
+        if (showPillar === 'biological') {
+            await finalizeProtocol(npt, null);
+        } else {
+            setTempNpt(npt);
+            // Step logic handled inside the old monolithic view
+            // For 'all' case, this sets tempNpt, then MindsetCheckin will be rendered
+        }
+    };
 
+    const finalizeProtocol = async (npt: boolean | null, mindset: HealthCheck['mindset'] | null) => {
         setSaving(true);
+        // If partial data, use defaults or previous
         const entry: HealthCheck = {
-            npt: tempNpt,
-            mindset,
+            npt: npt ?? true, // Default to true if not asked in this component
+            mindset: mindset ?? 'sharp', // Default to sharp if not asked
             timestamp: Date.now(),
         };
 
@@ -87,19 +109,16 @@ export function DailyHealthCheck({ onUpdate, days = 0 }: DailyHealthCheckProps) 
         if (success) {
             await luxuryClickVibrate();
             toast.success("Protocol data synchronized. 🛡️");
-            logActivity('health_check', `Signal: ${tempNpt ? 'YES' : 'NO'}, Mindset: ${mindset.toUpperCase()}`);
-
+            logActivity('health_check', `Modular: Signal: ${entry.npt}, Mindset: ${entry.mindset}`);
             setHasSubmitedToday(true);
             setHistory([entry, ...history]);
-
-            if (mindset === 'stormy') {
+            if (entry.mindset === 'stormy') {
                 localStorage.removeItem('fursan_stormy_resolved');
                 setIsEmergencyLocked(true);
             }
-
             if (onUpdate) onUpdate();
 
-            // Foggy Penalty Check
+            // Foggy Penalty Check (only if mindset was actually checked)
             if (mindset === 'foggy') {
                 const last3 = [entry, ...history].slice(0, 3);
                 if (last3.length === 3 && last3.every(e => e.mindset === 'foggy')) {
@@ -181,28 +200,24 @@ export function DailyHealthCheck({ onUpdate, days = 0 }: DailyHealthCheckProps) 
                             Execute Protocol: Cold Shower or 50 Pushups Immediately.
                         </p>
                     </div>
-
                     <div className="flex items-center gap-3 justify-center p-3">
-                        <input
-                            type="checkbox"
-                            id="confirm-emergency"
-                            checked={isCompletionConfirmed}
-                            onChange={(e) => setIsCompletionConfirmed(e.target.checked)}
-                            className="w-5 h-5 accent-amber-900"
-                        />
+                        <input type="checkbox" id="confirm-emergency" checked={isCompletionConfirmed} onChange={(e) => setIsCompletionConfirmed(e.target.checked)} className="w-5 h-5 accent-amber-900" />
                         <label htmlFor="confirm-emergency" className="text-xs font-black uppercase text-amber-800">I have completed the recovery protocol</label>
                     </div>
-
-                    <Button
-                        disabled={!isCompletionConfirmed}
-                        onClick={resolveEmergency}
-                        className="w-full h-14 bg-amber-900 text-white font-black uppercase tracking-[0.2em] rounded-xl shadow-2xl disabled:opacity-30"
-                    >
-                        Unlock Dashboard
-                    </Button>
+                    <Button disabled={!isCompletionConfirmed} onClick={resolveEmergency} className="w-full h-14 bg-amber-900 text-white font-black uppercase tracking-[0.2em] rounded-xl shadow-2xl disabled:opacity-30">Unlock Dashboard</Button>
                 </div>
             </div>
         );
+    }
+
+    if (hasSubmitedToday && showPillar !== 'all') return null;
+
+    if (showPillar === 'mindset') {
+        return <MindsetCheckin onCheckin={handleMindsetSelection} saving={saving} />;
+    }
+
+    if (showPillar === 'biological') {
+        return <BiologicalCheckin onCheckin={handleNptSelection} saving={saving} />;
     }
 
     return (
@@ -231,73 +246,27 @@ export function DailyHealthCheck({ onUpdate, days = 0 }: DailyHealthCheckProps) 
                 <div className="p-6">
                     {!hasSubmitedToday ? (
                         <AnimatePresence mode="wait">
-                            {step === 1 ? (
+                            {tempNpt === null ? (
                                 <motion.div
-                                    key="step1"
+                                    key="biological-checkin"
                                     initial={{ opacity: 0, x: 20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     exit={{ opacity: 0, x: -20 }}
                                     className="space-y-6"
                                 >
-                                    <div className="text-center space-y-2">
-                                        <p className="text-xs font-black uppercase tracking-[0.3em] text-amber-600/40">Pillar 1: Biological Signal</p>
-                                        <h4 className="text-lg font-black text-amber-900 uppercase">Morning Signal Detected?</h4>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <Button
-                                            onClick={() => handleNptStep(true)}
-                                            className="h-20 rounded-2xl border-2 border-emerald-100 bg-white hover:bg-emerald-50 text-emerald-700 font-black text-xl transition-all shadow-sm hover:shadow-md"
-                                        >
-                                            YES
-                                        </Button>
-                                        <Button
-                                            onClick={() => handleNptStep(false)}
-                                            className="h-20 rounded-2xl border-2 border-rose-100 bg-white hover:bg-rose-50 text-rose-700 font-black text-xl transition-all shadow-sm hover:shadow-md"
-                                        >
-                                            NO
-                                        </Button>
-                                    </div>
+                                    <BiologicalCheckin onCheckin={handleNptSelection} saving={saving} />
                                 </motion.div>
                             ) : (
                                 <motion.div
-                                    key="step2"
+                                    key="mindset-checkin"
                                     initial={{ opacity: 0, x: 20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     exit={{ opacity: 0, x: -20 }}
                                     className="space-y-6"
                                 >
-                                    <div className="text-center space-y-2">
-                                        <p className="text-xs font-black uppercase tracking-[0.3em] text-amber-600/40">Pillar 2: Mindset Status</p>
-                                        <h4 className="text-lg font-black text-amber-900 uppercase">Current Mindset Status?</h4>
-                                    </div>
-                                    <div className="grid grid-cols-3 gap-2">
-                                        <button
-                                            onClick={() => handleMindsetStep('sharp')}
-                                            disabled={saving}
-                                            className="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl border-2 border-emerald-100 bg-white hover:bg-emerald-50 text-emerald-700 transition-all font-black text-[10px] uppercase tracking-widest shadow-sm"
-                                        >
-                                            <Sun className="w-5 h-5" />
-                                            Sharp
-                                        </button>
-                                        <button
-                                            onClick={() => handleMindsetStep('foggy')}
-                                            disabled={saving}
-                                            className="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl border-2 border-amber-100 bg-white hover:bg-amber-50 text-amber-700 transition-all font-black text-[10px] uppercase tracking-widest shadow-sm"
-                                        >
-                                            <CloudLightning className="w-5 h-5 opacity-40" />
-                                            Foggy
-                                        </button>
-                                        <button
-                                            onClick={() => handleMindsetStep('stormy')}
-                                            disabled={saving}
-                                            className="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl border-2 border-red-100 bg-white hover:bg-red-50 text-red-700 transition-all font-black text-[10px] uppercase tracking-widest shadow-sm"
-                                        >
-                                            <CloudLightning className="w-5 h-5" />
-                                            Stormy
-                                        </button>
-                                    </div>
+                                    <MindsetCheckin onCheckin={handleMindsetSelection} saving={saving} />
                                     <button
-                                        onClick={() => setStep(1)}
+                                        onClick={() => setTempNpt(null)}
                                         className="w-full text-[9px] font-black uppercase tracking-[0.2em] text-amber-600/30 hover:text-amber-600/60"
                                     >
                                         Back to Physical signal
@@ -352,4 +321,3 @@ export function DailyHealthCheck({ onUpdate, days = 0 }: DailyHealthCheckProps) 
         </div>
     );
 }
-
