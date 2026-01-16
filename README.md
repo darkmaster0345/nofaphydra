@@ -1,81 +1,85 @@
-# NoFap Fursan ⚔️
+# NoFap Fursan: Elite Sabr Tracker ⚔️
 
-**NoFap Fursan** is a privacy-first, decentralized Sabr Count tracker and community designed to help you build discipline and self-mastery. Built on the **Nostr** protocol, Fursan ensures your data remains yours—encrypted, decentralized, and censorship-resistant.
+**NoFap Fursan** is a privacy-first, decentralized Sabr (Patience/Discipline) tracker and Vanguard community designed to help you build self-mastery. Built on the **Nostr** protocol, Fursan ensures your data remains yours—encrypted, decentralized, and censorship-resistant.
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-black.svg)
 ![Protocol: Nostr](https://img.shields.io/badge/Protocol-Nostr-purple.svg)
 ![Platform: Android](https://img.shields.io/badge/Platform-Android-green.svg)
+![Privacy: High](https://img.shields.io/badge/Privacy-Local%20Only-blue.svg)
 
 ---
 
 ## 🚀 Key Features
 
-### 🛡️ Decentralized Privacy
-*   **NIP-44 (v2) Encryption**: Your streak and journal data are encrypted end-to-end. Only your private key can decrypt your progress.
-*   **No Central Servers**: No accounts, no email, no central database. Your data lives on a global network of independent relays.
-*   **Identity Sovereignty**: Manage your identity using standard Nostr keys (nsec/npub).
+### 🛡️ Private & Decentralized
+*   **Privacy First**: All sensitive data (Journal, Streak) is stored locally or encrypted using **NIP-44 (v2)** before syncing.
+*   **No Accounts**: No email, no phone number. Just a generated cryptographic identity (Nostr Keys).
+*   **Offline-First**: Works perfectly without internet. Syncs securely when you reconnect.
 
-### 💬 Community & Chat
-*   **Global Chat Room**: Connect with other warriors using a high-performance, real-time chat interface.
-*   **Automatic Identity Discovery**: Fursan automatically fetches usernames and profiles (Kind 0) from the network, so you see people, not hex codes.
-*   **Brutalist Aesthetic**: A high-contrast, minimalist UI designed for focus and impact.
+### ⚔️ The Vanguard (Community)
+*   **Encrypted Channels**: Chat with fellow warriors in dedicated channels:
+    *   **General**: Command & Strategy
+    *   **SOS**: Emergency Assistance
+    *   **Motivation**: Power & Wisdom
+    *   **Fiqh**: Sacred Knowledge
+*   **Identity Discovery**: Automatically fetches profiles from the global Nostr network.
 
-### 📱 Premium Mobile Experience
-*   **Neo-Brutalist Design**: A unique "Fursan" visual style that stands out from generic trackers.
-*   **Offline-First**: Built with an intelligent offline queue. Your events are stored locally and sync automatically when you're back online.
-*   **Automatic APK Builds**: Every update is automatically compiled into a fresh Android APK via GitHub Actions.
+### 🕌 Spiritual & Mental Tools
+*   **Prayer Times (Adhan)**: Built-in local calculation for prayer times based on location (Privacy-preserving, runs locally).
+*   **Panic Button**: Instant redirection and motivational content for urgent moments.
+*   **Journal**: Encrypted daily logs to track your mental state (Clear, Foggy, Stormy).
+
+### 🎨 Premium Experience
+*   **Dynamic Theming**:
+    *   **Fursan Royal**: A prestigious Cream & Gold aesthetic (Default).
+    *   **Fursan Dark**: A high-contrast Gold on Black mode for night operations.
+*   **Ad-Free**: Zero ads, zero trackers, 100% Free & Open Source.
+
+---
+
+## 🔧 Technical Details
+
+*   **Framework**: React, TypeScript, Vite, Capacitor
+*   **Encryption**: NIP-44 (Secp256k1)
+*   **Build System**: Gradle 8.7+ (Android Gradle Plugin 8.7.2)
+*   **JDK**: Java 17 Required
 
 ---
 
 ## 📥 Getting the App
 
-### 🛠️ GitHub Actions (Latest Build)
-The most up-to-date version of the app is always available as a downloadable artifact:
-1.  Navigate to the **[Actions](https://github.com/darkmaster0345/nofapfursan/actions)** tab in this repository.
-2.  Click on the most recent successful "Build Fursan APK" workflow run.
-3.  Scroll down to **Artifacts** and download `Fursan-Chat-Debug-APK`.
+### 🛠️ Build from Source
+1.  Clone the repository.
+2.  Install dependencies: `npm install`
+3.  Build the web assets: `npm run build`
+4.  Sync Capacitor: `npx cap sync android`
+5.  Build APK:
+    ```bash
+    cd android
+    ./gradlew assembleRelease
+    ```
 
 ### 📦 Releases
-For stable versions, visit the **[Releases](https://github.com/darkmaster0345/nofapfursan/releases)** page and download the latest `.apk`.
+Visit the **[Releases](https://github.com/darkmaster0345/nofapfursan/releases)** page for the latest APK.
 
 ---
 
-## ️ For Developers
+## 💰 Support the Mission
 
-Fursan is built with **React**, **TypeScript**, **Vite**, and **Capacitor**.
+Fursan is developed by **Ubaid**. If this tool helps you in your journey, consider supporting the development.
 
-### Prerequisites
-*   Node.js 20+
-*   Android Studio (for local native builds)
+**Contact**: `ubaid0345@proton.me`
 
-### Local Setup
-1.  **Clone the repository**:
-    ```bash
-    git clone https://github.com/darkmaster0345/nofapfursan.git
-    cd nofapfursan
-    ```
-2.  **Install Dependencies**:
-    ```bash
-    npm install
-    ```
-3.  **Run Development Server**:
-    ```bash
-    npm run dev
-    ```
-4.  **Sync Android Project**:
-    ```bash
-    npm run build
-    npx cap sync android
-    ```
+**Donations**:
+*   **Solana (SOL)**: `3Aw78BrsdtBeZNpTQvAP6kjtUpGqDBqhr8dATzEZgp8V`
+*   **Bitcoin (BTC)**: `bc1q43nelc0skgng752wesq5ez4qzhgl09cksmlddx`
 
 ---
 
-## 🤝 Contributing & FOSS
-NoFap Fursan is **Free and Open Source Software (FOSS)** under the MIT License. We welcome contributions to the code, design, and relay list.
+## 📄 License & Privacy
 
-*   **Zero Trackers**: No analytics, no ad-SDKs, no telemetry.
-*   **Censorship Resistant**: Built on [Nostr](https://nostr.com/), an open protocol for global censorship-resistant networks.
+**License**: MIT License. Free to fork, modify, and distribute.
 
----
+**Privacy Policy**: This app does NOT collect usage data. Location data is processed LOCALLY on your device for Prayer Times and is never transmitted. Chat messages are public (Signed Events) but stored on decentralized relays, not our servers. Encrypted data (Journal) is readable only by YOU.
 
 *"Stay strong. Stay disciplined. Become legendary."* ⚔️
