@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { saveStreak, fetchStreak, StreakPayload } from "@/services/nostr";
-import { Download, ArrowLeft, Loader2, LogOut, Settings, ShieldCheck, User, Network, Sparkles, Bell } from "lucide-react";
+import { Download, ArrowLeft, Loader2, LogOut, Settings, ShieldCheck, User, Network, Sparkles, Bell, Scale } from "lucide-react";
 import { useNostr } from "@/hooks/useNostr";
 import { IdentityManagement } from "@/components/IdentityManagement";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import { SecuritySettings } from "@/components/SecuritySettings";
 import { ThemeSelector } from "@/components/ThemeSelector";
 import { PrivacySettings } from "@/components/PrivacySettings";
 import { NotificationSettings } from "@/components/NotificationSettings";
+import { PrayerFiqhSettings } from "@/components/PrayerFiqhSettings";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { Capacitor } from "@capacitor/core";
 import { Header } from "@/components/Header";
@@ -186,6 +187,14 @@ const Profile = () => {
                   Notification Protocol
                 </div>
                 <NotificationSettings />
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-amber-800 font-bold text-sm uppercase tracking-widest px-1">
+                  <Scale className="w-4 h-4 text-amber-500" />
+                  Fiqh Protocol
+                </div>
+                <PrayerFiqhSettings />
               </div>
 
               <div className="space-y-4">

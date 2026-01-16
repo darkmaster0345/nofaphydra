@@ -9,6 +9,28 @@ import {
 import { Geolocation } from '@capacitor/geolocation';
 
 const STORAGE_KEY = 'fursan_prayer_checkins';
+const METHOD_STORAGE_KEY = 'fursan_prayer_method';
+const MADHAB_STORAGE_KEY = 'fursan_prayer_madhab';
+
+export const CALCULATION_METHODS = [
+    { id: 'MuslimWorldLeague', name: 'Muslim World League' },
+    { id: 'Egyptian', name: 'Egyptian General Authority of Survey' },
+    { id: 'Karachi', name: 'University of Islamic Sciences, Karachi' },
+    { id: 'UmmAlQura', name: 'Umm al-Qura University, Makkah' },
+    { id: 'Dubai', name: 'Dubai' },
+    { id: 'MoonsightingCommittee', name: 'Moonsighting Committee' },
+    { id: 'NorthAmerica', name: 'ISNA (North America)' },
+    { id: 'Kuwait', name: 'Kuwait' },
+    { id: 'Qatar', name: 'Qatar' },
+    { id: 'Singapore', name: 'Singapore' },
+    { id: 'Turkey', name: 'Turkey' },
+    { id: 'Tehran', name: 'Institute of Geophysics, University of Tehran' },
+];
+
+export const MADHABS = [
+    { id: 'Shafi', name: 'Shafi / Maliki / Hanbali' },
+    { id: 'Hanafi', name: 'Hanafi' },
+];
 
 export interface PrayerTimes {
     Fajr: Date;
@@ -84,8 +106,28 @@ export async function getLocalPrayerTimes(date: Date = new Date()): Promise<Pray
         }
 
         const adhanCoords = new Coordinates(coords.latitude, coords.longitude);
-        const params = CalculationMethod.MuslimWorldLeague();
-        params.madhab = Madhab.Shafi; // Default, can be customized later
+
+        // Load Calculation Method
+        const storedMethod = localStorage.getItem(METHOD_STORAGE_KEY) || 'MuslimWorldLeague';
+        let params;
+        switch (storedMethod) {
+            case 'Egyptian': params = CalculationMethod.Egyptian(); break;
+            case 'Karachi': params = CalculationMethod.Karachi(); break;
+            case 'UmmAlQura': params = CalculationMethod.UmmAlQura(); break;
+            case 'Dubai': params = CalculationMethod.Dubai(); break;
+            case 'MoonsightingCommittee': params = CalculationMethod.MoonsightingCommittee(); break;
+            case 'NorthAmerica': params = CalculationMethod.NorthAmerica(); break;
+            case 'Kuwait': params = CalculationMethod.Kuwait(); break;
+            case 'Qatar': params = CalculationMethod.Qatar(); break;
+            case 'Singapore': params = CalculationMethod.Singapore(); break;
+            case 'Turkey': params = CalculationMethod.Turkey(); break;
+            case 'Tehran': params = CalculationMethod.Tehran(); break;
+            default: params = CalculationMethod.MuslimWorldLeague();
+        }
+
+        // Load Madhab
+        const storedMadhab = localStorage.getItem(MADHAB_STORAGE_KEY) || 'Shafi';
+        params.madhab = storedMadhab === 'Hanafi' ? Madhab.Hanafi : Madhab.Shafi;
 
         const prayerTimes = new AdhanPrayerTimes(adhanCoords, date, params);
 

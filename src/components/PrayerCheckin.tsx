@@ -41,7 +41,18 @@ export function PrayerCheckin() {
     useEffect(() => {
         loadData();
         const interval = setInterval(updateAllStatuses, 1000);
-        return () => clearInterval(interval);
+
+        const handleSettingsUpdate = () => {
+            updateAllStatuses();
+            loadData();
+        };
+
+        window.addEventListener('fursan_prayer_settings_updated', handleSettingsUpdate);
+
+        return () => {
+            clearInterval(interval);
+            window.removeEventListener('fursan_prayer_settings_updated', handleSettingsUpdate);
+        };
     }, []);
 
     const formatCountdown = (ms: number) => {
@@ -149,6 +160,10 @@ export function PrayerCheckin() {
                         const isActive = status?.active || isCompleted;
                         const Icon = prayer.icon;
 
+                        // Check if it's Friday for Jumu'ah
+                        const isFriday = new Date().getDay() === 5;
+                        const prayerName = (prayer.id === 'dhuhr' && isFriday) ? 'Jumu\'ah' : prayer.name;
+
                         return (
                             <button
                                 key={prayer.id}
@@ -169,15 +184,21 @@ export function PrayerCheckin() {
                                 ) : (
                                     <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
                                 )}
-                                <span className="text-[8px] sm:text-[9px] font-bold uppercase tracking-tight truncate w-full">
-                                    {prayer.name}
+                                <span className={cn(
+                                    "text-[8px] sm:text-[9px] font-black uppercase tracking-tight truncate w-full",
+                                    isCompleted ? "text-white" : "text-black"
+                                )}>
+                                    {prayerName}
                                 </span>
-                                <span className="text-[7px] sm:text-[8px] opacity-80 truncate w-full">
+                                <span className={cn(
+                                    "text-[7px] sm:text-[8px] font-bold opacity-80 truncate w-full",
+                                    isCompleted ? "text-white/90" : "text-black/60"
+                                )}>
                                     {prayer.arabicName}
                                 </span>
 
                                 {!isActive && !isCompleted && status?.countdown && (
-                                    <div className="absolute inset-x-0 bottom-0 py-0.5 bg-black/5 text-[6px] font-bold tabular-nums">
+                                    <div className="absolute inset-x-0 bottom-0 py-0.5 bg-black/5 text-[6px] font-bold tabular-nums text-black/40">
                                         {status.countdown}
                                     </div>
                                 )}

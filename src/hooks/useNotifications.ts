@@ -50,10 +50,13 @@ export function useNotifications() {
 
       // 2. Schedule Adhan (Prayer Time) Notifications
       const prayerTimes = await getPrayerNotificationTimes();
+      const isFriday = new Date().getDay() === 5;
+
       prayerTimes.forEach(p => {
+        const prayerName = (p.name === 'Dhuhr' && isFriday) ? 'Jumu\'ah' : p.name;
         notifications.push({
-          title: `Adhan: ${p.name} 🕌`,
-          body: `It is time for ${p.name}. Rise, ya Faris, for the success is in Salah.`,
+          title: `Adhan: ${prayerName} 🕌`,
+          body: `It is time for ${prayerName}. Rise, ya Faris, for the success is in Salah.`,
           id: notificationId++,
           schedule: { at: p.time },
           smallIcon: "res://ic_stat_icon",
