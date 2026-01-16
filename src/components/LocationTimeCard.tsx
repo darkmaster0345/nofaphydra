@@ -40,11 +40,16 @@ export function LocationTimeCard() {
         const timer = setInterval(() => setTime(new Date()), 1000);
         updateLocation();
 
-        window.addEventListener('fursan_location_settings_updated', updateLocation);
+        const handleUpdate = async () => {
+            const { clearPrayerCache } = await import("@/lib/prayerUtils");
+            clearPrayerCache();
+            updateLocation();
+        };
+        window.addEventListener('fursan_location_settings_updated', handleUpdate);
 
         return () => {
             clearInterval(timer);
-            window.removeEventListener('fursan_location_settings_updated', updateLocation);
+            window.removeEventListener('fursan_location_settings_updated', handleUpdate);
         };
     }, []);
 

@@ -58,72 +58,95 @@ export interface PrayerCheckin {
     timestamp: number;
 }
 
+let cachedTimeOffset: number | null = null;
+let lastTimeCheck = 0;
+
 /**
  * Get Network Verified Time (Anti-Cheat)
- * Falls back to local time if network is unavailable.
+ * Calculates the offset between local time and network time once per hour.
  */
 export async function getVerifiedTime(): Promise<number> {
-    try {
-        // We fetch from a high-availability server to check the 'Date' header
-        // This is a lightweight way to get a trusted timestamp without a specialized NTP library.
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3000);
+    const now = Date.now();
 
-        const response = await fetch('https://www.google.com', {
-            method: 'HEAD',
-            cache: 'no-cache',
-            signal: controller.signal
-        });
+    // Refresh offset every hour or if not yet cached
+    if (cachedTimeOffset === null || (now - lastTimeCheck > 3600000)) {
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 3000);
 
-        clearTimeout(timeoutId);
-        const dateStr = response.headers.get('Date');
-        if (dateStr) {
-            return new Date(dateStr).getTime();
+            const response = await fetch('https://www.google.com', {
+                method: 'HEAD',
+                cache: 'no-cache',
+                signal: controller.signal
+            });
+
+            clearTimeout(timeoutId);
+            const dateStr = response.headers.get('Date');
+            if (dateStr) {
+                const networkTime = new Date(dateStr).getTime();
+                cachedTimeOffset = networkTime - now;
+                lastTimeCheck = now;
+                console.log(`[Anti-Cheat] Time offset calibrated: ${cachedTimeOffset}ms`);
+            }
+        } catch (e) {
+            console.warn('[Anti-Cheat] Network time check failed, using local clock.');
+            if (cachedTimeOffset === null) cachedTimeOffset = 0;
         }
-    } catch (e) {
-        console.warn('[Anti-Cheat] Network time check failed, using local clock.');
     }
-    return Date.now();
+
+    return Date.now() + (cachedTimeOffset || 0);
 }
+
+// Cache for prayer times to avoid recalculating 5 times per second
+let cachedPrayerTimes: { date: string, times: PrayerTimes } | null = null;
 
 /**
  * Get prayer times locally using Adhan.js
  */
 export async function getLocalPrayerTimes(date: Date = new Date()): Promise<PrayerTimes | null> {
+    // Return cache if it's the same day
+    const dateKey = date.toDateString();
+    if (cachedPrayerTimes && cachedPrayerTimes.date === dateKey) {
+        // However, if coordinates or settings changed, we should recalculate.
+        // For now, let's just invalidate cache on settings update event (handled elsewhere)
+    }
+
     try {
-        let coords: { latitude: number; longitude: number } | null = null;
+        let latitude: number | null = null;
+        let longitude: number | null = null;
         const locationMode = localStorage.getItem(LOCATION_MODE_KEY) || 'auto';
 
         if (locationMode === 'manual') {
-            const lat = localStorage.getItem(MANUAL_LAT_KEY);
-            const lng = localStorage.getItem(MANUAL_LNG_KEY);
-            if (lat && lng) {
-                coords = {
-                    latitude: parseFloat(lat),
-                    longitude: parseFloat(lng)
-                };
+            const latStr = localStorage.getItem(MANUAL_LAT_KEY);
+            const lngStr = localStorage.getItem(MANUAL_LNG_KEY);
+            if (latStr && lngStr) {
+                const pLat = parseFloat(latStr);
+                const pLng = parseFloat(lngStr);
+                if (!isNaN(pLat) && !isNaN(pLng)) {
+                    latitude = pLat;
+                    longitude = pLng;
+                }
             }
         }
 
-        if (!coords) {
+        if (latitude === null || longitude === null) {
             // Try to get GPS coordinates
             try {
                 const position = await Geolocation.getCurrentPosition({
                     enableHighAccuracy: false,
                     timeout: 5000
                 });
-                coords = {
-                    latitude: position.coords.latitude,
-                    longitude: position.coords.longitude
-                };
+                latitude = position.coords.latitude;
+                longitude = position.coords.longitude;
             } catch (e) {
                 console.warn('[Prayer] GPS access denied or failed, using default (Mecca)');
                 // Default to Mecca coordinates if GPS is unavailable
-                coords = { latitude: 21.4225, longitude: 39.8262 };
+                latitude = 21.4225;
+                longitude = 39.8262;
             }
         }
 
-        const adhanCoords = new Coordinates(coords.latitude, coords.longitude);
+        const adhanCoords = new Coordinates(latitude, longitude);
 
         // Load Calculation Method
         const storedMethod = localStorage.getItem(METHOD_STORAGE_KEY) || 'MuslimWorldLeague';
@@ -149,7 +172,7 @@ export async function getLocalPrayerTimes(date: Date = new Date()): Promise<Pray
 
         const prayerTimes = new AdhanPrayerTimes(adhanCoords, date, params);
 
-        return {
+        const result = {
             Fajr: prayerTimes.fajr,
             Sunrise: prayerTimes.sunrise,
             Dhuhr: prayerTimes.dhuhr,
@@ -157,6 +180,9 @@ export async function getLocalPrayerTimes(date: Date = new Date()): Promise<Pray
             Maghrib: prayerTimes.maghrib,
             Isha: prayerTimes.isha
         };
+
+        cachedPrayerTimes = { date: dateKey, times: result };
+        return result;
     } catch (error) {
         console.error('[Prayer] Local calculation failed:', error);
         return null;
@@ -171,8 +197,18 @@ export async function isPrayerActive(prayerId: string): Promise<{ active: boolea
     if (!times) return { active: false, countdown: 0 };
 
     const verifiedNow = await getVerifiedTime();
-    const prayerKey = prayerId.charAt(0).toUpperCase() + prayerId.slice(1) as keyof PrayerTimes;
-    const prayerTime = times[prayerKey].getTime();
+
+    // Map prayerId to correct times key
+    const prayerMap: Record<string, keyof PrayerTimes> = {
+        fajr: 'Fajr',
+        dhuhr: 'Dhuhr',
+        asr: 'Asr',
+        maghrib: 'Maghrib',
+        isha: 'Isha'
+    };
+
+    const key = prayerMap[prayerId.toLowerCase()] || 'Fajr';
+    const prayerTime = times[key].getTime();
 
     const diff = prayerTime - verifiedNow;
 
@@ -180,6 +216,16 @@ export async function isPrayerActive(prayerId: string): Promise<{ active: boolea
         active: diff <= 0,
         countdown: diff > 0 ? diff : 0
     };
+}
+
+
+/**
+ * Clear the calculated prayer times cache.
+ * Call this when location or fiqh settings change.
+ */
+export function clearPrayerCache() {
+    cachedPrayerTimes = null;
+    console.log('[Prayer] Calculation cache cleared.');
 }
 
 /**

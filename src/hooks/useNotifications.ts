@@ -174,11 +174,13 @@ export function useNotifications() {
       scheduleNotifications();
     }
 
-    const handleUpdate = () => {
+    const handleUpdate = useCallback(() => {
+      // Clear the prayer cache before rescheduling
+      import("@/lib/prayerUtils").then(m => m.clearPrayerCache());
       if (enabled && (permission === "granted" || permission === "provisional")) {
         scheduleNotifications();
       }
-    };
+    }, [enabled, permission, scheduleNotifications]);
 
     window.addEventListener('fursan_prayer_settings_updated', handleUpdate);
     return () => window.removeEventListener('fursan_prayer_settings_updated', handleUpdate);

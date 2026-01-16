@@ -42,7 +42,9 @@ export function PrayerCheckin() {
         loadData();
         const interval = setInterval(updateAllStatuses, 1000);
 
-        const handleSettingsUpdate = () => {
+        const handleSettingsUpdate = async () => {
+            const { clearPrayerCache } = await import("@/lib/prayerUtils");
+            clearPrayerCache();
             updateAllStatuses();
             loadData();
         };
