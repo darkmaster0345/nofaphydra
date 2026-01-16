@@ -26,10 +26,10 @@ const BROADCAST_TIMEOUT = 5000;
 const GLOBAL_ROOM_ID = "0000000000000000000000000000000000000000000000000000000000000001";
 
 const CHANNELS = [
-    { id: 'fursan_general', label: 'General', icon: MessageSquare, desc: 'Central Command' },
-    { id: 'fursan_sos', label: 'SOS', icon: AlertTriangle, desc: 'Emergency Support' },
-    { id: 'fursan_motivation', label: 'Motivation', icon: Sparkles, desc: 'Wisdom & Power' },
-    { id: 'fursan_fiqh', label: 'Fiqh', icon: Scroll, desc: 'Sacred Knowledge' },
+    { id: 'fursan_general', label: 'General', icon: MessageSquare, desc: 'Public Chat' },
+    { id: 'fursan_sos', label: 'SOS', icon: AlertTriangle, desc: 'Help Needed' },
+    { id: 'fursan_motivation', label: 'Motivation', icon: Sparkles, desc: 'Be Inspired' },
+    { id: 'fursan_fiqh', label: 'Fiqh', icon: Scroll, desc: 'Questions' },
 ];
 
 export default function Vanguard() {
@@ -236,7 +236,7 @@ export default function Vanguard() {
     };
 
     if (loading) {
-        return <LoadingScreen message="Linking Vanguard Channel" subMessage="Establishing Encrypted P2P Bridge" />;
+        return <LoadingScreen message="Joining the chat..." subMessage="Loading messages..." />;
     }
 
     return (
@@ -252,8 +252,8 @@ export default function Vanguard() {
                                 <Radio className="w-6 h-6 text-white" />
                             </div>
                             <div>
-                                <h1 className="text-3xl font-display text-amber-900 tracking-tight">Vanguard</h1>
-                                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-600/50">Global Encrypted Channel</p>
+                                <h1 className="text-3xl font-display text-amber-900 tracking-tight">Community</h1>
+                                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-600/50">Chat with everyone</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-2 bg-secondary px-3 py-1.5 rounded-full border border-border">
@@ -274,7 +274,7 @@ export default function Vanguard() {
                                 <div className="flex items-center gap-2">
                                     <Shield className="w-4 h-4 text-primary" />
                                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground">
-                                        Fursan Command
+                                        Chat Command
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-1.5 text-muted-foreground">
@@ -313,7 +313,7 @@ export default function Vanguard() {
                                 <div className="h-full flex flex-col items-center justify-center opacity-40 space-y-3">
                                     <Radio className="w-10 h-10 text-primary animate-pulse" />
                                     <p className="text-[10px] uppercase font-black tracking-[0.3em] text-muted-foreground text-center">
-                                        Channel Clear<br />No Active Transmissions
+                                        Chat is quiet<br />No new messages
                                     </p>
                                 </div>
                             )}
@@ -344,7 +344,7 @@ export default function Vanguard() {
                                                 {isSending ? (
                                                     <div className="flex items-center gap-1 text-muted-foreground">
                                                         <Loader2 className="w-2.5 h-2.5 animate-spin" />
-                                                        <span className="text-[8px] uppercase font-black tracking-tight">Encrypting...</span>
+                                                        <span className="text-[8px] uppercase font-black tracking-tight">Sending...</span>
                                                     </div>
                                                 ) : isFailed ? (
                                                     <button
@@ -375,7 +375,7 @@ export default function Vanguard() {
                                 <Input
                                     value={newMessage}
                                     onChange={(e) => setNewMessage(e.target.value)}
-                                    placeholder="TRANSMIT MESSAGE..."
+                                    placeholder="TYPE A MESSAGE..."
                                     className="flex-1 bg-card border-border rounded-xl h-12 text-foreground text-xs font-bold uppercase tracking-wider px-4 focus-visible:ring-primary/50 focus-visible:ring-1 focus-visible:border-primary placeholder:text-muted-foreground/50"
                                 />
                                 <Button
@@ -391,7 +391,7 @@ export default function Vanguard() {
                 </div>
 
                 <footer className="mt-8 text-center">
-                    <p className="font-black uppercase tracking-[0.4em] text-[8px] text-muted-foreground/30">Fursan Command // Encrypted ⚔️</p>
+                    <p className="font-black uppercase tracking-[0.4em] text-[8px] text-muted-foreground/30">Community Chat // Stay strong. ⚔️</p>
                 </footer>
             </div>
 

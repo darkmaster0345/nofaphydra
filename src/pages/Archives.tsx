@@ -20,7 +20,7 @@ export default function Archives() {
     }, []);
 
     if (loading) {
-        return <LoadingScreen message="Retrieving Archives" subMessage="Decoding Sacred Records" />;
+        return <LoadingScreen message="Loading..." subMessage="Getting your history..." />;
     }
 
     return (
@@ -34,8 +34,8 @@ export default function Archives() {
                             <Library className="w-6 h-6 text-primary-foreground" />
                         </div>
                         <div>
-                            <h1 className="text-3xl font-display text-foreground tracking-tight">The Archives</h1>
-                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">Statistics & Ancient Wisdom</p>
+                            <h1 className="text-3xl font-display text-foreground tracking-tight">My History</h1>
+                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">View your progress</p>
                         </div>
                     </div>
                 </header>
@@ -44,7 +44,7 @@ export default function Archives() {
                     <div className="w-full page-transition" style={{ animationDelay: "0.15s" }}>
                         <div className="flex items-center gap-2 text-foreground font-bold text-sm uppercase tracking-widest px-1 mb-4">
                             <BarChart3 className="w-4 h-4 text-primary" />
-                            Battle Statistics
+                            Detailed Stats
                         </div>
                         <StatsCard data={streakData} />
                     </div>
@@ -60,7 +60,7 @@ export default function Archives() {
                     <div className="w-full page-transition" style={{ animationDelay: "0.25s" }}>
                         <div className="flex items-center gap-2 text-foreground font-bold text-sm uppercase tracking-widest px-1 mb-4">
                             <History className="w-4 h-4 text-primary" />
-                            Protocol Events
+                            Timeline
                         </div>
                         <ActivityHistory />
                     </div>
@@ -75,7 +75,7 @@ export default function Archives() {
                 </div>
 
                 <footer className="mt-16 mb-8 text-center text-muted-foreground/30">
-                    <p className="font-bold uppercase tracking-[0.5em] text-[10px]">NoFap Fursan Protocol // Legend in Making ⚔️</p>
+                    <p className="font-bold uppercase tracking-[0.5em] text-[10px]">Stay strong and keep going. ⚔️</p>
                 </footer>
             </div>
             <BottomNav />

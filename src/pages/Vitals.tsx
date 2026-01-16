@@ -82,7 +82,7 @@ export default function Vitals() {
     }, [healthHistory]);
 
     if (loading) {
-        return <LoadingScreen message="Establishing Fortress" subMessage="Syncing Behavioral Matrix" />;
+        return <LoadingScreen message="Loading..." subMessage="Updating your progress" />;
     }
 
     return (
@@ -96,8 +96,8 @@ export default function Vitals() {
                             <Lock className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                            <h1 className="text-3xl font-black text-amber-900 tracking-tighter uppercase">The Fortress</h1>
-                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-600/50">Daily Behavioral Protocol</p>
+                            <h1 className="text-3xl font-black text-amber-900 tracking-tighter uppercase">Health Tracker</h1>
+                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-600/50">Your daily progress</p>
                         </div>
                     </div>
                 </header>
@@ -115,8 +115,8 @@ export default function Vitals() {
                                     <Activity className="w-4 h-4 text-white" />
                                 </div>
                                 <div>
-                                    <h3 className="text-sm font-black uppercase tracking-tight text-amber-800">Recovery Trend</h3>
-                                    <p className="text-[10px] font-bold text-amber-600/50 uppercase tracking-widest">Mindset & Biological Signals</p>
+                                    <h3 className="text-sm font-black uppercase tracking-tight text-amber-800">Progress Report</h3>
+                                    <p className="text-[10px] font-bold text-amber-600/50 uppercase tracking-widest">Mind & Body results</p>
                                 </div>
                             </div>
                             <Dialog>
@@ -129,7 +129,7 @@ export default function Vitals() {
                                     <DialogHeader>
                                         <DialogTitle className="text-amber-900 text-2xl font-black uppercase tracking-tighter">Protocol Trend</DialogTitle>
                                         <DialogDescription className="text-amber-800/70 font-medium text-sm pt-4">
-                                            This chart visualizes your daily mindset (Green: Sharp, Amber: Foggy, Red: Stormy) alongside your biological health markers. Stay in the Green to maintain optimal Fursan status.
+                                            This chart shows your daily mindset (Green: Good, Amber: Okay, Red: Struggling) along with your physical results. Try to stay in the Green!
                                         </DialogDescription>
                                     </DialogHeader>
                                 </DialogContent>
@@ -183,9 +183,9 @@ export default function Vitals() {
                                 <div className="flex items-center gap-3">
                                     <ShieldCheck className="w-5 h-5 text-amber-600" />
                                     <div>
-                                        <p className="text-[10px] font-black uppercase tracking-widest text-amber-900">Battle Discipline</p>
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-amber-900">Your Status</p>
                                         <p className="text-[9px] font-bold text-amber-600/60 uppercase">
-                                            {healthHistory.some(h => h.mindset === 'stormy') ? "Recovery in Progress" : "Stable Frontier"}
+                                            {healthHistory.some(h => h.mindset === 'stormy') ? "Keep working at it" : "Looking Good"}
                                         </p>
                                     </div>
                                 </div>
@@ -204,7 +204,7 @@ export default function Vitals() {
                             <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-2">
                                 <Zap className="w-5 h-5 text-emerald-600" />
                             </div>
-                            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-amber-800/40">Sharp Ratio</p>
+                            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-amber-800/40">Good mindset %</p>
                             <p className="text-2xl font-black text-black">
                                 {healthHistory.length > 0 ? Math.round((healthHistory.filter(h => h.mindset === 'sharp').length / healthHistory.length) * 100) : 0}%
                             </p>
@@ -213,7 +213,7 @@ export default function Vitals() {
                             <div className="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center mx-auto mb-2">
                                 <Flame className="w-5 h-5 text-rose-600" />
                             </div>
-                            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-amber-800/40">Bio-Integrity</p>
+                            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-amber-800/40">Physical health %</p>
                             <p className="text-2xl font-black text-black">
                                 {healthHistory.length > 0 ? Math.round((healthHistory.filter(h => h.npt).length / healthHistory.length) * 100) : 0}%
                             </p>
@@ -222,7 +222,7 @@ export default function Vitals() {
                 </div>
 
                 <footer className="mt-16 mb-8 text-center text-amber-800/10">
-                    <p className="font-bold uppercase tracking-[0.5em] text-[8px]">NoFap Fursan Fortress // Stay Vigilant ⚔️</p>
+                    <p className="font-bold uppercase tracking-[0.5em] text-[8px]">Stay strong and keep going. ⚔️</p>
                 </footer>
             </div>
             <BottomNav />

@@ -2,32 +2,25 @@ import { Shield, Radio, Library, Book, Activity, User } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 
 const navItems = [
-  { to: "/", icon: Shield, label: "Frontline" },
+  { to: "/", icon: Shield, label: "Home" },
   { to: "/journal", icon: Book, label: "Journal" },
-  { to: "/vitals", icon: Activity, label: "Vitals" },
-  { to: "/vanguard", icon: Radio, label: "Vanguard" },
-  { to: "/archives", icon: Library, label: "Archives" },
+  { to: "/vitals", icon: Activity, label: "Health" },
+  { to: "/vanguard", icon: Radio, label: "Chat" },
+  { to: "/archives", icon: Library, label: "History" },
 ];
 
 export function BottomNav() {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bottom-nav">
       {/* Glass background with semantic color */}
       <div className="absolute inset-0 bg-gradient-to-t from-background via-background/98 to-background/95 backdrop-blur-xl" />
 
       {/* Top border with gradient */}
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
-
-      {/* Decorative pattern hint */}
-      <div className="absolute inset-0 opacity-[0.02]" style={{
-        backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0L60 30L30 60L0 30z' fill='currentColor' fill-opacity='1'/%3E%3C/svg%3E")`,
-        backgroundSize: '30px 30px'
-      }} />
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent shadow-[0_-1px_10px_rgba(245,200,66,0.1)]" />
 
       {/* Content area with proper safe-area handling */}
       <div
-        className="relative flex items-center justify-around h-16 max-w-lg mx-auto"
-        style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+        className="relative flex items-center justify-around h-full max-w-lg mx-auto"
       >
         {navItems.map((item) => (
           <NavLink
@@ -54,11 +47,6 @@ export function BottomNav() {
         ))}
       </div>
 
-      {/* Bottom safe area fill */}
-      <div
-        className="absolute inset-x-0 bottom-0 bg-background"
-        style={{ height: 'env(safe-area-inset-bottom, 0px)' }}
-      />
     </nav>
   );
 }

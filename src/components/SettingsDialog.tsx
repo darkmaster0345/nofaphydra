@@ -13,6 +13,7 @@ import { LocationSettings } from "./LocationSettings";
 import { ThemeSelector } from "./ThemeSelector";
 import { PrivacySettings } from "./PrivacySettings";
 import { NotificationToggle } from "./NotificationToggle";
+import { Switch } from "@/components/ui/switch";
 import { exportKeys, clearKeys } from "@/services/nostr";
 import { luxuryClickVibrate } from "@/lib/vibrationUtils";
 import { toast } from "sonner";
@@ -38,6 +39,19 @@ export function SettingsDialog() {
     const [volume, setVolume] = useState(() => {
         return parseInt(localStorage.getItem('fursan_adhan_volume') || '80');
     });
+
+    const [minimalist, setMinimalist] = useState(() => {
+        return localStorage.getItem('fursan_minimalist_mode') === 'true';
+    });
+
+    useEffect(() => {
+        if (minimalist) {
+            document.body.classList.add('minimalist-mode');
+        } else {
+            document.body.classList.remove('minimalist-mode');
+        }
+        localStorage.setItem('fursan_minimalist_mode', minimalist.toString());
+    }, [minimalist]);
 
     const handleExportKey = async () => {
         const keys = await exportKeys();
@@ -72,8 +86,8 @@ export function SettingsDialog() {
                     <Settings className="w-6 h-6" />
                 </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md w-[95%] rounded-[2.5rem] bg-background border-2 border-border shadow-[0_0_50px_hsl(var(--foreground)/0.1)] overflow-hidden p-0">
-                <div className="bg-gradient-to-b from-secondary/20 to-background p-8 space-y-6 max-h-[85vh] overflow-y-auto">
+            <DialogContent className="max-w-md w-[95%] rounded-[2.5rem] bg-background border-2 border-border shadow-[0_0_50px_hsl(var(--foreground)/0.1)] overflow-hidden p-0 h-[85vh]">
+                <div className="bg-gradient-to-b from-secondary/20 to-background p-8 space-y-6 h-full overflow-y-auto custom-scrollbar">
                     <DialogHeader className="text-center space-y-2">
                         <div className="w-16 h-16 rounded-2xl bg-card border-2 border-border flex items-center justify-center mx-auto shadow-[0_0_20px_hsl(var(--primary)/0.2)]">
                             <Lock className="w-8 h-8 text-primary" />
@@ -134,7 +148,22 @@ export function SettingsDialog() {
                             title="Display Protocol"
                             description="Interface Selection"
                         >
-                            <ThemeSelector />
+                            <div className="space-y-6 pt-2">
+                                <ThemeSelector />
+                                <div className="flex items-center justify-between p-4 rounded-xl bg-card border border-border">
+                                    <div className="space-y-0.5">
+                                        <p className="text-[10px] font-black uppercase text-primary tracking-tighter">Minimalist Mode</p>
+                                        <p className="text-[8px] font-bold uppercase text-muted-foreground tracking-widest leading-none">Clean & Simple UI</p>
+                                    </div>
+                                    <Switch
+                                        checked={minimalist}
+                                        onCheckedChange={(checked) => {
+                                            setMinimalist(checked);
+                                            luxuryClickVibrate();
+                                        }}
+                                    />
+                                </div>
+                            </div>
                         </DropdownSection>
                     </div>
 

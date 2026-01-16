@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { saveHealthCheck, fetchHealthChecks, HealthCheck } from "@/services/nostr";
 import { Shield, Activity, AlertCircle, CheckCircle2, Zap, CloudLightning, Sun } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -119,8 +120,8 @@ export function DailyHealthCheck({ onUpdate, days = 0, showPillar = 'all' }: Dai
         const success = await saveHealthCheck(entry);
         if (success) {
             await luxuryClickVibrate();
-            toast.success("Protocol data synchronized. 🛡️");
-            logActivity('health_check', `Modular: Signal: ${entry.npt}, Mindset: ${entry.mindset}`);
+            toast.success("Progress saved. 🛡️");
+            logActivity('health_check', `Daily Check: Signal: ${entry.npt}, Mindset: ${entry.mindset}`);
             setHasSubmitedToday(true);
             setHistory([entry, ...history]);
             if (entry.mindset === 'stormy') {
@@ -147,7 +148,7 @@ export function DailyHealthCheck({ onUpdate, days = 0, showPillar = 'all' }: Dai
         if (!isCompletionConfirmed) return;
         setIsEmergencyLocked(false);
         localStorage.setItem('fursan_stormy_resolved', 'true');
-        toast.success("Protocol Restored. Stay vigilant.");
+        toast.success("Done! Stay strong.");
         await luxuryClickVibrate();
     };
 
@@ -164,7 +165,7 @@ export function DailyHealthCheck({ onUpdate, days = 0, showPillar = 'all' }: Dai
                 color: "text-blue-600",
                 bgColor: "bg-blue-50",
                 borderColor: "border-blue-200",
-                insight: "System recalibrating. Focus on the Protocol.",
+                insight: "Everything is getting ready. Stay focused.",
                 icon: <Zap className="w-4 h-4" />
             };
         }
@@ -193,7 +194,7 @@ export function DailyHealthCheck({ onUpdate, days = 0, showPillar = 'all' }: Dai
             bgColor: "bg-red-50",
             borderColor: "border-red-200",
             insight: "Critical markers detected. Immediate protocol tightening required.",
-            icon: <Activity className="w-4 h-4" />
+            icon: <Activity className="w-4 h-4 sub-label" />
         };
     };
 
@@ -202,30 +203,44 @@ export function DailyHealthCheck({ onUpdate, days = 0, showPillar = 'all' }: Dai
     if (loading) return null;
 
     if (isEmergencyLocked) {
-        return (
-            <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl flex items-center justify-center p-6 page-transition">
-                <div className="royal-card bg-black w-full max-w-md p-8 text-center space-y-6 border-2 border-red-900/50">
-                    <CloudLightning className="w-16 h-16 mx-auto text-red-600 animate-pulse" />
-                    <h2 className="text-3xl font-black text-white uppercase tracking-tighter">Mission At Risk</h2>
-                    <div className="p-4 rounded-xl bg-red-900/20 border border-red-900/50 space-y-3">
+        const overlay = (
+            <div className="fixed inset-0 z-[99999] bg-black/95 backdrop-blur-2xl flex items-center justify-center p-6 transition-all duration-500">
+                <div className="royal-card bg-black w-full max-w-md p-8 text-center space-y-6 border-2 border-red-900/50 shadow-[0_0_50px_rgba(220,38,38,0.2)]">
+                    <CloudLightning className="w-20 h-20 mx-auto text-red-600 animate-pulse" />
+                    <div className="space-y-2">
+                        <h2 className="text-4xl font-black text-white uppercase tracking-tighter">Stay Strong!</h2>
+                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-red-500/60">Take a break and refocus</p>
+                    </div>
+                    <div className="p-5 rounded-2xl bg-red-950/30 border border-red-900/40 space-y-3">
                         <p className="text-sm font-bold text-red-100 leading-relaxed uppercase tracking-widest">
-                            System Overheat. Execute 50 Pushups or Cold Shower immediately.
+                            Urgent moment detected.<br />Do 50 pushups or take a cold shower now.
                         </p>
                     </div>
-                    <div className="flex items-center gap-3 justify-center p-3">
-                        <input type="checkbox" id="confirm-emergency" checked={isCompletionConfirmed} onChange={(e) => setIsCompletionConfirmed(e.target.checked)} className="w-5 h-5 accent-red-600" />
-                        <label htmlFor="confirm-emergency" className="text-xs font-black uppercase text-red-100/60">I have completed the recovery protocol</label>
+                    <div className="flex items-center gap-3 justify-center p-3 bg-red-900/10 rounded-xl border border-red-900/20">
+                        <input
+                            type="checkbox"
+                            id="confirm-emergency"
+                            checked={isCompletionConfirmed}
+                            onChange={(e) => {
+                                luxuryClickVibrate();
+                                setIsCompletionConfirmed(e.target.checked);
+                            }}
+                            className="w-5 h-5 rounded border-red-900 text-red-600 focus:ring-red-600 bg-black"
+                        />
+                        <label htmlFor="confirm-emergency" className="text-[10px] font-black uppercase text-red-100/60 cursor-pointer select-none">I have finished this task</label>
                     </div>
                     <Button
                         disabled={!isCompletionConfirmed || unlockTimer > 0}
                         onClick={resolveEmergency}
-                        className="w-full h-14 bg-red-600 text-white font-black uppercase tracking-[0.2em] rounded-xl shadow-2xl disabled:opacity-30 transition-all active:scale-95"
+                        className="w-full h-16 bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-[0.2em] rounded-2xl shadow-2xl disabled:opacity-20 transition-all active:scale-95"
                     >
-                        {unlockTimer > 0 ? `Please Wait (${unlockTimer}s)` : "Unlock Dashboard"}
+                        {unlockTimer > 0 ? `Wait (${unlockTimer}s)` : "Back to app"}
                     </Button>
                 </div>
             </div>
         );
+
+        return createPortal(overlay, document.body);
     }
 
     if (hasSubmitedToday && showPillar !== 'all') return null;
@@ -248,8 +263,8 @@ export function DailyHealthCheck({ onUpdate, days = 0, showPillar = 'all' }: Dai
                                 <Shield className="w-5 h-5 text-amber-900" />
                             </div>
                             <div>
-                                <h3 className="text-sm font-black uppercase tracking-tight text-amber-800">Daily Protocol</h3>
-                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-600/50">Bio-Mental Verification</p>
+                                <h3 className="text-sm font-black uppercase tracking-tight text-amber-800">Daily Check</h3>
+                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-600/50 sub-label">Mind & Body Check</p>
                             </div>
                         </div>
                         {statusInfo && (
@@ -287,7 +302,7 @@ export function DailyHealthCheck({ onUpdate, days = 0, showPillar = 'all' }: Dai
                                         onClick={() => setTempNpt(null)}
                                         className="w-full text-[9px] font-black uppercase tracking-[0.2em] text-amber-600/30 hover:text-amber-600/60"
                                     >
-                                        Back to Physical signal
+                                        Go Back
                                     </button>
                                 </motion.div>
                             )}
@@ -298,11 +313,11 @@ export function DailyHealthCheck({ onUpdate, days = 0, showPillar = 'all' }: Dai
                                 <CheckCircle2 className="w-8 h-8 text-emerald-500" />
                             </div>
                             <div className="space-y-1">
-                                <p className="text-xs font-black uppercase tracking-[0.3em] text-emerald-700">Protocol Sealed</p>
-                                <p className="text-[10px] font-bold text-emerald-600/60 uppercase">Daily verification complete. Return at Fajr.</p>
+                                <p className="text-xs font-black uppercase tracking-[0.3em] text-emerald-700">All Done!</p>
+                                <p className="text-[10px] font-bold text-emerald-600/60 uppercase">You've finished your checks for today. See you tomorrow!</p>
                             </div>
                             {statusInfo && statusInfo.insight && (
-                                <div className={cn("text-[10px] font-black uppercase tracking-widest p-3 rounded-xl border opacity-80", statusInfo.bgColor, statusInfo.borderColor, statusInfo.color)}>
+                                <div className={cn("text-[10px] font-black uppercase tracking-widest p-3 rounded-xl border opacity-80 sub-label", statusInfo.bgColor, statusInfo.borderColor, statusInfo.color)}>
                                     ⚡ {statusInfo.insight}
                                 </div>
                             )}

@@ -23,7 +23,7 @@ const Index = () => {
   } = useStreak();
 
   if (!streakData || !liveStreak) {
-    return <LoadingScreen message="Initializing Protocol" subMessage="Establishing P2P Identity" />;
+    return <LoadingScreen message="Starting up..." subMessage="Setting things up for you" />;
   }
 
   const isActive = streakData?.startDate !== null;
@@ -86,7 +86,7 @@ const Index = () => {
         </div>
 
         <footer className="mt-12 text-center text-muted-foreground">
-          <p className="font-black uppercase tracking-[0.4em] text-[8px] opacity-20">NoFap Fursan Protocol // Stay disciplined. ⚔️</p>
+          <p className="font-black uppercase tracking-[0.4em] text-[8px] opacity-20 sub-label">Stay strong and keep going. ⚔️</p>
         </footer>
       </div>
 

@@ -29,7 +29,7 @@ export function ThemeSelector() {
                 </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-8">
                 {THEMES.map((theme) => {
                     const isUnlocked = unlockedThemes.includes(theme.id);
                     const isSelected = currentTheme.id === theme.id;

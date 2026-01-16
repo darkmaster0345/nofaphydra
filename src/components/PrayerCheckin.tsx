@@ -96,8 +96,8 @@ export function PrayerCheckin() {
         // Anti-Cheat: If they try to check in a locked prayer
         if (!isCompleted && status && !status.active) {
             await warningVibrate();
-            toast.error(`Patience. ${PRAYERS.find(p => p.id === prayerId)?.name} begins in ${status.countdown}.`, {
-                description: "The protocol requires real-time discipline."
+            toast.error(`Please wait. ${PRAYERS.find(p => p.id === prayerId)?.name} starts in ${status.countdown}.`, {
+                description: "You can only log prayers once they start."
             });
             return;
         }
@@ -140,7 +140,7 @@ export function PrayerCheckin() {
                         </div>
                         <div>
                             <h3 className="text-sm font-black uppercase tracking-tight text-amber-800">Prayer Check-in</h3>
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-amber-600/50">الصلاة • Daily Salah</p>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-amber-600/50 sub-label">Daily Prayers</p>
                         </div>
                     </div>
                     <div className="text-right">
@@ -191,7 +191,7 @@ export function PrayerCheckin() {
                                     {prayerName}
                                 </span>
                                 <span className={cn(
-                                    "text-[7px] sm:text-[8px] font-bold opacity-80 truncate w-full",
+                                    "text-[7px] sm:text-[8px] font-bold opacity-80 truncate w-full sub-label",
                                     isCompleted ? "text-white/90" : "text-black/60"
                                 )}>
                                     {prayer.arabicName}

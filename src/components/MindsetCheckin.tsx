@@ -14,8 +14,8 @@ export function MindsetCheckin({ onCheckin, saving }: MindsetCheckinProps) {
     return (
         <div className="royal-card p-6 space-y-6 page-transition">
             <div className="text-center space-y-2">
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-600/40">Mental Pillar</p>
-                <h4 className="text-lg font-black text-amber-900 uppercase tracking-tighter">Current Mindset Status?</h4>
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-600/40">Your Mindset</p>
+                <h4 className="text-lg font-black text-amber-900 uppercase tracking-tighter">How are you feeling today?</h4>
             </div>
             <div className="grid grid-cols-3 gap-3">
                 <button

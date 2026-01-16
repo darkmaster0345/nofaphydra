@@ -80,18 +80,20 @@
 
   html,
   body {
-    height: 100%;
+    min-height: 100%;
     width: 100%;
     margin: 0;
     padding: 0;
     overflow-x: hidden;
-    /* Prevent browser bounce but allow scrolling */
+    /* Use standard scrolling but ensure it's smooth on mobile */
+    -webkit-overflow-scrolling: touch;
     overscroll-behavior-y: auto;
     -webkit-user-select: none;
     /* Disable selection felt in long-pressing buttons */
     user-select: none;
-    touch-action: manipulation;
-    /* Faster taps by disabling double-tap-to-zoom */
+    touch-action: pan-y pinch-zoom;
+    /* Allow vertical pan and pinch zoom, but prevent horizontal pan issues */
+    scroll-behavior: smooth;
   }
 
   input,
@@ -139,7 +141,7 @@
     /* Metallic Bronze/Gold border */
     border-radius: 2rem;
     box-shadow: 0 15px 40px -10px hsl(var(--foreground) / 0.1), 0 5px 20px -5px hsl(var(--primary) / 0.2);
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.4s ease, box-shadow 0.4s ease;
     width: 95% !important;
     margin: 0 auto !important;
     position: relative;
@@ -156,8 +158,8 @@
 
   .stagger-item {
     opacity: 0;
-    transform: translateY(20px);
-    animation: slideUp 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+    will-change: transform, opacity;
+    animation: stagger-fade-in 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
     width: 95% !important;
     margin: 0 auto !important;
   }
@@ -188,9 +190,7 @@
     }
   }
 
-  .stagger-item {
-    animation: stagger-fade-in 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
-  }
+  /* Secondary definition removed to avoid conflict */
 
   /* Floating animation */
   @keyframes float {
@@ -431,5 +431,115 @@
     @apply hover:bg-secondary hover:border-primary;
     @apply shadow-md hover:shadow-lg;
     @apply transition-all duration-400 cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+/* 📱 MOBILE APP FEEL OVERRIDES (Phone only) */
+@media (max-width: 767px) {
+  .royal-card {
+    width: 100% !important;
+    margin: 0 !important;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    box-shadow: none;
+    border-top: 1px solid hsl(var(--border) / 0.3);
+    border-bottom: 1px solid hsl(var(--border) / 0.3);
+  }
+
+  .stagger-item {
+    width: 100% !important;
+    margin: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .container {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    max-width: 100% !important;
+  }
+
+  /* Compact spacing for mobile */
+  .space-y-6> :not([hidden])~ :not([hidden]) {
+    --tw-space-y-reverse: 0;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  /* Make bottom nav feel more like a native bar */
+  .bottom-nav {
+    height: 70px;
+    padding-bottom: env(safe-area-inset-bottom, 1rem);
+    border-top: 1px solid hsl(var(--border) / 0.5);
+    background: hsl(var(--background) / 0.95);
+    backdrop-filter: blur(10px);
+  }
+}
+
+/* 💻 TABLET & LAPTOP PRESERVATION */
+@media (min-width: 768px) {
+  .royal-card {
+    /* Keep existing royal card styles */
+    max-width: 500px;
+  }
+
+  .container {
+    max-width: 32rem;
+    /* Initial max-w-lg feel */
+  }
+}
+
+/* 🌿 MINIMALIST MODE STYLES */
+.minimalist-mode {
+
+  /* Hide decorative rings and secondary labels */
+  .decorative-ring,
+  .aura-badge,
+  .royal-card::before,
+  .sub-label,
+  .decorative-icon,
+  .islamic-pattern-overlay {
+    display: none !important;
+  }
+
+  /* Simplify cards */
+  .royal-card {
+    box-shadow: none !important;
+    border-width: 1px !important;
+    border-color: hsl(var(--border) / 0.5) !important;
+    border-radius: 1rem !important;
+  }
+
+  @media (max-width: 767px) {
+    .royal-card {
+      border-radius: 0 !important;
+    }
+  }
+
+  /* Remove background gradients and glow */
+  .bg-gradient-to-br,
+  .bg-gradient-to-b,
+  .bg-gradient-to-r,
+  .fursan-logo-glow {
+    background: hsl(var(--card)) !important;
+    filter: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Flatten text gradients */
+  .text-gradient-gold,
+  .text-gradient-legendary {
+    background: none !important;
+    -webkit-text-fill-color: currentColor !important;
+    color: hsl(var(--primary)) !important;
+  }
+
+  /* Disable animations that might be distracting */
+  .animate-spin-slow,
+  .animate-float,
+  .aura-effect::after {
+    animation: none !important;
+    display: none !important;
   }
 }

@@ -3,8 +3,9 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Switch } from "./ui/switch";
-import { MapPin, Search, Globe, Navigation, Loader2 } from "lucide-react";
+import { MapPin, Search, Globe, Navigation, Loader2, Crosshair } from "lucide-react";
 import { toast } from "sonner";
+import { Geolocation } from '@capacitor/geolocation';
 import { cn } from "@/lib/utils";
 
 export function LocationSettings() {
@@ -15,6 +16,7 @@ export function LocationSettings() {
     const [city, setCity] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
     const [isSearching, setIsSearching] = useState(false);
+    const [isDetecting, setIsDetecting] = useState(false);
     const [timezones, setTimezones] = useState<string[]>([]);
 
     useEffect(() => {
@@ -50,6 +52,30 @@ export function LocationSettings() {
         window.dispatchEvent(new Event('fursan_prayer_settings_updated'));
     };
 
+    const detectGPS = async () => {
+        setIsDetecting(true);
+        try {
+            const position = await Geolocation.getCurrentPosition({
+                enableHighAccuracy: true,
+                timeout: 5000
+            });
+
+            setLat(position.coords.latitude.toString());
+            setLng(position.coords.longitude.toString());
+            setMode('manual'); // Switch to manual so they can see the values fetched
+
+            toast.success("Coordinates Locked", {
+                description: "GPS signal successfully synchronized."
+            });
+        } catch (e) {
+            toast.error("GPS Error", {
+                description: "Could not access location hardware. Check permissions."
+            });
+        } finally {
+            setIsDetecting(false);
+        }
+    };
+
     const searchCity = async () => {
         if (!searchQuery.trim()) return;
 
@@ -62,21 +88,21 @@ export function LocationSettings() {
                 const result = data[0];
                 setLat(result.lat);
                 setLng(result.lon);
-                // Nominatim doesn't give timezone directly, but we can try to find a city name
                 const cityName = result.display_name.split(',')[0];
                 setCity(cityName);
+                setMode('manual');
 
                 toast.success("Sector Located", {
                     description: `Coordinates for ${cityName} synchronized.`
                 });
             } else {
                 toast.error("Sector Not Found", {
-                    description: "Could not locate these coordinates in the database."
+                    description: "Could not locate these coordinates."
                 });
             }
         } catch (e) {
             toast.error("Connection Error", {
-                description: "Map data retrieval failed."
+                description: "Coordinate database unreachable."
             });
         } finally {
             setIsSearching(false);
@@ -85,7 +111,7 @@ export function LocationSettings() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between p-4 royal-card bg-amber-50/30 border-amber-100">
+            <div className="flex items-center justify-between p-4 rounded-3xl border-2 border-amber-100 bg-amber-50/30">
                 <div className="flex items-center gap-3">
                     <div className={cn(
                         "w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all",
@@ -104,15 +130,31 @@ export function LocationSettings() {
                 />
             </div>
 
+            <Button
+                variant="outline"
+                onClick={detectGPS}
+                disabled={isDetecting}
+                className="w-full h-12 border-2 border-amber-200 bg-white text-amber-900 hover:bg-amber-50 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-95"
+            >
+                {isDetecting ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                    <Crosshair className="w-4 h-4 text-amber-500" />
+                )}
+                <span className="text-[10px] font-black uppercase tracking-widest">
+                    {isDetecting ? "Syncing..." : "Detect my location"}
+                </span>
+            </Button>
+
             {mode === 'manual' && (
                 <div className="space-y-4 animate-fade-in">
-                    <div className="relative">
+                    <div className="relative group">
                         <Input
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && searchCity()}
-                            placeholder="Search City (e.g. London, Karachi)"
-                            className="royal-card bg-white border-amber-100 h-12 pl-10 pr-24 text-xs font-bold text-amber-900 placeholder:text-amber-200"
+                            placeholder="Enter city (e.g. London)"
+                            className="w-full bg-white border-2 border-amber-100 h-12 pl-10 pr-24 text-[11px] font-bold text-amber-900 rounded-2xl focus-visible:ring-amber-400"
                         />
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-300" />
                         <Button
@@ -120,9 +162,9 @@ export function LocationSettings() {
                             size="sm"
                             disabled={isSearching}
                             onClick={searchCity}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 h-8 text-[10px] font-black uppercase tracking-widest text-amber-600 hover:text-amber-800"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 h-8 min-w-[70px] text-[10px] font-black uppercase tracking-widest text-amber-600 hover:text-amber-800"
                         >
-                            {isSearching ? <Loader2 className="w-3 h-3 animate-spin" /> : "Locate"}
+                            {isSearching ? <Loader2 className="w-3 h-3 animate-spin" /> : "Search"}
                         </Button>
                     </div>
 
@@ -132,7 +174,7 @@ export function LocationSettings() {
                             <Input
                                 value={lat}
                                 onChange={(e) => setLat(e.target.value)}
-                                className="royal-card bg-white border-amber-100 h-10 text-xs font-bold text-amber-900"
+                                className="bg-white border-2 border-amber-100 h-10 text-[11px] font-bold text-amber-900 rounded-xl"
                             />
                         </div>
                         <div className="space-y-1.5">
@@ -140,7 +182,7 @@ export function LocationSettings() {
                             <Input
                                 value={lng}
                                 onChange={(e) => setLng(e.target.value)}
-                                className="royal-card bg-white border-amber-100 h-10 text-xs font-bold text-amber-900"
+                                className="bg-white border-2 border-amber-100 h-10 text-[11px] font-bold text-amber-900 rounded-xl"
                             />
                         </div>
                     </div>
@@ -150,7 +192,7 @@ export function LocationSettings() {
                         <select
                             value={timezone}
                             onChange={(e) => setTimezone(e.target.value)}
-                            className="flex h-10 w-full royal-card bg-white border-amber-100 px-3 py-2 text-xs font-bold text-amber-900 focus:outline-none focus:ring-1 focus:ring-amber-400"
+                            className="flex h-10 w-full bg-white border-2 border-amber-100 px-3 py-2 text-[11px] font-bold text-amber-900 rounded-xl focus:outline-none focus:ring-1 focus:ring-amber-400"
                         >
                             <option value="">Select Timezone</option>
                             {timezones.map(tz => (
@@ -165,7 +207,7 @@ export function LocationSettings() {
                             value={city}
                             onChange={(e) => setCity(e.target.value)}
                             placeholder="Optional display name"
-                            className="royal-card bg-white border-amber-100 h-10 text-xs font-bold text-amber-900"
+                            className="bg-white border-2 border-amber-100 h-10 text-[11px] font-bold text-amber-900 rounded-xl"
                         />
                     </div>
                 </div>

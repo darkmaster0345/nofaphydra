@@ -11,8 +11,8 @@ export function BiologicalCheckin({ onCheckin, saving }: BiologicalCheckinProps)
     return (
         <div className="royal-card p-6 space-y-6 page-transition">
             <div className="text-center space-y-2">
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-600/40">Physical Pillar</p>
-                <h4 className="text-lg font-black text-amber-900 uppercase tracking-tighter">Morning Signal Detected?</h4>
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-600/40">Your Body</p>
+                <h4 className="text-lg font-black text-amber-900 uppercase tracking-tighter">Healthy signs this morning?</h4>
             </div>
             <div className="grid grid-cols-2 gap-4">
                 <Button
@@ -32,7 +32,7 @@ export function BiologicalCheckin({ onCheckin, saving }: BiologicalCheckinProps)
             </div>
             <div className="flex items-center gap-2 justify-center pt-2">
                 <Shield className="w-3 h-3 text-amber-600/30" />
-                <p className="text-[9px] font-bold text-amber-600/30 uppercase tracking-widest">Biological Integrity Verification</p>
+                <p className="text-[9px] font-bold text-amber-600/30 uppercase tracking-widest">Physical health check</p>
             </div>
         </div>
     );
