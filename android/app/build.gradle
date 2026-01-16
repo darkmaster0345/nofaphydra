@@ -55,6 +55,13 @@ android {
     }
 }
 
+configurations.all {
+    resolutionStrategy {
+        force "androidx.core:core-ktx:$androidxCoreVersion"
+        force "androidx.activity:activity:$androidxActivityVersion"
+    }
+}
+
 repositories {
     flatDir{
         dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
