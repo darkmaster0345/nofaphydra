@@ -68,12 +68,19 @@ let lastTimeCheck = 0;
 export async function getVerifiedTime(): Promise<number> {
     const now = Date.now();
 
-    // Refresh offset every hour or if not yet cached
-    if (cachedTimeOffset === null || (now - lastTimeCheck > 3600000)) {
+    // Refresh offset every hour (3600000ms) or if not yet cached.
+    // If it failed previously, wait at least 5 minutes (300000ms) before retrying.
+    const isCacheEmpty = cachedTimeOffset === null;
+    const isCacheOld = now - lastTimeCheck > 3600000;
+    const isRetryDelayed = now - lastTimeCheck > 300000;
+
+    if (isCacheEmpty ? isRetryDelayed : isCacheOld) {
+        lastTimeCheck = now; // Mark attempt immediately to prevent concurrent floods
         try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 3000);
 
+            // Note: Google has strict CORS. If this fails, we fall back to local time.
             const response = await fetch('https://www.google.com', {
                 method: 'HEAD',
                 cache: 'no-cache',
@@ -85,11 +92,12 @@ export async function getVerifiedTime(): Promise<number> {
             if (dateStr) {
                 const networkTime = new Date(dateStr).getTime();
                 cachedTimeOffset = networkTime - now;
-                lastTimeCheck = now;
                 console.log(`[Anti-Cheat] Time offset calibrated: ${cachedTimeOffset}ms`);
+            } else {
+                throw new Error('No Date header');
             }
         } catch (e) {
-            console.warn('[Anti-Cheat] Network time check failed, using local clock.');
+            console.warn('[Anti-Cheat] Network time check failed (likely CORS), using local clock.');
             if (cachedTimeOffset === null) cachedTimeOffset = 0;
         }
     }
