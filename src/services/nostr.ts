@@ -710,6 +710,7 @@ export async function getPendingCount(): Promise<number> {
 export interface HealthCheck {
     id?: string;
     npt: boolean; // Did you wake up with NPT?
+    mindset: 'sharp' | 'foggy' | 'stormy';
     timestamp: number;
 }
 
