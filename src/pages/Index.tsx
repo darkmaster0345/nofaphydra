@@ -72,7 +72,7 @@ const Index = () => {
             </div>
 
             <div className="stagger-item" style={{ animationDelay: '0.2s' }}>
-              <DailyHealthCheck />
+              <DailyHealthCheck days={liveStreak?.days || 0} />
             </div>
 
             <div className="stagger-item" style={{ animationDelay: '0.3s' }}>

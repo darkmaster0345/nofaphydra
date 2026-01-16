@@ -18,9 +18,10 @@ import { luxuryClickVibrate } from "@/lib/vibrationUtils";
 
 interface DailyHealthCheckProps {
     onUpdate?: () => void;
+    days?: number;
 }
 
-export function DailyHealthCheck({ onUpdate }: DailyHealthCheckProps) {
+export function DailyHealthCheck({ onUpdate, days = 0 }: DailyHealthCheckProps) {
     const [history, setHistory] = useState<HealthCheck[]>([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -43,7 +44,8 @@ export function DailyHealthCheck({ onUpdate }: DailyHealthCheckProps) {
             setHasSubmitedToday(submittedToday);
 
             // Check for medical alert (14 days of 'No')
-            if (data.length >= 14) {
+            // Only trigger medical alerts if we are past the initial adjustment phase
+            if (data.length >= 14 && (days >= 4)) {
                 const last14 = data.slice(0, 14);
                 const allNo = last14.every(entry => !entry.npt);
                 if (allNo) {
@@ -77,7 +79,7 @@ export function DailyHealthCheck({ onUpdate }: DailyHealthCheckProps) {
 
             // Re-check medical alert after new entry
             const newHistory = [entry, ...history];
-            if (newHistory.length >= 14) {
+            if (newHistory.length >= 14 && (days >= 4)) {
                 const last14 = newHistory.slice(0, 14);
                 const allNo = last14.every(e => !e.npt);
                 if (allNo) setShowMedicalAlert(true);
@@ -95,6 +97,30 @@ export function DailyHealthCheck({ onUpdate }: DailyHealthCheckProps) {
         const last7 = history.slice(0, 7);
         const yesCount = last7.filter(e => e.npt).length;
 
+        // Initial phase logic (Day 1 - Day 4)
+        if (days < 4) {
+            if (yesCount >= 4) return {
+                status: "OPTIMAL",
+                color: "text-emerald-600",
+                bgColor: "bg-emerald-50",
+                borderColor: "border-emerald-200",
+                insight: "Hormones (Testosterone) and Blood Flow are in great shape.",
+                icon: <CheckCircle2 className="w-4 h-4" />
+            };
+
+            return {
+                status: "STABILIZING",
+                color: "text-blue-600",
+                bgColor: "bg-blue-50",
+                borderColor: "border-blue-200",
+                insight: yesCount === 0
+                    ? "System recalibrating. Focus on the Protocol."
+                    : "Initial phase: Body is adjusting.",
+                icon: <Activity className="w-4 h-4" />
+            };
+        }
+
+        // Standard logic for Day 5+ (Transition to full accountability)
         if (yesCount >= 4) return {
             status: "OPTIMAL",
             color: "text-emerald-600",

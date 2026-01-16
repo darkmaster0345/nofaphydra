@@ -122,7 +122,7 @@ export default function Vitals() {
                 </header>
 
                 <div className="mb-8 page-transition" style={{ animationDelay: "0.15s" }}>
-                    <DailyHealthCheck onUpdate={handleRefresh} />
+                    <DailyHealthCheck onUpdate={handleRefresh} days={currentLiveDays} />
                 </div>
 
                 <div className="grid gap-8">
