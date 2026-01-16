@@ -100,7 +100,7 @@ export function LocationTimeCard() {
                                         <Settings className="w-3 h-3 text-amber-600/50" />
                                     </button>
                                 </DialogTrigger>
-                                <DialogContent className="royal-card border-none bg-white p-6 max-h-[80vh] overflow-y-auto">
+                                <DialogContent className="bg-background border-2 border-border p-6 rounded-[2rem] shadow-2xl max-h-[80vh] overflow-y-auto w-[95%]">
                                     <DialogHeader className="mb-4">
                                         <DialogTitle className="text-amber-900 font-display text-xl uppercase tracking-widest">Sector Protocol</DialogTitle>
                                     </DialogHeader>

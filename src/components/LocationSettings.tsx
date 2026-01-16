@@ -134,7 +134,7 @@ export function LocationSettings() {
                 variant="outline"
                 onClick={detectGPS}
                 disabled={isDetecting}
-                className="w-full h-12 border-2 border-amber-200 bg-white text-amber-900 hover:bg-amber-50 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-95"
+                className="w-full h-12 border-2 border-amber-200 bg-white text-amber-900 hover:bg-amber-50 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-100"
             >
                 {isDetecting ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -215,7 +215,7 @@ export function LocationSettings() {
 
             <Button
                 onClick={handleSave}
-                className="w-full h-12 bg-amber-900 text-white hover:bg-black font-black uppercase tracking-[0.2em] text-xs transition-all shadow-lg active:scale-95"
+                className="w-full h-12 bg-amber-900 text-white hover:bg-black font-black uppercase tracking-[0.2em] text-xs transition-all shadow-lg active:scale-100"
             >
                 Lock Location Protocol
             </Button>
