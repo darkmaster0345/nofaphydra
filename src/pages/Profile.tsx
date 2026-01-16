@@ -121,7 +121,7 @@ const Profile = () => {
         <Header />
 
         <div className="flex items-center justify-between mb-8 page-transition" style={{ animationDelay: "0.1s" }}>
-          <Button variant="outline" onClick={() => navigate("/")} className="rounded-xl border-amber-200 bg-white text-amber-800 hover:bg-amber-50 h-10 px-4 text-xs font-bold shadow-sm">
+          <Button variant="outline" onClick={() => navigate("/")} className="rounded-xl border-border bg-card text-foreground hover:bg-secondary h-10 px-4 text-xs font-bold shadow-sm">
             <ArrowLeft className="w-4 h-4 mr-2" /> Back
           </Button>
           <div className="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full border border-emerald-100 shadow-sm">
@@ -131,14 +131,14 @@ const Profile = () => {
         </div>
 
         <div className="royal-card p-0 overflow-hidden page-transition" style={{ animationDelay: "0.15s" }}>
-          <div className="p-6 border-b border-amber-200/50 bg-gradient-to-r from-amber-50 to-transparent">
+          <div className="p-6 border-b border-border bg-gradient-to-r from-secondary/30 to-transparent">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center shadow-lg shadow-amber-500/20">
-                <Settings className="w-5 h-5 text-white" />
+              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
+                <Settings className="w-5 h-5 text-primary-foreground" />
               </div>
               <div>
-                <h1 className="text-xl font-display text-amber-900 tracking-tight">Knight Settings</h1>
-                <p className="text-[10px] font-bold text-amber-600/50 uppercase tracking-widest">Identity & Protocol Control</p>
+                <h1 className="text-xl font-display text-foreground tracking-tight">Knight Settings</h1>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Identity & Protocol Control</p>
               </div>
             </div>
           </div>
@@ -161,18 +161,18 @@ const Profile = () => {
               </div>
             </div>
 
-            <div className="pt-8 space-y-10 border-t border-amber-100">
+            <div className="pt-8 space-y-10 border-t border-border">
               <div className="space-y-4">
-                <div className="flex items-center gap-2 text-amber-800 font-bold text-sm uppercase tracking-widest px-1">
-                  <Network className="w-4 h-4 text-amber-500" />
+                <div className="flex items-center gap-2 text-foreground font-bold text-sm uppercase tracking-widest px-1">
+                  <Network className="w-4 h-4 text-primary" />
                   Network Settings
                 </div>
                 <RelaySettings />
               </div>
 
               <div className="space-y-4">
-                <div className="flex items-center gap-2 text-amber-800 font-bold text-sm uppercase tracking-widest px-1">
-                  <ShieldCheck className="w-4 h-4 text-amber-500" />
+                <div className="flex items-center gap-2 text-foreground font-bold text-sm uppercase tracking-widest px-1">
+                  <ShieldCheck className="w-4 h-4 text-primary" />
                   Security Protocol
                 </div>
                 <SecuritySettings />
@@ -183,43 +183,43 @@ const Profile = () => {
               </div>
 
               <div className="space-y-4">
-                <div className="flex items-center gap-2 text-amber-800 font-bold text-sm uppercase tracking-widest px-1">
-                  <Bell className="w-4 h-4 text-amber-500" />
+                <div className="flex items-center gap-2 text-foreground font-bold text-sm uppercase tracking-widest px-1">
+                  <Bell className="w-4 h-4 text-primary" />
                   Notification Protocol
                 </div>
                 <NotificationSettings />
               </div>
 
               <div className="space-y-4">
-                <div className="flex items-center gap-2 text-amber-800 font-bold text-sm uppercase tracking-widest px-1">
-                  <Map className="w-4 h-4 text-amber-500" />
+                <div className="flex items-center gap-2 text-foreground font-bold text-sm uppercase tracking-widest px-1">
+                  <Map className="w-4 h-4 text-primary" />
                   Location Protocol
                 </div>
                 <LocationSettings />
               </div>
 
               <div className="space-y-4">
-                <div className="flex items-center gap-2 text-amber-800 font-bold text-sm uppercase tracking-widest px-1">
-                  <Scale className="w-4 h-4 text-amber-500" />
+                <div className="flex items-center gap-2 text-foreground font-bold text-sm uppercase tracking-widest px-1">
+                  <Scale className="w-4 h-4 text-primary" />
                   Fiqh Protocol
                 </div>
                 <PrayerFiqhSettings />
               </div>
 
               <div className="space-y-4">
-                <div className="flex items-center gap-2 text-amber-800 font-bold text-sm uppercase tracking-widest px-1">
-                  <Sparkles className="w-4 h-4 text-amber-500" />
+                <div className="flex items-center gap-2 text-foreground font-bold text-sm uppercase tracking-widest px-1">
+                  <Sparkles className="w-4 h-4 text-primary" />
                   Visual Aesthetics
                 </div>
                 <ThemeSelector />
               </div>
             </div>
 
-            <div className="pt-8 border-t border-amber-100">
+            <div className="pt-8 border-t border-border">
 
               <div className="flex flex-col items-center gap-2 mt-8 text-center">
-                <p className="text-[10px] text-amber-800/30 font-bold uppercase tracking-[0.3em]">NoFap Fursan v2.5 Elite</p>
-                <p className="text-[9px] text-amber-800/10 font-mono tracking-widest">BITCOIN // NOSTR // SABR</p>
+                <p className="text-[10px] text-muted-foreground/30 font-bold uppercase tracking-[0.3em]">NoFap Fursan v2.5 Elite</p>
+                <p className="text-[9px] text-muted-foreground/10 font-mono tracking-widest">BITCOIN // NOSTR // SABR</p>
               </div>
             </div>
           </div>

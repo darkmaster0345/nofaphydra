@@ -23,8 +23,8 @@ export function ThemeSelector() {
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between px-1">
-                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-amber-800">Visual Protocols</h3>
-                <span className="text-[10px] font-bold text-amber-600/40 uppercase tracking-widest bg-amber-50 px-3 py-1 rounded-full border border-amber-100">
+                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-foreground">Visual Protocols</h3>
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest bg-secondary px-3 py-1 rounded-full border border-border">
                     {unlockedThemes.length}/{THEMES.length} Unlocked
                 </span>
             </div>
@@ -41,8 +41,8 @@ export function ThemeSelector() {
                             className={`
                                 relative p-5 rounded-2xl border-2 transition-all duration-500 text-left group overflow-hidden
                                 ${isSelected
-                                    ? 'border-amber-400 bg-amber-50/50 shadow-lg shadow-amber-200/50'
-                                    : 'border-amber-100 bg-white hover:border-amber-300 hover:shadow-md'}
+                                    ? 'border-primary bg-secondary/50 shadow-lg shadow-primary/20'
+                                    : 'border-border bg-card hover:border-primary/50 hover:shadow-md'}
                                 ${!isUnlocked ? 'opacity-60 cursor-not-allowed grayscale' : 'cursor-pointer'}
                             `}
                         >
@@ -54,23 +54,23 @@ export function ThemeSelector() {
 
                             <div className="flex justify-between items-start mb-4 relative z-10">
                                 <div
-                                    className="w-6 h-6 rounded-full border-2 border-white shadow-md ring-1 ring-amber-100"
+                                    className="w-6 h-6 rounded-full border-2 border-background shadow-md ring-1 ring-border"
                                     style={{ backgroundColor: theme.preview }}
                                 />
                                 {!isUnlocked ? (
-                                    <div className="bg-amber-100 text-amber-400 p-1.5 rounded-lg">
+                                    <div className="bg-secondary text-muted-foreground p-1.5 rounded-lg">
                                         <Lock className="w-3.5 h-3.5" />
                                     </div>
                                 ) : isSelected ? (
-                                    <div className="bg-amber-400 text-white p-1.5 rounded-lg shadow-lg shadow-amber-500/20">
+                                    <div className="bg-primary text-primary-foreground p-1.5 rounded-lg shadow-lg shadow-primary/20">
                                         <Check className="w-3.5 h-3.5" />
                                     </div>
                                 ) : null}
                             </div>
 
                             <div className="relative z-10">
-                                <p className="text-[11px] font-black uppercase tracking-widest text-amber-900">{theme.name}</p>
-                                <p className="text-[9px] uppercase font-bold text-amber-700/40 leading-tight mt-1 mb-5">
+                                <p className="text-[11px] font-black uppercase tracking-widest text-foreground">{theme.name}</p>
+                                <p className="text-[9px] uppercase font-bold text-muted-foreground/60 leading-tight mt-1 mb-5">
                                     {isUnlocked ? theme.description : `Unlocks at DAY ${theme.minDays}`}
                                 </p>
 
@@ -78,7 +78,7 @@ export function ThemeSelector() {
                                     <Button
                                         size="sm"
                                         variant="ghost"
-                                        className="h-9 px-3 text-[9px] border border-amber-100 rounded-xl uppercase font-black tracking-widest hover:bg-amber-50 transition-all"
+                                        className="h-9 px-3 text-[9px] border border-border rounded-xl uppercase font-black tracking-widest hover:bg-secondary transition-all"
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             previewTheme(theme.id);
@@ -88,13 +88,13 @@ export function ThemeSelector() {
                                             });
                                         }}
                                     >
-                                        <Eye className="w-3 h-3 mr-1.5 text-amber-500" />
+                                        <Eye className="w-3 h-3 mr-1.5 text-primary" />
                                         Preview
                                     </Button>
                                     {isUnlocked && !isSelected && (
                                         <Button
                                             size="sm"
-                                            className="h-9 px-4 text-[9px] bg-amber-900 text-white hover:bg-amber-950 rounded-xl uppercase font-black tracking-widest transition-all shadow-md active:scale-95"
+                                            className="h-9 px-4 text-[9px] bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl uppercase font-black tracking-widest transition-all shadow-md active:scale-95"
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 handleSetTheme(theme.id, true);
@@ -108,7 +108,7 @@ export function ThemeSelector() {
 
                             {isSelected && (
                                 <div className="absolute top-0 right-0 p-2">
-                                    <Sparkles className="w-3 h-3 text-amber-400 animate-pulse" />
+                                    <Sparkles className="w-3 h-3 text-primary animate-pulse" />
                                 </div>
                             )}
                         </div>

@@ -12,22 +12,44 @@ export const THEMES: ThemeDefinition[] = [
         id: "fursan",
         name: "Fursan Royal",
         minDays: 0,
-        description: "The official Gold and Cream theme of the protocol.",
+        description: "The official Cream and Gold theme of the protocol.",
         preview: "#F5C842",
         vars: {
             "--background": "45 50% 96%",
-            "--foreground": "30 20% 15%",
+            "--foreground": "30 40% 20%",
             "--primary": "43 96% 56%",
-            "--primary-foreground": "30 20% 10%",
+            "--primary-foreground": "30 40% 15%",
             "--secondary": "39 35% 92%",
-            "--secondary-foreground": "30 20% 20%",
+            "--secondary-foreground": "30 40% 25%",
             "--border": "43 40% 75%",
             "--accent": "145 50% 40%",
             "--ring": "43 96% 56%",
             "--card": "45 40% 98%",
-            "--card-foreground": "30 20% 15%",
+            "--card-foreground": "30 40% 20%",
             "--muted": "45 30% 85%",
-            "--muted-foreground": "30 10% 40%"
+            "--muted-foreground": "30 30% 45%"
+        }
+    },
+    {
+        id: "fursan_dark",
+        name: "Fursan Dark",
+        minDays: 0,
+        description: "The classic Gold on Black protocol theme.",
+        preview: "#000000",
+        vars: {
+            "--background": "0 0% 0%",
+            "--foreground": "45 93% 47%",
+            "--primary": "45 93% 47%",
+            "--primary-foreground": "0 0% 0%",
+            "--secondary": "0 0% 12%",
+            "--secondary-foreground": "45 93% 47%",
+            "--border": "45 93% 47%",
+            "--accent": "45 93% 47%",
+            "--ring": "45 93% 47%",
+            "--card": "0 0% 5%",
+            "--card-foreground": "45 93% 47%",
+            "--muted": "0 0% 15%",
+            "--muted-foreground": "45 60% 40%"
         }
     },
     {

@@ -12,6 +12,7 @@ import Journal from "./pages/Journal";
 import Join from "./pages/Join";
 import Vitals from "./pages/Vitals";
 import Archives from "./pages/Archives";
+import Vanguard from "./pages/Vanguard";
 import NotFound from "./pages/NotFound";
 import { NostrProvider } from "./context/NostrContext";
 import { ThemeProvider } from "./context/ThemeContext";
@@ -30,6 +31,7 @@ const AnimatedRoutes = () => {
         <Route path='/journal' element={<Journal />} />
         <Route path='/vitals' element={<Vitals />} />
         <Route path='/archives' element={<Archives />} />
+        <Route path='/vanguard' element={<Vanguard />} />
         <Route path='/community' element={<Community />} />
         <Route path='/profile' element={<Profile />} />
         <Route path='/join' element={<Join />} />

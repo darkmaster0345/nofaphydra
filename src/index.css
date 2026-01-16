@@ -25,14 +25,14 @@
 
 @layer base {
   :root {
-    /* Fursan Royal - Light Gold/Cream Theme */
+    /* Fursan Royal - Warm Cream and Gold Theme */
     --background: 45 50% 96%;
-    /* Warm cream #FAF6F0 */
+    /* Warm Cream #FAF6F0 */
     --foreground: 30 20% 15%;
     /* Dark brown for text */
 
     --card: 45 40% 98%;
-    /* Off-white */
+    /* Off-white cards */
     --card-foreground: 30 20% 15%;
 
     --popover: 0 0% 100%;
@@ -134,11 +134,11 @@
 
   /* Improved Royal Gold Card - Fursan Elite Edition */
   .royal-card {
-    background: black;
-    border: 2px solid #b45309;
+    background: hsl(var(--card));
+    border: 2px solid hsl(var(--border));
     /* Metallic Bronze/Gold border */
     border-radius: 2rem;
-    box-shadow: 0 15px 40px -10px rgba(0, 0, 0, 1), 0 5px 20px -5px rgba(180, 83, 9, 0.2);
+    box-shadow: 0 15px 40px -10px hsl(var(--foreground) / 0.1), 0 5px 20px -5px hsl(var(--primary) / 0.2);
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     width: 95% !important;
     margin: 0 auto !important;
@@ -426,9 +426,9 @@
   }
 
   .btn-royal {
-    @apply bg-white border-2 border-amber-400/50;
-    @apply text-amber-800 font-bold;
-    @apply hover:bg-amber-50 hover:border-amber-400;
+    @apply bg-card border-2 border-primary/50;
+    @apply text-foreground font-bold;
+    @apply hover:bg-secondary hover:border-primary;
     @apply shadow-md hover:shadow-lg;
     @apply transition-all duration-400 cubic-bezier(0.4, 0, 0.2, 1);
   }
