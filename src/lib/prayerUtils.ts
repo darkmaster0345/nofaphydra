@@ -11,6 +11,11 @@ import { Geolocation } from '@capacitor/geolocation';
 const STORAGE_KEY = 'fursan_prayer_checkins';
 const METHOD_STORAGE_KEY = 'fursan_prayer_method';
 const MADHAB_STORAGE_KEY = 'fursan_prayer_madhab';
+const LOCATION_MODE_KEY = 'fursan_location_mode';
+const MANUAL_LAT_KEY = 'fursan_manual_lat';
+const MANUAL_LNG_KEY = 'fursan_manual_lng';
+const MANUAL_TZ_KEY = 'fursan_manual_timezone';
+const MANUAL_CITY_KEY = 'fursan_manual_city';
 
 export const CALCULATION_METHODS = [
     { id: 'MuslimWorldLeague', name: 'Muslim World League' },
@@ -86,23 +91,36 @@ export async function getVerifiedTime(): Promise<number> {
  */
 export async function getLocalPrayerTimes(date: Date = new Date()): Promise<PrayerTimes | null> {
     try {
-        const platform = (window as any).Capacitor?.getPlatform();
         let coords: { latitude: number; longitude: number } | null = null;
+        const locationMode = localStorage.getItem(LOCATION_MODE_KEY) || 'auto';
 
-        // Try to get GPS coordinates
-        try {
-            const position = await Geolocation.getCurrentPosition({
-                enableHighAccuracy: false,
-                timeout: 5000
-            });
-            coords = {
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude
-            };
-        } catch (e) {
-            console.warn('[Prayer] GPS access denied or failed, using default (Mecca)');
-            // Default to Mecca coordinates if GPS is unavailable
-            coords = { latitude: 21.4225, longitude: 39.8262 };
+        if (locationMode === 'manual') {
+            const lat = localStorage.getItem(MANUAL_LAT_KEY);
+            const lng = localStorage.getItem(MANUAL_LNG_KEY);
+            if (lat && lng) {
+                coords = {
+                    latitude: parseFloat(lat),
+                    longitude: parseFloat(lng)
+                };
+            }
+        }
+
+        if (!coords) {
+            // Try to get GPS coordinates
+            try {
+                const position = await Geolocation.getCurrentPosition({
+                    enableHighAccuracy: false,
+                    timeout: 5000
+                });
+                coords = {
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude
+                };
+            } catch (e) {
+                console.warn('[Prayer] GPS access denied or failed, using default (Mecca)');
+                // Default to Mecca coordinates if GPS is unavailable
+                coords = { latitude: 21.4225, longitude: 39.8262 };
+            }
         }
 
         const adhanCoords = new Coordinates(coords.latitude, coords.longitude);

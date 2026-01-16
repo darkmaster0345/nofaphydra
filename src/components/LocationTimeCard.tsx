@@ -7,31 +7,53 @@ export function LocationTimeCard() {
     const [location, setLocation] = useState("Sanctum");
 
     useEffect(() => {
+        const updateLocation = () => {
+            const mode = localStorage.getItem('fursan_location_mode') || 'auto';
+            if (mode === 'manual') {
+                const city = localStorage.getItem('fursan_manual_city');
+                if (city) setLocation(city);
+                else setLocation("Manual Sector");
+            } else {
+                // Get timezone-based location name
+                try {
+                    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                    if (tz) {
+                        const city = tz.split('/').pop()?.replace('_', ' ');
+                        if (city) setLocation(city);
+                    }
+                } catch (e) {
+                    console.error("Failed to detect timezone", e);
+                }
+            }
+        };
+
         // Update time every second
         const timer = setInterval(() => setTime(new Date()), 1000);
+        updateLocation();
 
-        // Get timezone-based location name
-        try {
-            const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            if (tz) {
-                // Asia/Karachi -> Karachi
-                const city = tz.split('/').pop()?.replace('_', ' ');
-                if (city) setLocation(city);
-            }
-        } catch (e) {
-            console.error("Failed to detect timezone", e);
-        }
+        window.addEventListener('fursan_location_settings_updated', updateLocation);
 
-        return () => clearInterval(timer);
+        return () => {
+            clearInterval(timer);
+            window.removeEventListener('fursan_location_settings_updated', updateLocation);
+        };
     }, []);
 
     const formatTime = (date: Date) => {
-        return date.toLocaleTimeString([], {
+        const mode = localStorage.getItem('fursan_location_mode') || 'auto';
+        const options: Intl.DateTimeFormatOptions = {
             hour: '2-digit',
             minute: '2-digit',
             second: '2-digit',
             hour12: true
-        });
+        };
+
+        if (mode === 'manual') {
+            const tz = localStorage.getItem('fursan_manual_timezone');
+            if (tz) options.timeZone = tz;
+        }
+
+        return date.toLocaleTimeString([], options);
     };
 
     const formatDate = (date: Date) => {

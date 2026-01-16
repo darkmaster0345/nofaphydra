@@ -168,11 +168,20 @@ export function useNotifications() {
     }
   };
 
-  // Reschedule whenever the app is opened to keep the window moving forward
+  // Reschedule whenever the app is opened or settings change
   useEffect(() => {
     if (enabled && (permission === "granted" || permission === "provisional")) {
       scheduleNotifications();
     }
+
+    const handleUpdate = () => {
+      if (enabled && (permission === "granted" || permission === "provisional")) {
+        scheduleNotifications();
+      }
+    };
+
+    window.addEventListener('fursan_prayer_settings_updated', handleUpdate);
+    return () => window.removeEventListener('fursan_prayer_settings_updated', handleUpdate);
   }, [enabled, permission, scheduleNotifications]);
 
   return {
