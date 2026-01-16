@@ -39,7 +39,7 @@ export function Header() {
 
       <div className="text-center mt-2 w-full px-4 space-y-3">
         <h1 className="text-4xl md:text-6xl font-black tracking-[-0.05em] text-foreground">
-          FURSAN<span className="text-primary ml-2">ELITE</span>
+          NOFAP<span className="text-primary ml-2">FURSAN</span>
         </h1>
         <div className="flex items-center justify-center gap-4">
           <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
