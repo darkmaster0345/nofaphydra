@@ -40,11 +40,15 @@ export function SettingsDialog() {
     });
 
     const handleExportKey = async () => {
-        const nsec = await exportKeys();
-        if (nsec) {
-            await navigator.clipboard.writeText(nsec);
-            toast.success("Private key (nsec) copied to clipboard. Secure it immediately.");
+        const keys = await exportKeys();
+        if (keys && keys.nsec) {
+            await navigator.clipboard.writeText(keys.nsec);
+            toast.success("Identity Secured", {
+                description: "NSEC Private Key copied to clipboard."
+            });
             luxuryClickVibrate();
+        } else {
+            toast.error("Export Failed", { description: "Could not retrieve identity keys." });
         }
     };
 
