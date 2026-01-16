@@ -71,6 +71,10 @@ export function calculateStreak(startDate: string | null): { days: number; hours
   }
 
   const start = new Date(startDate);
+  if (isNaN(start.getTime())) {
+    return { days: 0, hours: 0, minutes: 0 };
+  }
+
   const now = new Date();
   const diff = now.getTime() - start.getTime();
 
@@ -78,7 +82,7 @@ export function calculateStreak(startDate: string | null): { days: number; hours
   const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
   const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
 
-  return { days, hours, minutes };
+  return { days: Math.max(0, days), hours: Math.max(0, hours), minutes: Math.max(0, minutes) };
 }
 
 export function getAvatarLevel(days: number): AvatarLevel {

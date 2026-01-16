@@ -9,7 +9,7 @@ export function StatsCard({ data }: StatsCardProps) {
   const currentStreak = calculateStreak(data.startDate);
 
   // The effective longest streak is the max of the historic record and current progress
-  const effectiveLongest = Math.max(data.longestStreak, currentStreak.days);
+  const effectiveLongest = Math.max(data.longestStreak || 0, currentStreak.days || 0);
 
   // Goals logic
   const goals = [7, 14, 30, 60, 90, 180, 365];

@@ -85,8 +85,8 @@
     margin: 0;
     padding: 0;
     overflow-x: hidden;
-    overscroll-behavior-y: none;
-    /* Prevent browser bounce */
+    /* Prevent browser bounce but allow scrolling */
+    overscroll-behavior-y: auto;
     -webkit-user-select: none;
     /* Disable selection felt in long-pressing buttons */
     user-select: none;

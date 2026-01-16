@@ -190,6 +190,7 @@ export function useNotifications() {
     intervalHours,
     setIntervalHours,
     toggleNotifications,
+    showTestNotification,
     isSupported: Capacitor.isNativePlatform() || "Notification" in window,
   };
 }

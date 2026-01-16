@@ -23,7 +23,7 @@ export function FursanLogo({
 
     return (
         <img
-            src="/logo.jpg"
+            src="/logo.png"
             alt="Fursan Logo"
             width={size}
             height={size}

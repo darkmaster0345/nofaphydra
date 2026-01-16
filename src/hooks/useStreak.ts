@@ -13,31 +13,41 @@ export function useStreak() {
     const { saveStreak, fetchStreak, isSyncing, isOnline, pendingCount } = useNostrStreak();
 
     // Load local data
-    useEffect(() => {
-        setStreakData(getStreakData());
+    const loadLocalData = useCallback(async () => {
+        const data = await getStreakData();
+        setStreakData(data);
     }, []);
+
+    useEffect(() => {
+        loadLocalData();
+
+        // Listen for internal updates (e.g. from other tabs or components)
+        const handleUpdate = () => loadLocalData();
+        window.addEventListener('fursan_streak_updated', handleUpdate);
+        return () => window.removeEventListener('fursan_streak_updated', handleUpdate);
+    }, [loadLocalData]);
 
     // Sync from Nostr on load
     useEffect(() => {
         const sync = async () => {
             const remote = await fetchStreak();
             if (remote) {
-                const local = getStreakData();
+                const local = await getStreakData();
                 const newestTimestamp = remote.timestamp;
                 const localTimestamp = local.startDate ? new Date(local.startDate).getTime() : 0;
 
                 if (newestTimestamp > localTimestamp || remote.longestStreak > local.longestStreak) {
                     const merged: StreakData = {
                         startDate: remote.startDate,
-                        longestStreak: Math.max(local.longestStreak, remote.longestStreak),
-                        totalRelapses: Math.max(local.totalRelapses, remote.totalRelapses),
+                        longestStreak: Math.max(local.longestStreak || 0, remote.longestStreak || 0),
+                        totalRelapses: Math.max(local.totalRelapses || 0, remote.totalRelapses || 0),
                     };
                     setStreakData(merged);
-                    saveStreakData(merged);
+                    await saveStreakData(merged);
                 }
             }
         };
-        const timer = setTimeout(sync, 1000);
+        const timer = setTimeout(sync, 1500);
         return () => clearTimeout(timer);
     }, [fetchStreak]);
 

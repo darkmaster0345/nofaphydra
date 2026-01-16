@@ -2,10 +2,11 @@ import { Bell, Clock, Sparkles } from "lucide-react";
 import { useNotifications } from "@/hooks/useNotifications";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 export function NotificationSettings() {
-    const { enabled, intervalHours, setIntervalHours, isSupported } = useNotifications();
+    const { enabled, intervalHours, setIntervalHours, isSupported, showTestNotification } = useNotifications();
 
     if (!isSupported) return null;
 
@@ -56,10 +57,22 @@ export function NotificationSettings() {
                     <span>Low Frequency (24h)</span>
                 </div>
 
-                {!enabled && (
+                {!enabled ? (
                     <p className="text-[10px] text-rose-500 font-bold uppercase text-center mt-2 animate-pulse">
                         Enable Honor Protocol to adjust frequency
                     </p>
+                ) : (
+                    <div className="flex justify-center pt-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-10 px-6 rounded-xl border-amber-200 text-amber-800 hover:bg-amber-100/50 uppercase text-[10px] font-black tracking-widest shadow-sm group"
+                            onClick={showTestNotification}
+                        >
+                            <Sparkles className="w-3.5 h-3.5 mr-2 text-amber-500 group-hover:animate-spin" />
+                            Test Signal
+                        </Button>
+                    </div>
                 )}
             </div>
 

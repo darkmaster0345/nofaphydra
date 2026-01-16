@@ -130,7 +130,7 @@ const Profile = () => {
           </div>
         </div>
 
-        <div className="royal-card p-0 overflow-hidden page-transition" style={{ animationDelay: "0.15s" }}>
+        <div className="royal-card p-0 overflow-visible page-transition" style={{ animationDelay: "0.15s" }}>
           <div className="p-6 border-b border-border bg-gradient-to-r from-secondary/30 to-transparent">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
