@@ -8,7 +8,6 @@ import { StreakActions } from "@/components/StreakActions";
 import { CommunityButton } from "@/components/CommunityButton";
 import { NotificationToggle } from "@/components/NotificationToggle";
 import { BottomNav } from "@/components/BottomNav";
-import { ShareProgressCard } from "@/components/ShareProgressCard";
 import { SyncIndicator } from "@/components/SyncIndicator";
 import { ActivityHeatmap } from "@/components/DynamicComponents";
 import { ActivityHistory } from "@/components/ActivityHistory";
@@ -32,22 +31,8 @@ const Index = () => {
     handleReset
   } = useStreak();
 
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-
   useEffect(() => {
     console.log("[FURSAN] Index page mounted");
-    const loadProfile = async () => {
-      try {
-        const id = await generateOrLoadKeys();
-        if (id?.publicKey) {
-          const storedAvatar = localStorage.getItem(`nostr_avatar_${id.publicKey}`);
-          setAvatarUrl(storedAvatar);
-        }
-      } catch (e) {
-        console.error("Failed to load profile for sharing", e);
-      }
-    };
-    loadProfile();
   }, []);
 
   // Stability Check: Prevent white screen while streak logic initializes
@@ -98,9 +83,7 @@ const Index = () => {
               <NotificationToggle />
             </div>
 
-            <div className="stagger-item" style={{ animationDelay: '0.5s' }}>
-              <ShareProgressCard streak={liveStreak} avatarUrl={avatarUrl} />
-            </div>
+
           </div>
 
           <div className="space-y-6">

@@ -4,7 +4,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { toast } from "@/hooks/use-toast";
 
 export function NotificationToggle() {
-  const { enabled, toggleNotifications, isSupported, permission } = useNotifications();
+  const { enabled, toggleNotifications, isSupported, permission, intervalHours } = useNotifications();
 
   if (!isSupported) return null;
 
@@ -14,7 +14,7 @@ export function NotificationToggle() {
     if (result) {
       toast({
         title: "Notifications Enabled 🔔",
-        description: "You'll receive Islamic motivational reminders every 3 hours",
+        description: `You'll receive Islamic motivational reminders every ${intervalHours} hours`,
       });
     } else if (permission === "denied") {
       toast({
@@ -51,7 +51,7 @@ export function NotificationToggle() {
             </h3>
             <p className="text-[11px] text-amber-600/70 font-medium leading-tight truncate">
               {enabled
-                ? "Active • Adhan & Quran each 3h"
+                ? `Active • Adhan & Quran each ${intervalHours}h`
                 : "Enable Adhan alerts & daily wisdom"}
             </p>
           </div>

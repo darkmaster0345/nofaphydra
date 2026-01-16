@@ -5,11 +5,13 @@ import { MOTIVATIONAL_MESSAGES, getFormattedMotivation } from "@/data/motivation
 import { getPrayerNotificationTimes } from "@/lib/prayerUtils";
 
 const STORAGE_KEY = "fursan_notifications_enabled";
-const NOTIFICATION_INTERVAL_MS = 3 * 60 * 60 * 1000; // 3 hours
+const INTERVAL_STORAGE_KEY = "fursan_notification_interval_hours";
+const DEFAULT_INTERVAL_HOURS = 3;
 
 export function useNotifications() {
   const [permission, setPermission] = useState<string>("default");
   const [enabled, setEnabled] = useState(false);
+  const [intervalHours, setIntervalHoursState] = useState<number>(DEFAULT_INTERVAL_HOURS);
 
   const checkPermission = useCallback(async () => {
     if (Capacitor.isNativePlatform()) {
@@ -24,6 +26,11 @@ export function useNotifications() {
     checkPermission();
     const stored = localStorage.getItem(STORAGE_KEY);
     setEnabled(stored === "true");
+
+    const storedInterval = localStorage.getItem(INTERVAL_STORAGE_KEY);
+    if (storedInterval) {
+      setIntervalHoursState(parseInt(storedInterval));
+    }
   }, [checkPermission]);
 
   const scheduleNotifications = useCallback(async () => {
@@ -54,13 +61,14 @@ export function useNotifications() {
         });
       });
 
-      // 3. Schedule periodic motivational signals (every 3h)
+      // 3. Schedule periodic motivational signals
+      const intervalMs = intervalHours * 60 * 60 * 1000;
       for (let i = 1; i <= 10; i++) {
         notifications.push({
           title: "Fursan Shield ⚔️",
           body: MOTIVATIONAL_MESSAGES[Math.floor(Math.random() * MOTIVATIONAL_MESSAGES.length)],
           id: notificationId++,
-          schedule: { at: new Date(Date.now() + (NOTIFICATION_INTERVAL_MS * i)) },
+          schedule: { at: new Date(Date.now() + (intervalMs * i)) },
           smallIcon: "res://ic_stat_icon",
         });
       }
@@ -71,11 +79,19 @@ export function useNotifications() {
         console.log("[FURSAN] Web notifications scheduled (SIMULATED):", notifications);
       }
 
-      console.log(`[FURSAN] scheduled ${notifications.length} protocol signals (including Adhans).`);
+      console.log(`[FURSAN] scheduled ${notifications.length} protocol signals (Interval: ${intervalHours}h).`);
     } catch (err) {
       console.error("Failed to schedule notifications", err);
     }
-  }, []);
+  }, [intervalHours]);
+
+  const setIntervalHours = async (hours: number) => {
+    setIntervalHoursState(hours);
+    localStorage.setItem(INTERVAL_STORAGE_KEY, hours.toString());
+    if (enabled && (permission === "granted" || permission === "provisional")) {
+      await scheduleNotifications();
+    }
+  };
 
   const showTestNotification = useCallback(async () => {
     const quote = getFormattedMotivation();
@@ -159,6 +175,8 @@ export function useNotifications() {
   return {
     permission,
     enabled,
+    intervalHours,
+    setIntervalHours,
     toggleNotifications,
     isSupported: Capacitor.isNativePlatform() || "Notification" in window,
   };

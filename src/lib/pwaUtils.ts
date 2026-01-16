@@ -54,10 +54,12 @@ export async function registerPeriodicSync() {
       });
 
       if (status.state === 'granted') {
+        const storedInterval = localStorage.getItem("fursan_notification_interval_hours");
+        const intervalHours = storedInterval ? parseInt(storedInterval) : 3;
         await (registration as any).periodicSync.register('check-motivation', {
-          minInterval: 3 * 60 * 60 * 1000, // 3 hours
+          minInterval: intervalHours * 60 * 60 * 1000,
         });
-        console.log('Periodic sync registered');
+        console.log(`Periodic sync registered (Interval: ${intervalHours}h)`);
         return true;
       }
     } catch (error) {

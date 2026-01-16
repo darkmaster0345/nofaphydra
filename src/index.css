@@ -103,8 +103,7 @@
   body {
     @apply bg-background text-foreground font-body antialiased;
     font-family: var(--font-body);
-    background-color: #FAF6F0;
-    /* Fallback for smooth loading */
+    /* Removed hardcoded background-color to allow theme variables to work */
   }
 
   h1,
@@ -135,22 +134,22 @@
 
   /* Improved Royal Gold Card - more native elevation */
   .royal-card {
-    background: linear-gradient(145deg, #FFFFFF 0%, #FAF6F0 100%);
-    border: 1px solid rgba(245, 200, 66, 0.15);
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border) / 0.3);
     box-shadow:
       0 2px 8px -1px rgba(0, 0, 0, 0.05),
-      0 4px 20px -2px rgba(245, 200, 66, 0.08);
+      0 4px 20px -2px hsl(var(--primary) / 0.08);
     border-radius: 24px;
     /* Even more rounded for MD3 feel */
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .royal-card:hover {
-    border-color: rgba(245, 200, 66, 0.5);
+    border-color: hsl(var(--primary) / 0.5);
     box-shadow:
-      0 8px 30px rgba(245, 200, 66, 0.25),
+      0 8px 30px hsl(var(--primary) / 0.25),
       0 2px 4px rgba(0, 0, 0, 0.05),
-      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
   }
 
   .royal-card:active {
@@ -194,11 +193,11 @@
 
   /* Gold Glass Card Effect - for dark overlays */
   .gold-glass {
-    background: rgba(255, 255, 255, 0.8);
+    background: hsl(var(--background) / 0.8);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(245, 200, 66, 0.2);
-    box-shadow: 0 8px 32px rgba(245, 200, 66, 0.08);
+    border: 1px solid hsl(var(--primary) / 0.2);
+    box-shadow: 0 8px 32px hsl(var(--primary) / 0.08);
   }
 
   /* Legacy dark-glass support - now maps to gold-glass */
@@ -208,33 +207,32 @@
 
   /* Gold text styling */
   .gold-text {
-    color: #B8860B;
-    /* DarkGoldenRod for readability on light bg */
-    text-shadow: 0 0.5px 0 rgba(255, 255, 255, 0.8), 0 1px 2px rgba(184, 134, 11, 0.2);
+    color: hsl(var(--primary));
+    text-shadow: 0 0.5px 0 hsl(var(--background) / 0.8), 0 1px 2px hsl(var(--primary) / 0.2);
   }
 
   .cream-text {
-    color: #5D4E37;
+    color: hsl(var(--muted-foreground));
     /* Warm brown */
   }
 
   .ivory-text {
-    color: #4A3C2A;
+    color: hsl(var(--foreground) / 0.8);
   }
 
   /* Emerald accent text */
   .emerald-text {
-    color: #2E8B57;
+    color: hsl(var(--accent));
   }
 
   /* Fursan Logo Glow Effect */
   .fursan-logo-glow {
-    filter: drop-shadow(0 0 12px rgba(245, 200, 66, 0.4)) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
+    filter: drop-shadow(0 0 12px hsl(var(--primary) / 0.4)) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
   }
 
   /* Gold gradient text */
   .text-gradient-gold {
-    background: linear-gradient(135deg, #B8860B 0%, #F5C842 50%, #B8860B 100%);
+    background: linear-gradient(135deg, hsl(var(--primary-foreground)) 0%, hsl(var(--primary)) 50%, hsl(var(--primary-foreground)) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -242,7 +240,7 @@
   }
 
   .text-gradient-legendary {
-    background: linear-gradient(135deg, #DAA520 0%, #2E8B57 50%, #DAA520 100%);
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 50%, hsl(var(--primary)) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -255,16 +253,16 @@
   }
 
   ::-webkit-scrollbar-track {
-    background: rgba(245, 200, 66, 0.1);
+    background: hsl(var(--primary) / 0.1);
   }
 
   ::-webkit-scrollbar-thumb {
-    background: rgba(245, 200, 66, 0.4);
+    background: hsl(var(--primary) / 0.4);
     border-radius: 3px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(245, 200, 66, 0.6);
+    background: hsl(var(--primary) / 0.6);
   }
 
   /* Safe area for iOS notched devices */
@@ -283,7 +281,7 @@
     content: '';
     position: absolute;
     inset: -3px -8px;
-    background: linear-gradient(45deg, #DAA520, #2E8B57, #DAA520, #2E8B57);
+    background: linear-gradient(45deg, hsl(var(--primary)), hsl(var(--accent)), hsl(var(--primary)), hsl(var(--accent)));
     background-size: 400% 400%;
     z-index: -1;
     filter: blur(10px);
