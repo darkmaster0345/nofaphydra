@@ -1,7 +1,7 @@
 import { getStreakData, calculateStreak, getAvatarLevel } from "@/lib/streakUtils";
 import { useEffect, useState } from "react";
 import { FursanLogo } from "@/components/FursanLogo";
-import { Sparkles } from "lucide-react";
+import { Shield, Zap } from "lucide-react";
 
 export function Header() {
   const [level, setLevel] = useState<{ name: string, emoji: string } | null>(null);
@@ -19,36 +19,37 @@ export function Header() {
   }, []);
 
   return (
-    <header className="flex flex-col items-center justify-center gap-4 py-10 page-transition">
-      <div className="relative group p-2">
-        {/* Decorative ring around logo */}
-        <div className="absolute inset-0 border-4 border-amber-400/20 rounded-full animate-spin-slow" />
-        <div className="absolute inset-2 border-2 border-dashed border-amber-400/40 rounded-full" />
+    <header className="flex flex-col items-center justify-center gap-6 py-12 page-transition">
+      <div className="relative group p-4">
+        {/* Elite Metallic Rings */}
+        <div className="absolute inset-0 border-4 border-amber-500/10 rounded-full animate-spin-slow" />
+        <div className="absolute inset-2 border border-dashed border-amber-600/20 rounded-full" />
+        <div className="absolute -inset-1 border-2 border-amber-900/40 rounded-full blur-[1px]" />
 
-        <div className="relative z-10 p-2 bg-white rounded-full shadow-xl shadow-amber-500/10 transition-all duration-700 group-hover:shadow-amber-500/30">
-          <FursanLogo className="w-20 h-20 md:w-24 md:h-24 fursan-logo-glow" />
+        <div className="relative z-10 p-3 bg-black rounded-full border-2 border-amber-800 shadow-[0_0_40px_rgba(217,119,6,0.1)] transition-all duration-700 group-hover:shadow-[0_0_60px_rgba(217,119,6,0.2)]">
+          <FursanLogo className="w-24 h-24 fursan-logo-glow" />
         </div>
 
         {level && (
-          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-500 to-yellow-500 text-white text-[10px] font-black px-4 py-1 rounded-full shadow-lg border-2 border-white animate-in fade-in zoom-in duration-700 whitespace-nowrap">
-            {level.emoji} {level.name.toUpperCase()}
+          <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-black text-amber-500 text-[10px] font-black px-6 py-2 rounded-xl shadow-2xl border-2 border-amber-900 animate-in fade-in zoom-in duration-700 whitespace-nowrap tracking-widest uppercase">
+            {level.name}
           </div>
         )}
       </div>
 
-      <div className="text-center mt-4 w-full px-4">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-display tracking-[0.15em] font-bold break-words">
-          <span className="text-amber-900 inline-block">FURSAN</span>
-          <span className="text-gradient-gold ml-2 inline-block">PROTOCOL</span>
+      <div className="text-center mt-2 w-full px-4 space-y-3">
+        <h1 className="text-4xl md:text-6xl font-black tracking-[-0.05em] text-white">
+          FURSAN<span className="text-amber-500 ml-2">ELITE</span>
         </h1>
-        <div className="flex items-center justify-center gap-2 mt-2 flex-wrap">
-          <Sparkles className="w-3 h-3 text-amber-500 flex-shrink-0" />
-          <p className="text-[9px] sm:text-[10px] tracking-[0.2em] sm:tracking-[0.4em] text-amber-800/40 uppercase font-bold text-center leading-relaxed">
-            Protocol Active // V2.5 Elite
+        <div className="flex items-center justify-center gap-4">
+          <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-amber-900 to-transparent" />
+          <p className="text-[9px] tracking-[0.4em] text-amber-500/60 uppercase font-black flex items-center gap-2">
+            <Shield className="w-3 h-3" /> Protocol V2.5 <Zap className="w-3 h-3" />
           </p>
-          <Sparkles className="w-3 h-3 text-amber-500 flex-shrink-0" />
+          <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-amber-900 to-transparent" />
         </div>
       </div>
     </header>
   );
 }
+

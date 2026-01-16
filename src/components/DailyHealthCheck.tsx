@@ -33,6 +33,17 @@ export function DailyHealthCheck({ onUpdate, days = 0, showPillar = 'all' }: Dai
     const [tempNpt, setTempNpt] = useState<boolean | null>(null);
     const [isEmergencyLocked, setIsEmergencyLocked] = useState(false);
     const [isCompletionConfirmed, setIsCompletionConfirmed] = useState(false);
+    const [unlockTimer, setUnlockTimer] = useState(5);
+
+    useEffect(() => {
+        let timer: any;
+        if (isEmergencyLocked && unlockTimer > 0) {
+            timer = setInterval(() => {
+                setUnlockTimer(prev => prev - 1);
+            }, 1000);
+        }
+        return () => clearInterval(timer);
+    }, [isEmergencyLocked, unlockTimer]);
 
     useEffect(() => {
         loadHealthData();
@@ -115,6 +126,7 @@ export function DailyHealthCheck({ onUpdate, days = 0, showPillar = 'all' }: Dai
             if (entry.mindset === 'stormy') {
                 localStorage.removeItem('fursan_stormy_resolved');
                 setIsEmergencyLocked(true);
+                setUnlockTimer(5);
             }
             if (onUpdate) onUpdate();
 
@@ -192,19 +204,25 @@ export function DailyHealthCheck({ onUpdate, days = 0, showPillar = 'all' }: Dai
     if (isEmergencyLocked) {
         return (
             <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl flex items-center justify-center p-6 page-transition">
-                <div className="royal-card bg-white w-full max-w-md p-8 text-center space-y-6">
+                <div className="royal-card bg-black w-full max-w-md p-8 text-center space-y-6 border-2 border-red-900/50">
                     <CloudLightning className="w-16 h-16 mx-auto text-red-600 animate-pulse" />
-                    <h2 className="text-3xl font-black text-amber-900 uppercase tracking-tighter">Mission At Risk</h2>
-                    <div className="p-4 rounded-xl bg-red-50 border border-red-100 space-y-3">
-                        <p className="text-sm font-bold text-red-900 leading-relaxed uppercase tracking-widest">
-                            Execute Protocol: Cold Shower or 50 Pushups Immediately.
+                    <h2 className="text-3xl font-black text-white uppercase tracking-tighter">Mission At Risk</h2>
+                    <div className="p-4 rounded-xl bg-red-900/20 border border-red-900/50 space-y-3">
+                        <p className="text-sm font-bold text-red-100 leading-relaxed uppercase tracking-widest">
+                            System Overheat. Execute 50 Pushups or Cold Shower immediately.
                         </p>
                     </div>
                     <div className="flex items-center gap-3 justify-center p-3">
-                        <input type="checkbox" id="confirm-emergency" checked={isCompletionConfirmed} onChange={(e) => setIsCompletionConfirmed(e.target.checked)} className="w-5 h-5 accent-amber-900" />
-                        <label htmlFor="confirm-emergency" className="text-xs font-black uppercase text-amber-800">I have completed the recovery protocol</label>
+                        <input type="checkbox" id="confirm-emergency" checked={isCompletionConfirmed} onChange={(e) => setIsCompletionConfirmed(e.target.checked)} className="w-5 h-5 accent-red-600" />
+                        <label htmlFor="confirm-emergency" className="text-xs font-black uppercase text-red-100/60">I have completed the recovery protocol</label>
                     </div>
-                    <Button disabled={!isCompletionConfirmed} onClick={resolveEmergency} className="w-full h-14 bg-amber-900 text-white font-black uppercase tracking-[0.2em] rounded-xl shadow-2xl disabled:opacity-30">Unlock Dashboard</Button>
+                    <Button
+                        disabled={!isCompletionConfirmed || unlockTimer > 0}
+                        onClick={resolveEmergency}
+                        className="w-full h-14 bg-red-600 text-white font-black uppercase tracking-[0.2em] rounded-xl shadow-2xl disabled:opacity-30 transition-all active:scale-95"
+                    >
+                        {unlockTimer > 0 ? `Please Wait (${unlockTimer}s)` : "Unlock Dashboard"}
+                    </Button>
                 </div>
             </div>
         );
