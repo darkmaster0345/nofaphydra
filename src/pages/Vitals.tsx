@@ -10,7 +10,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, AreaChart, Area, Label, ReferenceDot
 } from "recharts";
-import { Heart, Brain, Activity, ShieldCheck, Info, Flame, Target, Sparkles } from "lucide-react";
+import { Heart, Brain, Activity, ShieldCheck, Info, Flame, Target, Sparkles, Lock } from "lucide-react";
+import { PrivacySettings } from "@/components/PrivacySettings";
+import { NotificationToggle } from "@/components/NotificationToggle";
 import { format, subDays, startOfDay, isSameDay, isAfter } from "date-fns";
 import { motion } from "framer-motion";
 import {
@@ -112,17 +114,37 @@ export default function Vitals() {
                 <header className="mb-8 mt-4 page-transition" style={{ animationDelay: "0.1s" }}>
                     <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center shadow-lg shadow-amber-500/20">
-                            <Activity className="w-6 h-6 text-white" />
+                            <Lock className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                            <h1 className="text-3xl font-display text-amber-900 tracking-tight">Biological Vitals</h1>
-                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-600/50">Restoration of Fitra</p>
+                            <h1 className="text-3xl font-display text-amber-900 tracking-tight">The Fortress</h1>
+                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-600/50">Vitals & Privacy Protocol</p>
                         </div>
                     </div>
                 </header>
 
                 <div className="mb-8 page-transition" style={{ animationDelay: "0.15s" }}>
                     <DailyHealthCheck onUpdate={handleRefresh} days={currentLiveDays} />
+                </div>
+
+                <div className="mb-8 page-transition" style={{ animationDelay: "0.2s" }}>
+                    <div className="royal-card p-6 space-y-6">
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-2 text-amber-800 font-bold text-sm uppercase tracking-widest px-1">
+                                <ShieldCheck className="w-4 h-4 text-amber-500" />
+                                Privacy Protocol
+                            </div>
+                            <PrivacySettings />
+                        </div>
+
+                        <div className="space-y-4 pt-4 border-t border-amber-100">
+                            <div className="flex items-center gap-2 text-amber-800 font-bold text-sm uppercase tracking-widest px-1">
+                                <Lock className="w-4 h-4 text-amber-500" />
+                                Notification Protocol
+                            </div>
+                            <NotificationToggle />
+                        </div>
+                    </div>
                 </div>
 
                 <div className="grid gap-8">

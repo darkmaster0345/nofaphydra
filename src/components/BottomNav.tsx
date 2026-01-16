@@ -1,12 +1,10 @@
-import { Home, Users, User, PenLine, Activity } from "lucide-react";
+import { Shield, Lock, Library } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 
 const navItems = [
-  { to: "/", icon: Home, label: "Home" },
-  { to: "/journal", icon: PenLine, label: "Journal" },
-  { to: "/vitals", icon: Activity, label: "Vitals" },
-  { to: "/community", icon: Users, label: "Community" },
-  { to: "/profile", icon: User, label: "Profile" },
+  { to: "/", icon: Shield, label: "Frontline" },
+  { to: "/vitals", icon: Lock, label: "Fortress" },
+  { to: "/archives", icon: Library, label: "Archives" },
 ];
 
 export function BottomNav() {

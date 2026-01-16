@@ -56,69 +56,31 @@ const Index = () => {
           />
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          <div className="space-y-6">
-            <div className="stagger-item" style={{ animationDelay: '0.05s' }}>
-              <LocationTimeCard />
-            </div>
-
-            <div className="stagger-item" style={{ animationDelay: '0.1s' }}>
-              <StreakCounter
-                startDate={streakData?.startDate}
-                isSyncing={isSyncing}
-                isOnline={isOnline}
-                pendingCount={pendingCount}
-              />
-            </div>
-
-            <div className="stagger-item" style={{ animationDelay: '0.2s' }}>
-              <DailyHealthCheck days={liveStreak?.days || 0} />
-            </div>
-
-            <div className="stagger-item" style={{ animationDelay: '0.3s' }}>
-              <MotivationCard />
-            </div>
-
-            <div className="stagger-item" style={{ animationDelay: '0.4s' }}>
-              <NotificationToggle />
-            </div>
-
-
+        <div className="flex flex-col gap-6 max-w-lg mx-auto">
+          <div className="stagger-item" style={{ animationDelay: '0.05s' }}>
+            <LocationTimeCard />
           </div>
 
-          <div className="space-y-6">
-            <div className="stagger-item" style={{ animationDelay: '0.15s' }}>
-              <AvatarDisplay days={liveStreak?.days || 0} />
-            </div>
-
-            <div className="stagger-item" style={{ animationDelay: '0.25s' }}>
-              <PrayerCheckin />
-            </div>
-
-            <div className="stagger-item" style={{ animationDelay: '0.35s' }}>
-              <StatsCard data={streakData} />
-            </div>
-
-            <div className="stagger-item" style={{ animationDelay: '0.45s' }}>
-              <CommunityButton />
-            </div>
-
-            <div className="stagger-item" style={{ animationDelay: '0.55s' }}>
-              <ActivityHeatmap startDate={streakData?.startDate} />
-            </div>
-
-            <div className="stagger-item" style={{ animationDelay: '0.65s' }}>
-              <ActivityHistory />
-            </div>
+          <div className="stagger-item" style={{ animationDelay: '0.1s' }}>
+            <StreakCounter
+              startDate={streakData?.startDate}
+              isSyncing={isSyncing}
+              isOnline={isOnline}
+              pendingCount={pendingCount}
+            />
           </div>
-        </div>
 
-        <div className="mt-8">
-          <StreakActions
-            isActive={isActive}
-            onStart={handleStart}
-            onReset={handleReset}
-          />
+          <div className="stagger-item" style={{ animationDelay: '0.2s' }}>
+            <PrayerCheckin />
+          </div>
+
+          <div className="stagger-item mt-4" style={{ animationDelay: '0.3s' }}>
+            <StreakActions
+              isActive={isActive}
+              onStart={handleStart}
+              onReset={handleReset}
+            />
+          </div>
         </div>
 
         <footer className="mt-12 pb-20 text-center text-muted-foreground text-sm">
